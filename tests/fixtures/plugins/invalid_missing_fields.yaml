@@ -1,0 +1,4 @@
+# Invalid plugin manifest - missing required fields
+id: invalid-plugin
+name: Invalid Plugin
+# Missing: version, type, api_version, description
