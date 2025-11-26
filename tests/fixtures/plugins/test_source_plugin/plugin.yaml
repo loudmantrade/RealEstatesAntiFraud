@@ -1,0 +1,18 @@
+id: plugin-source-test-cian
+name: Test Cian Source Plugin
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Test source plugin for unit testing
+
+author:
+  name: Test Author
+  email: test@example.com
+
+entrypoint:
+  module: cian_plugin
+  class: CianSourcePlugin
+
+capabilities:
+  - incremental_scraping
+  - real_time_updates

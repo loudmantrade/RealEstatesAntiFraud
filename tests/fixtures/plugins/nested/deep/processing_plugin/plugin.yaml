@@ -1,0 +1,10 @@
+id: plugin-processing-nested
+name: Nested Processing Plugin
+version: 2.0.0
+type: processing
+api_version: "1.0"
+description: Plugin in nested directory for discovery testing
+
+entrypoint:
+  module: processor
+  class: ProcessingPlugin

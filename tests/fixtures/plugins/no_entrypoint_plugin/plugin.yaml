@@ -1,0 +1,6 @@
+id: plugin-source-missing-entrypoint
+name: Plugin Without Entrypoint
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Test plugin without entrypoint field

@@ -1,0 +1,10 @@
+id: plugin-source-bad-entrypoint
+name: Plugin With Bad Entrypoint
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Test plugin with non-existent entrypoint
+
+entrypoint:
+  module: nonexistent_module
+  class: NonExistentClass
