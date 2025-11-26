@@ -936,3 +936,293 @@ realestate-cli plugin publish plugin-source-example-1.0.0.zip \
 - **GitHub**: https://github.com/yourorg/RealEstatesAntiFraud
 - **Discord**: https://discord.gg/realestate-antifraud
 - **Email**: plugins@realestatesantifraud.com
+
+## Plugin Discovery and Loading
+
+### Overview
+
+The core system automatically discovers and loads plugins from the `plugins/` directory using a filesystem-based discovery mechanism. This enables hot-drop functionality where new plugins can be added without restarting the application.
+
+### Discovery Process
+
+1. **Recursive Scanning**: The `PluginManager.discover_plugins()` method recursively scans the `plugins/` directory for `plugin.yaml` files
+2. **Manifest Validation**: Each discovered manifest is validated against the JSON Schema specification
+3. **Error Handling**: Invalid manifests are logged but don't stop discovery of other plugins
+
+**Example:**
+```python
+from pathlib import Path
+from core.plugin_manager import PluginManager
+
+manager = PluginManager()
+manifests = manager.discover_plugins(Path("plugins"))
+print(f"Discovered {len(manifests)} valid plugins")
+```
+
+### Loading Process
+
+The `PluginManager.load_plugins()` method performs the following steps for each discovered plugin:
+
+1. **Validate Manifest**: Uses `validate_manifest()` from validators module
+2. **Register Metadata**: Creates `PluginMetadata` and registers with manager
+3. **Dynamic Import**: Imports Python module specified in `entrypoint.module`
+4. **Instantiate Class**: Creates instance of class specified in `entrypoint.class`
+5. **Error Recovery**: Failed plugins are logged and skipped, allowing others to load
+
+**Loading from directory:**
+```python
+loaded, failed = manager.load_plugins(plugins_dir=Path("plugins"))
+print(f"Loaded: {len(loaded)}, Failed: {len(failed)}")
+```
+
+**Loading specific manifests:**
+```python
+manifests = [
+    Path("plugins/cian-source/plugin.yaml"),
+    Path("plugins/fraud-detector/plugin.yaml"),
+]
+loaded, failed = manager.load_plugins(manifest_paths=manifests)
+```
+
+### Hot-Drop Support
+
+Plugins can be added to the `plugins/` directory while the system is running:
+
+1. **Copy Plugin**: Add plugin directory with `plugin.yaml` to `plugins/`
+2. **Trigger Discovery**: Call `discover_plugins()` again to find new plugin
+3. **Load Plugin**: Call `load_plugins()` to instantiate the new plugin
+
+**Example hot-drop:**
+```python
+# Initial load
+manager.load_plugins(plugins_dir=Path("plugins"))
+
+# ... later, after adding new plugin directory ...
+
+# Discover new plugins
+new_manifests = manager.discover_plugins(Path("plugins"))
+manager.load_plugins(manifest_paths=new_manifests)
+```
+
+### Plugin Directory Structure
+
+```
+plugins/
+├── cian-source/
+│   ├── plugin.yaml          # Required: manifest file
+│   ├── cian_scraper.py      # Plugin implementation
+│   ├── __init__.py          # Optional: package marker
+│   └── requirements.txt     # Optional: plugin dependencies
+│
+├── avito-source/
+│   ├── plugin.yaml
+│   └── avito_scraper.py
+│
+└── fraud-detector/
+    ├── plugin.yaml
+    ├── detector.py
+    └── models/
+        └── fraud_model.pkl
+```
+
+### Entrypoint Configuration
+
+The manifest `entrypoint` field specifies how to load the plugin:
+
+```yaml
+entrypoint:
+  module: cian_scraper      # Python module name (without .py)
+  class: CianSourcePlugin   # Plugin class name
+```
+
+**Requirements:**
+- Module must be importable from plugin directory
+- Class must implement appropriate plugin interface (SourcePlugin, ProcessingPlugin, etc.)
+- Class must implement all required abstract methods from base interface
+
+### Error Handling
+
+The plugin loading system handles various error scenarios gracefully:
+
+| Error Type | Behavior | Logged |
+|------------|----------|--------|
+| Invalid manifest | Plugin skipped | ✓ ERROR |
+| Missing entrypoint | Plugin registered, not instantiated | ✓ WARNING |
+| Import error | Plugin failed, removed from registry | ✓ ERROR |
+| Instantiation error | Plugin failed, removed from registry | ✓ ERROR |
+| Missing abstract methods | Plugin failed, removed from registry | ✓ ERROR |
+
+**Checking for errors:**
+```python
+loaded, failed = manager.load_plugins(plugins_dir=Path("plugins"))
+
+for manifest_path, exception in failed:
+    print(f"Failed to load {manifest_path}: {exception}")
+```
+
+### Logging
+
+Plugin discovery and loading emit detailed logs at various levels:
+
+- **DEBUG**: Module imports, class lookups, detailed operation steps
+- **INFO**: Successful discovery, registration, instantiation
+- **WARNING**: Missing entrypoints, skipped operations
+- **ERROR**: Validation failures, import errors, instantiation failures
+
+**Configure logging:**
+```python
+import logging
+
+# Enable detailed plugin loading logs
+logging.getLogger('core.plugin_manager').setLevel(logging.DEBUG)
+```
+
+### Troubleshooting
+
+#### Plugin Not Discovered
+
+**Symptom**: Plugin directory exists but not found by discovery
+
+**Solutions:**
+- Ensure `plugin.yaml` file exists in plugin directory
+- Verify manifest passes JSON Schema validation
+- Check file permissions (readable by application)
+- Look for ERROR logs indicating validation failures
+
+#### Module Import Error
+
+**Symptom**: `ModuleNotFoundError` or `ImportError` during loading
+
+**Solutions:**
+- Verify `entrypoint.module` matches Python file name (without `.py`)
+- Ensure plugin directory is properly structured
+- Check that `core` package is in sys.path for interface imports
+- Install any plugin-specific dependencies
+
+#### Class Not Found
+
+**Symptom**: `AttributeError: module has no attribute 'ClassName'`
+
+**Solutions:**
+- Verify `entrypoint.class` matches actual class name (case-sensitive)
+- Ensure class is defined at module level (not nested)
+- Check for syntax errors in plugin Python file
+
+#### Abstract Methods Error
+
+**Symptom**: `TypeError: Can't instantiate abstract class...`
+
+**Solutions:**
+- Implement all required abstract methods from base interface
+- Check interface documentation for required methods
+- Ensure method signatures match interface definition
+
+#### Plugin Loads But Doesn't Work
+
+**Symptom**: Plugin instantiates but fails during operation
+
+**Solutions:**
+- Check plugin implementation for bugs
+- Verify `validate_config()` method accepts configuration
+- Review plugin-specific logs for runtime errors
+- Test plugin in isolation before deployment
+
+### Best Practices
+
+1. **Validate Early**: Test plugin manifest with `validate_manifest()` before deployment
+2. **Handle Dependencies**: Include `requirements.txt` for plugin-specific dependencies
+3. **Implement Fully**: Ensure all abstract methods are implemented before testing
+4. **Log Appropriately**: Use Python logging module for plugin-specific logs
+5. **Test Isolation**: Test plugins independently before adding to plugins/ directory
+6. **Version Carefully**: Use semantic versioning in manifest `version` field
+7. **Document Configuration**: Provide clear documentation for plugin configuration options
+
+### Example Complete Plugin
+
+**plugin.yaml:**
+```yaml
+id: plugin-source-cian
+name: Cian.ru Source Plugin
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Scrapes real estate listings from Cian.ru
+
+author:
+  name: Development Team
+  email: dev@example.com
+
+entrypoint:
+  module: cian_scraper
+  class: CianSourcePlugin
+
+capabilities:
+  - incremental_scraping
+  - real_time_updates
+
+dependencies:
+  python_version: ">=3.10"
+  core_version: ">=1.0.0"
+```
+
+**cian_scraper.py:**
+```python
+"""Cian.ru source plugin implementation."""
+import logging
+from typing import Dict, List, Optional
+from core.interfaces.source_plugin import SourcePlugin
+from core.models.udm import UnifiedListing
+
+logger = logging.getLogger(__name__)
+
+
+class CianSourcePlugin(SourcePlugin):
+    """Source plugin for scraping Cian.ru."""
+    
+    def __init__(self):
+        """Initialize plugin."""
+        self.initialized = True
+        logger.info("CianSourcePlugin initialized")
+    
+    def configure(self, config: Dict) -> None:
+        """Configure plugin with settings."""
+        self.api_key = config.get("api_key")
+        self.base_url = config.get("base_url", "https://cian.ru")
+        logger.info(f"Configured with base_url: {self.base_url}")
+    
+    def validate_listing(self, listing: Dict) -> bool:
+        """Validate scraped listing data."""
+        required_fields = ["id", "title", "price"]
+        return all(field in listing for field in required_fields)
+    
+    def scrape(self, params: Optional[Dict] = None) -> List[UnifiedListing]:
+        """Scrape multiple listings."""
+        # Implementation here
+        logger.info("Scraping listings from Cian.ru")
+        return []
+    
+    def scrape_single(self, listing_id: str) -> Optional[UnifiedListing]:
+        """Scrape single listing by ID."""
+        # Implementation here
+        logger.info(f"Scraping listing {listing_id}")
+        return None
+    
+    def get_metadata(self) -> Dict:
+        """Return plugin metadata."""
+        return {
+            "source": "cian.ru",
+            "version": "1.0.0",
+            "supported_cities": ["moscow", "saint_petersburg"]
+        }
+    
+    def get_statistics(self) -> Dict:
+        """Return scraping statistics."""
+        return {
+            "total_scraped": 0,
+            "last_scrape": None,
+            "errors": 0
+        }
+```
+
+This plugin is now ready to be placed in `plugins/cian-source/` and will be automatically discovered and loaded by the system.
+
