@@ -1,0 +1,28 @@
+# Valid source plugin manifest for testing
+id: plugin-source-test-scraper
+name: Test Scraper Plugin
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Test plugin for validation
+
+author:
+  name: Test Author
+  email: test@example.com
+
+dependencies:
+  core_version: ">=1.0.0"
+  python_version: ">=3.10"
+
+capabilities:
+  - incremental_scraping
+  - batch_processing
+
+resources:
+  memory_mb: 256
+  cpu_cores: 1
+  disk_mb: 100
+
+entrypoint:
+  module: test_scraper.plugin
+  class: TestScraperPlugin
