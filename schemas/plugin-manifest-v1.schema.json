@@ -1,0 +1,381 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.realestates.dev/plugin-manifest/v1.0/schema.json",
+  "title": "Plugin Manifest Schema v1.0",
+  "description": "JSON Schema for RealEstatesAntiFraud plugin manifest files (plugin.yaml)",
+  "type": "object",
+  "required": ["id", "name", "version", "type", "api_version", "description"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^plugin-(source|processing|detection|search|display)-[a-z0-9-]+$",
+      "description": "Unique plugin identifier in kebab-case format"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable plugin name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-z0-9.-]+)?(\\+[a-z0-9.-]+)?$",
+      "description": "Semantic version (semver 2.0.0)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["source", "processing", "detection", "search", "display"],
+      "description": "Plugin type"
+    },
+    "api_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Manifest API version"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Brief plugin description"
+    },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": ["name"]
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "SPDX license identifier or 'Proprietary'"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "Git repository URL"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Documentation homepage URL"
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "core_version": {
+          "type": "string",
+          "description": "Core system version constraint (semver range)"
+        },
+        "python_version": {
+          "type": "string",
+          "description": "Python version constraint (semver range)"
+        },
+        "plugins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "description": "Plugin version constraint (semver range)"
+          }
+        },
+        "system": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": ["name"]
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "Path to JSON Schema file for config validation"
+        },
+        "required_keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "defaults": {
+          "type": "object",
+          "description": "Default configuration values"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "incremental_scraping",
+          "real_time_updates",
+          "batch_processing",
+          "pagination",
+          "authentication_required",
+          "async_processing",
+          "batch_operations",
+          "parallel_safe",
+          "stateful",
+          "ml_model",
+          "rule_based",
+          "real_time",
+          "explainable",
+          "full_text",
+          "faceted_search",
+          "geo_search",
+          "fuzzy_matching",
+          "autocomplete",
+          "templating",
+          "custom_css",
+          "interactive",
+          "export_formats",
+          "caching",
+          "responsive"
+        ]
+      },
+      "uniqueItems": true,
+      "description": "List of plugin capabilities"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16384,
+          "description": "Expected memory usage in megabytes"
+        },
+        "cpu_cores": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 32.0,
+          "multipleOf": 0.1,
+          "description": "CPU cores required"
+        },
+        "disk_mb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 102400,
+          "description": "Persistent disk space in megabytes"
+        },
+        "network": {
+          "type": "string",
+          "enum": ["none", "low", "medium", "high"],
+          "description": "Network usage level"
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "on_install": {
+          "type": "string",
+          "description": "Script path to run after installation"
+        },
+        "on_enable": {
+          "type": "string",
+          "description": "Script path to run when enabled"
+        },
+        "on_disable": {
+          "type": "string",
+          "description": "Script path to run when disabled"
+        },
+        "on_uninstall": {
+          "type": "string",
+          "description": "Script path to run before removal"
+        },
+        "on_configure": {
+          "type": "string",
+          "description": "Script path to run after config changes"
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric name in snake_case"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["counter", "gauge", "histogram", "summary"],
+            "description": "Metric type"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": ["name", "type", "description"]
+      }
+    },
+    "health": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "Health check endpoint path"
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600,
+          "default": 60,
+          "description": "Check interval in seconds"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 5,
+          "description": "Request timeout in seconds"
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 3,
+          "description": "Number of retries"
+        }
+      },
+      "required": ["endpoint"]
+    },
+    "entrypoint": {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "pattern": "^[a-z_][a-z0-9_.]*$",
+          "description": "Python module path"
+        },
+        "class": {
+          "type": "string",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$",
+          "description": "Plugin class name"
+        }
+      },
+      "required": ["module", "class"]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "uniqueItems": true,
+      "maxItems": 20,
+      "description": "Searchable tags"
+    },
+    "compatibility": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["linux", "darwin", "windows"]
+          },
+          "uniqueItems": true
+        },
+        "architectures": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["x86_64", "arm64", "aarch64"]
+          },
+          "uniqueItems": true
+        },
+        "exclude_versions": {
+          "type": "object",
+          "properties": {
+            "core": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "description": "Path to plugin icon (PNG, 128x128)"
+        },
+        "screenshots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "uniqueItems": true,
+          "maxItems": 20
+        },
+        "category": {
+          "type": "string",
+          "enum": ["sources", "processing", "detection", "search", "display", "utilities"]
+        },
+        "mature": {
+          "type": "boolean",
+          "default": false,
+          "description": "Production-ready flag"
+        }
+      }
+    }
+  }
+}

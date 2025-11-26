@@ -1,0 +1,7 @@
+# Invalid plugin manifest - bad ID pattern
+id: bad_id_format  # Should be plugin-{type}-{name}
+name: Bad ID Plugin
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Plugin with invalid ID format
