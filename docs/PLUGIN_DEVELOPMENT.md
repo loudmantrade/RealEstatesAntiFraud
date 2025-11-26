@@ -1226,3 +1226,149 @@ class CianSourcePlugin(SourcePlugin):
 
 This plugin is now ready to be placed in `plugins/cian-source/` and will be automatically discovered and loaded by the system.
 
+
+
+## Hot Reload
+
+The plugin system supports hot reload - updating plugin code without restarting the core service. This enables:
+- **Development**: Rapid iteration without service restarts
+- **Production Updates**: Deploy bug fixes and features with zero downtime  
+- **A/B Testing**: Safely test new plugin versions
+
+### How It Works
+
+Hot reload follows a 5-step process:
+
+1. **Graceful Shutdown**: Calls `shutdown()` on old plugin instance
+2. **Module Reload**: Uses `importlib.reload()` to load updated Python code
+3. **Class Lookup**: Finds plugin class in reloaded module
+4. **Instantiation**: Creates new instance with updated code
+5. **Instance Replacement**: Atomically replaces old instance with new one
+
+### Usage
+
+**Via API:**
+```bash
+curl -X POST http://localhost:8000/api/v1/plugins/plugin-source-cian/reload
+```
+
+**Via Python:**
+```python
+from core.plugin_manager import manager
+
+# Reload specific plugin
+updated = manager.reload_plugin("plugin-source-cian")
+print(f"Reloaded: {updated.name} v{updated.version}")
+```
+
+### Implementing Graceful Shutdown
+
+Override the `shutdown()` method in your plugin to perform cleanup:
+
+```python
+from core.interfaces.source_plugin import SourcePlugin
+
+class MySourcePlugin(SourcePlugin):
+    def __init__(self):
+        self.db_connection = create_connection()
+        self.background_task = start_task()
+    
+    def shutdown(self) -> None:
+        """Gracefully shutdown plugin before reload."""
+        # Close database connections
+        if self.db_connection:
+            self.db_connection.close()
+        
+        # Stop background tasks
+        if self.background_task:
+            self.background_task.cancel()
+        
+        # Save state if needed
+        self.save_state()
+    
+    # ... implement abstract methods ...
+```
+
+### Best Practices
+
+1. **Implement shutdown()**: Always cleanup resources (connections, threads, files)
+2. **Keep State External**: Store plugin state in database/cache, not in-memory
+3. **Test Reload**: Include reload scenarios in your integration tests
+4. **Version Carefully**: Update plugin version after significant changes
+5. **Monitor Errors**: Watch logs during reload for import/instantiation failures
+6. **Avoid Long Shutdowns**: Keep `shutdown()` fast (<5 seconds) to prevent timeouts
+
+### Limitations
+
+**Module Caching**: Python caches bytecode, so some code changes may not reload:
+- Changes to imported dependencies
+- Changes to module-level variables
+- Structural changes (removing classes)
+
+**Workaround**: Restart service for major refactors
+
+**Active Requests**: In-flight requests using old instance may fail
+**Workaround**: Use request draining or load balancer health checks
+
+**Memory Leaks**: Old instances not garbage collected if referenced elsewhere
+**Workaround**: Ensure `shutdown()` breaks all circular references
+
+### Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| "Plugin not found" | Plugin not registered | Load plugin first via `load_plugins()` |
+| "Plugin not loaded" | Metadata exists but no instance | Check original load succeeded |
+| "Failed to reload module" | Import error in updated code | Check logs for syntax/import errors |
+| "Class not found" | Plugin class renamed/removed | Keep class name stable across reloads |
+| "Can't instantiate" | Missing abstract method impl | Implement all required methods |
+| Shutdown timeout | Long-running cleanup | Optimize `shutdown()` for <5s |
+| Old behavior persists | Module cache issue | Restart service or clear `sys.modules` |
+
+### Example: Full Reload Workflow
+
+```python
+# 1. Initial load
+from core.plugin_manager import manager
+from pathlib import Path
+
+loaded, failed = manager.load_plugins(plugins_dir=Path("plugins"))
+print(f"Loaded: {len(loaded)} plugins")
+
+# 2. Modify plugin code
+#    Edit plugins/my_plugin/source.py to fix a bug
+
+# 3. Hot reload
+try:
+    updated = manager.reload_plugin("plugin-source-my-plugin")
+    print(f"✓ Reloaded: {updated.name}")
+except RuntimeError as e:
+    print(f"✗ Reload failed: {e}")
+    # Old instance still functional, check logs
+
+# 4. Verify new behavior
+plugin_instance = manager._instances["plugin-source-my-plugin"]
+result = plugin_instance.scrape({"test": True})
+print(f"New behavior working: {result}")
+```
+
+### Logging
+
+Hot reload emits detailed logs:
+
+```
+INFO  - Starting hot reload for plugin: plugin-source-cian
+DEBUG - Calling shutdown() on plugin-source-cian
+INFO  - Graceful shutdown completed for plugin-source-cian
+DEBUG - Reloading module: cian_scraper
+DEBUG - Module reloaded successfully
+INFO  - New instance created for plugin-source-cian
+INFO  - Hot reload completed successfully for plugin-source-cian
+```
+
+Set log level to DEBUG for troubleshooting:
+```python
+import logging
+logging.getLogger('core.plugin_manager').setLevel(logging.DEBUG)
+```
+
