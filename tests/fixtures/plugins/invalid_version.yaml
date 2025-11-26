@@ -1,0 +1,7 @@
+# Invalid plugin manifest - bad semver
+id: plugin-source-bad-version
+name: Bad Version Plugin
+version: v1.0  # Invalid semver format
+type: source
+api_version: "1.0"
+description: Plugin with invalid version

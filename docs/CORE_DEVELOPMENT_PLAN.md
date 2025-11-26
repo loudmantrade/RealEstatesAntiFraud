@@ -2,6 +2,27 @@
 
 Документ описывает детальный поэтапный план разработки **Core System** (ядра) и связанных базовых подсистем. Содержит декомпозицию задач до уровня подзадач, статусы, зависимости, критерии готовности и приоритеты. Используется как рабочая основа для ведения разработки.
 
+
+## 📊 Текущий статус проекта
+
+**Версия:** 0.2 | **Дата обновления:** 25 ноября 2025  
+**Фаза:** Bootstrap завершена → Переход к Phase A
+
+### ✅ Завершено
+- 13 bootstrap задач выполнены (0.1-0.13)
+- Core структура и базовые модули реализованы
+- Plugin-based архитектура заложена (интерфейсы, manager)
+- FastAPI приложение с CRUD endpoints
+- Юнит тесты и dev окружение настроены
+- **42 GitHub Issues созданы** ([смотреть все](https://github.com/loudmantrade/RealEstatesAntiFraud/issues))
+- Milestone "Phase A - Technical Foundation" создан
+
+### 🎯 Следующий спринт: S1
+**Задачи:** Plugin manifest spec, dynamic loading, PostgreSQL persistence, config system, message queue  
+**Issues:** [#1-3](https://github.com/loudmantrade/RealEstatesAntiFraud/issues?q=is%3Aissue+is%3Aopen+label%3Aphase%3AA), [#16-17](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/16), [#22-24](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/22), [#26-27](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/26)  
+**Цель:** Техническая основа - динамическая загрузка плагинов + persistence
+
+---
 ## Легенда статусов
 - ✅ **Завершено** (Done)
 - 🚧 **В работе** (In Progress)
@@ -14,18 +35,21 @@
 - `Owner` – Ответственный (заполняется позже)
 
 ## 0. Выполненные начальные задачи (Bootstrap)
-| ID | Задача | Статус | Описание | Критерий готовности |
-|----|--------|--------|----------|---------------------|
-| 0.1 | Структура каталога `core/` | ✅ | Создана базовая иерархия директорий | Директории существуют в репо |
-| 0.2 | `requirements.txt` + dev зависимости | ✅ | Добавлены runtime и dev пакеты | Установка проходит без ошибок |
-| 0.3 | Pydantic модели плагина (`plugin.py`) | ✅ | Metadata и registration request | Импортируется, тестируется |
-| 0.4 | Pydantic модели UDM (минимальный срез) | ✅ | Базовые поля Listing | API принимает модель |
-| 0.5 | Интерфейсы плагинов (Source/Processing/Detection/Search/Display) | ✅ | Абстрактные классы добавлены | Классы доступны для имплементаций |
-| 0.6 | Plugin Manager (in-memory) | ✅ | Регистрация, enable/disable/remove | Юнит тест пройден |
-| 0.7 | FastAPI приложение (`core/api/main.py`) | ✅ | CORS + health + подключение роутеров | Запуск возвращает 200 /health |
-| 0.8 | Роуты `/api/plugins` | ✅ | CRUD операций над плагинами | curl ответы валидны |
-| 0.9 | Роуты `/api/listings` (in-memory CRUD) | ✅ | Создание/получение/удаление | Тестовое объявление создаётся |
-| 0.10 | Юнит тесты plugin manager | ✅ | Регистрация/enable/disable/remove | Все тесты зелёные |
+| ID | Задача | Статус | Описание | Что выполнено | Критерий готовности |
+|----|--------|--------|----------|---------------|---------------------|
+| 0.1 | Структура каталога `core/` | ✅ | Создана базовая иерархия директорий | Созданы: `core/`, `core/api/`, `core/api/routes/`, `core/interfaces/`, `core/models/`, `core/utils/`, `tests/unit/core/` | Директории существуют в репо |
+| 0.2 | `requirements.txt` + dev зависимости | ✅ | Добавлены runtime и dev пакеты | **Runtime**: fastapi 0.115.5, uvicorn 0.32.0, pydantic 2.9.2. **Dev**: pytest 8.3.3, pytest-cov 6.0.0, black 24.10.0, flake8 7.1.1, isort 5.13.2, mypy 1.14.0, bandit 1.8.0, safety 3.2.10 | Установка проходит без ошибок |
+| 0.3 | Pydantic модели плагина (`plugin.py`) | ✅ | Metadata и registration request | Файл: `core/models/plugin.py`. Классы: `PluginMetadata` (id, name, version, type, enabled, config), `PluginRegistrationRequest` (metadata) | Импортируется, тестируется |
+| 0.4 | Pydantic модели UDM (минимальный срез) | ✅ | Базовые поля Listing | Файл: `core/models/udm.py`. Модели: `SourceInfo`, `Price`, `Location`, `Media`, `Listing` (id, source, type, location, price, title, description, media, created_at) | API принимает модель |
+| 0.5 | Интерфейсы плагинов (Source/Processing/Detection/Search/Display) | ✅ | Абстрактные классы добавлены | Файлы в `core/interfaces/`: `source_plugin.py` (SourcePlugin с методами scrape, validate), `processing_plugin.py` (process, priority), `detection_plugin.py` (analyze, weight), `search_plugin.py` (index, search), `display_plugin.py` (format_listing) | Классы доступны для имплементаций |
+| 0.6 | Plugin Manager (in-memory) | ✅ | Регистрация, enable/disable/remove | Файл: `core/plugin_manager.py`. Класс `PluginManager` с методами: `register()`, `get()`, `list_plugins()`, `enable()`, `disable()`, `remove()`. Thread-safe (Lock). Singleton instance `plugin_manager` | Юнит тест пройден |
+| 0.7 | FastAPI приложение (`core/api/main.py`) | ✅ | CORS + health + подключение роутеров | FastAPI app с CORS middleware, `/health` endpoint, подключены роуты из `plugins.py` и `listings.py` с префиксом `/api` | Запуск возвращает 200 /health |
+| 0.8 | Роуты `/api/plugins` | ✅ | CRUD операций над плагинами | Файл: `core/api/routes/plugins.py`. Endpoints: POST `/register`, GET `/`, GET `/{plugin_id}`, PUT `/{plugin_id}/enable`, PUT `/{plugin_id}/disable`, DELETE `/{plugin_id}` | curl ответы валидны |
+| 0.9 | Роуты `/api/listings` (in-memory CRUD) | ✅ | Создание/получение/удаление | Файл: `core/api/routes/listings.py`. In-memory хранилище (dict). Endpoints: POST `/`, GET `/`, GET `/{listing_id}`, DELETE `/{listing_id}` | Тестовое объявление создаётся |
+| 0.10 | Юнит тесты plugin manager | ✅ | Регистрация/enable/disable/remove | Файл: `tests/unit/core/test_plugin_manager.py`. Тесты: `test_plugin_lifecycle` (register→get→enable→disable→remove). Coverage: plugin_manager.py покрыт основными сценариями. Результат: 1 passed in 0.24s | Все тесты зелёные |
+| 0.11 | Документация плана разработки | ✅ | Детальный план с задачами, фазами, спринтами | Файл: `docs/CORE_DEVELOPMENT_PLAN.md`. Содержит 21 секцию: задачи по модулям (1-13), риски, метрики, дорожную карту, критерии готовности MVP, предложения спринтов | Документ создан и структурирован |
+| 0.12 | Автоматизация создания GitHub Issues | ✅ | Скрипт для генерации issues из плана | Файлы: `scripts/create_github_issues.py` (основной), `scripts/run_create_issues.py` (интерактивный wrapper), `docs/GITHUB_ISSUES_SETUP.md`. Создано 42 issues, 14 labels, milestone "Phase A" | Скрипт выполнен успешно |
+| 0.13 | Makefile для автоматизации задач | ✅ | Команды для dev, test, build, deploy | Файл: `Makefile`. Targets: setup, dev, test, lint, build, deploy, plugin operations. Документация использования в комментариях | Make targets работают |
 
 ## 1. Архитектурные расширения ядра
 | ID | Задача | Статус | P | Deps | Критерии готовности |
@@ -211,12 +235,17 @@ CI (tests) → Docker Build → Vulnerability Scan → Release Tagging → Stagi
 10. Документация обновлена (13.1–13.2)
 
 ## 19. Следующие ближайшие шаги (Sprint Backlog Предложение)
-| Sprint | Предлагаемые задачи |
-|--------|---------------------|
-| S1 | 1.1, 1.2, 1.3, 4.1, 4.2, 4.3, 5.1, 5.2 |
-| S2 | 5.3, 6.1, 6.2, 8.1, 8.4, 11.1 |
-| S3 | 6.3, 7.1, 7.2, 3.1, 3.2, 10.1 |
-| S4 | 1.5, 1.6, 5.6, 9.1, 9.2, 13.1, 13.2 |
+| Sprint | Предлагаемые задачи | GitHub Issues |
+|--------|---------------------|---------------|
+| S1 | 1.1, 1.2, 1.3, 2.1, 2.2, 4.1, 4.2, 4.3, 5.1, 5.2 | [#1](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/1), [#2](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/2), [#3](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/3), [#16](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/16), [#17](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/17), [#22](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/22), [#23](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/23), [#24](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/24), [#26](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/26), [#27](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/27) |
+| S2 | 5.3, 6.1, 6.2, 6.3, 8.1, 8.4, 11.1, 11.2, 3.1, 3.2 | [#28](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/28), [#30](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/30), [#31](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/31), [#32](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/32), [#35](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/35), [#38](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/38), [#12](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/12), [#13](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/13), [#19](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/19), [#20](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/20) |
+| S3 | 7.1, 7.2, 10.1, 3.2, 3.3 | [#33](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/33), [#34](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/34), [#9](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/9), [#20](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/20), [#21](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/21) |
+| S4 | 1.5, 1.6, 5.6, 9.1, 9.2, 13.1, 13.2 | [#5](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/5), [#6](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/6), [#29](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/29), [#40](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/40), [#41](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/41), [#14](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/14), [#15](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/15) |
+
+**Быстрые ссылки:**
+- 📋 Все Issues: https://github.com/loudmantrade/RealEstatesAntiFraud/issues
+- 🎯 Milestone "Phase A": https://github.com/loudmantrade/RealEstatesAntiFraud/milestone/1
+- 📊 Проект: _создать GitHub Project Board для визуализации_ (рекомендуется)
 
 ## 20. Формат обновления статусов
 - Обновление этого файла: pull request с пометкой `[core-plan-update]`
@@ -227,6 +256,7 @@ CI (tests) → Docker Build → Vulnerability Scan → Release Tagging → Stagi
 | Дата | Версия | Изменения |
 |------|--------|-----------|
 | 2025-11-25 | 0.1 | Инициализация документа, добавлены выполненные задачи bootstrap |
+| 2025-11-25 | 0.2 | Расширено описание выполненных задач 0.1-0.13 с деталями реализации. Добавлены: 0.11 (документация плана), 0.12 (скрипты GitHub Issues), 0.13 (Makefile). Создано 42 GitHub Issues с labels и milestone |
 
 ---
 **Примечание:** Задачи помеченные ❌ (Deferred) не входят в ближайшие фазы и могут быть возвращены при появлении ресурсов.
