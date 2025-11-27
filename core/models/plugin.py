@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -11,6 +11,10 @@ class PluginMetadata(BaseModel):
     author: Optional[str] = None
     capabilities: List[str] = []
     enabled: bool = False
+    dependencies: Optional[Dict[str, str]] = Field(
+        default_factory=dict,
+        description="Plugin dependencies with version constraints (plugin_id -> constraint)"
+    )
 
 
 class PluginRegistrationRequest(BaseModel):

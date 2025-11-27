@@ -15,6 +15,14 @@ from dataclasses import dataclass
 from collections import defaultdict, deque
 import logging
 
+from core.utils.semver import (
+    Version,
+    VersionConstraint,
+    IncompatibleVersionError,
+    InvalidVersionError,
+    InvalidConstraintError
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +31,7 @@ class PluginNode:
     """Represents a plugin node in the dependency graph."""
     plugin_id: str
     version: str
-    dependencies: List[str]  # List of plugin IDs this plugin depends on
+    dependencies: Dict[str, str]  # Map of plugin_id -> version_constraint
     
     def __hash__(self):
         return hash(self.plugin_id)
@@ -50,6 +58,25 @@ class MissingDependencyError(Exception):
         deps_str = ", ".join(missing_deps)
         super().__init__(
             f"Plugin '{plugin_id}' has missing dependencies: {deps_str}"
+        )
+
+
+class VersionIncompatibilityError(Exception):
+    """Raised when plugin version doesn't satisfy dependency constraint."""
+    def __init__(
+        self,
+        dependent_plugin: str,
+        dependency_plugin: str,
+        required_version: str,
+        actual_version: str
+    ):
+        self.dependent_plugin = dependent_plugin
+        self.dependency_plugin = dependency_plugin
+        self.required_version = required_version
+        self.actual_version = actual_version
+        super().__init__(
+            f"Plugin '{dependent_plugin}' requires '{dependency_plugin}' "
+            f"version '{required_version}', but found version '{actual_version}'"
         )
 
 
@@ -80,7 +107,7 @@ class DependencyGraph:
         self,
         plugin_id: str,
         version: str,
-        dependencies: Optional[List[str]] = None
+        dependencies: Optional[Dict[str, str]] = None
     ) -> None:
         """
         Add a plugin node to the graph.
@@ -88,15 +115,34 @@ class DependencyGraph:
         Args:
             plugin_id: Unique plugin identifier
             version: Plugin version (semver)
-            dependencies: List of plugin IDs this plugin depends on
+            dependencies: Dict mapping plugin_id -> version_constraint
+                         Example: {"plugin-a": "^1.0.0", "plugin-b": "~2.1.0"}
             
         Raises:
             ValueError: If plugin_id already exists
+            InvalidVersionError: If version is invalid semver
+            InvalidConstraintError: If constraint is invalid
         """
         if plugin_id in self._nodes:
             raise ValueError(f"Plugin '{plugin_id}' already exists in graph")
         
-        deps = dependencies or []
+        # Validate version format
+        try:
+            Version.parse(version)
+        except InvalidVersionError as e:
+            raise ValueError(f"Invalid version for plugin '{plugin_id}': {e}")
+        
+        # Validate constraint formats
+        deps = dependencies or {}
+        for dep_id, constraint_str in deps.items():
+            try:
+                VersionConstraint(constraint_str)
+            except InvalidConstraintError as e:
+                raise ValueError(
+                    f"Invalid constraint for dependency '{dep_id}' "
+                    f"in plugin '{plugin_id}': {e}"
+                )
+        
         node = PluginNode(
             plugin_id=plugin_id,
             version=version,
@@ -106,7 +152,7 @@ class DependencyGraph:
         self._nodes[plugin_id] = node
         
         # Build adjacency lists
-        for dep_id in deps:
+        for dep_id in deps.keys():
             self._adjacency[plugin_id].add(dep_id)
             self._reverse_adjacency[dep_id].add(plugin_id)
         
@@ -158,22 +204,22 @@ class DependencyGraph:
         """Check if plugin exists in graph."""
         return plugin_id in self._nodes
     
-    def get_dependencies(self, plugin_id: str) -> List[str]:
+    def get_dependencies(self, plugin_id: str) -> Dict[str, str]:
         """
-        Get direct dependencies of a plugin.
+        Get direct dependencies of a plugin with version constraints.
         
         Args:
             plugin_id: Plugin identifier
             
         Returns:
-            List of plugin IDs that this plugin depends on
+            Dict mapping plugin_id -> version_constraint
             
         Raises:
             KeyError: If plugin doesn't exist
         """
         if plugin_id not in self._nodes:
             raise KeyError(f"Plugin '{plugin_id}' not found in graph")
-        return list(self._nodes[plugin_id].dependencies)
+        return dict(self._nodes[plugin_id].dependencies)
     
     def get_dependents(self, plugin_id: str) -> List[str]:
         """
@@ -194,18 +240,34 @@ class DependencyGraph:
     
     def validate_dependencies(self) -> None:
         """
-        Validate that all dependencies exist in the graph.
+        Validate that all dependencies exist and satisfy version constraints.
         
         Raises:
             MissingDependencyError: If any plugin has missing dependencies
+            VersionIncompatibilityError: If version constraints are not satisfied
         """
         for plugin_id, node in self._nodes.items():
+            # Check for missing dependencies
             missing = [
-                dep for dep in node.dependencies
-                if dep not in self._nodes
+                dep_id for dep_id in node.dependencies.keys()
+                if dep_id not in self._nodes
             ]
             if missing:
                 raise MissingDependencyError(plugin_id, missing)
+            
+            # Check version compatibility
+            for dep_id, constraint_str in node.dependencies.items():
+                dep_node = self._nodes[dep_id]
+                dep_version = Version.parse(dep_node.version)
+                constraint = VersionConstraint(constraint_str)
+                
+                if not constraint.satisfies(dep_version):
+                    raise VersionIncompatibilityError(
+                        dependent_plugin=plugin_id,
+                        dependency_plugin=dep_id,
+                        required_version=constraint_str,
+                        actual_version=dep_node.version
+                    )
         
         logger.debug("All dependencies validated successfully")
     

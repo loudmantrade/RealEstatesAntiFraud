@@ -80,14 +80,30 @@ class PluginManager:
             manifest_data = yaml.safe_load(f)
         
         # Create metadata from manifest
-        # For now, create basic PluginMetadata (will be extended later)
+        # Extract dependencies in correct format
+        deps_config = manifest_data.get("dependencies", {})
+        plugin_deps = {}
+        
+        # Support both formats:
+        # 1. {"plugin-a": "^1.0.0", "plugin-b": "~2.0.0"}  (direct dict)
+        # 2. {"plugins": {"plugin-a": "^1.0.0"}}  (nested dict)
+        if isinstance(deps_config, dict):
+            if "plugins" in deps_config:
+                plugin_deps = deps_config.get("plugins", {})
+            else:
+                # Assume it's direct mapping if no 'plugins' key
+                plugin_deps = deps_config
+        
         metadata = PluginMetadata(
             id=manifest_data["id"],
             name=manifest_data["name"],
             version=manifest_data["version"],
             type=manifest_data["type"],
             enabled=True,  # Default enabled
-            config=manifest_data.get("config", {})
+            description=manifest_data.get("description"),
+            author=manifest_data.get("author"),
+            capabilities=manifest_data.get("capabilities", []),
+            dependencies=plugin_deps
         )
         
         return self.register(metadata)
@@ -147,17 +163,15 @@ class PluginManager:
             # Clear existing graph
             self._dependency_graph = DependencyGraph()
             
-            # Add all plugins to graph
-            # First pass: add all nodes without dependencies
+            # Add all plugins to graph with their version constraints
             for plugin_id, metadata in self._plugins.items():
-                # Dependencies will be parsed from config/manifest
-                # For now, we'll extract from metadata.config if present
-                deps = []
-                if hasattr(metadata, 'dependencies') and metadata.dependencies:
-                    deps = metadata.dependencies
-                elif isinstance(metadata.config, dict):
-                    # Check if dependencies stored in config
-                    deps = metadata.config.get('dependencies', [])
+                # Extract dependencies from metadata
+                # Dependencies should be Dict[str, str] mapping plugin_id -> version_constraint
+                deps = metadata.dependencies or {}
+                
+                # If dependencies is a list (old format), convert to dict with "*" wildcard
+                if isinstance(deps, list):
+                    deps = {dep_id: "*" for dep_id in deps}
                 
                 self._dependency_graph.add_plugin(
                     plugin_id=plugin_id,
@@ -419,35 +433,13 @@ class PluginManager:
         
         for manifest_path in manifest_paths:
             try:
-                # Register plugin metadata
+                # Register plugin metadata (dependencies are parsed in register_from_manifest)
                 metadata = self.register_from_manifest(manifest_path)
                 logger.info(f"Registered plugin: {metadata.id} v{metadata.version}")
                 manifest_map[metadata.id] = manifest_path
                 
-                # Load manifest to get dependencies and entrypoint
-                import yaml
-                with open(manifest_path) as f:
-                    manifest_data = yaml.safe_load(f)
-                
-                # Extract plugin dependencies
-                dependencies_config = manifest_data.get("dependencies", {})
-                if isinstance(dependencies_config, dict):
-                    plugin_deps = dependencies_config.get("plugins", {})
-                    # Convert dict {plugin_id: version_constraint} to list [plugin_id]
-                    if isinstance(plugin_deps, dict):
-                        dep_list = list(plugin_deps.keys())
-                    else:
-                        dep_list = []
-                else:
-                    dep_list = []
-                
-                # Store dependencies in metadata config for graph building
-                if not isinstance(metadata.config, dict):
-                    metadata.config = {}
-                metadata.config['dependencies'] = dep_list
-                
                 logger.debug(
-                    f"Plugin {metadata.id} has dependencies: {dep_list}"
+                    f"Plugin {metadata.id} has dependencies: {list(metadata.dependencies.keys())}"
                 )
                 
                 # Phase 1 complete for this plugin - just registration
