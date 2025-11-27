@@ -8,6 +8,11 @@ from threading import RLock
 
 from core.models.plugin import PluginMetadata
 from core.validators.manifest import validate_manifest, ManifestValidationError
+from core.dependency_graph import (
+    DependencyGraph,
+    CyclicDependencyError,
+    MissingDependencyError
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +24,7 @@ class PluginManager:
         self._plugins: Dict[str, PluginMetadata] = {}
         self._instances: Dict[str, any] = {}  # Store plugin instances
         self._modules: Dict[str, any] = {}  # Store imported modules for reload
+        self._dependency_graph = DependencyGraph()  # Manage plugin dependencies
         self._lock = RLock()
 
     def register(self, metadata: PluginMetadata) -> PluginMetadata:
@@ -112,7 +118,88 @@ class PluginManager:
 
     def remove(self, plugin_id: str) -> bool:
         with self._lock:
-            return self._plugins.pop(plugin_id, None) is not None
+            removed = self._plugins.pop(plugin_id, None) is not None
+            if removed and self._dependency_graph.has_plugin(plugin_id):
+                self._dependency_graph.remove_plugin(plugin_id)
+            return removed
+    
+    def build_dependency_graph(self) -> None:
+        """
+        Build dependency graph from registered plugins.
+        
+        Parses plugin dependencies and constructs DAG for load order determination.
+        Must be called before load_plugins() if plugins have dependencies.
+        
+        Raises:
+            MissingDependencyError: If plugin depends on unregistered plugin
+            CyclicDependencyError: If circular dependencies detected
+            
+        Example:
+            >>> manager = PluginManager()
+            >>> # Register plugins with dependencies...
+            >>> try:
+            ...     manager.build_dependency_graph()
+            ...     print("Dependency graph built successfully")
+            ... except CyclicDependencyError as e:
+            ...     print(f"Circular dependency: {e.cycle}")
+        """
+        with self._lock:
+            # Clear existing graph
+            self._dependency_graph = DependencyGraph()
+            
+            # Add all plugins to graph
+            # First pass: add all nodes without dependencies
+            for plugin_id, metadata in self._plugins.items():
+                # Dependencies will be parsed from config/manifest
+                # For now, we'll extract from metadata.config if present
+                deps = []
+                if hasattr(metadata, 'dependencies') and metadata.dependencies:
+                    deps = metadata.dependencies
+                elif isinstance(metadata.config, dict):
+                    # Check if dependencies stored in config
+                    deps = metadata.config.get('dependencies', [])
+                
+                self._dependency_graph.add_plugin(
+                    plugin_id=plugin_id,
+                    version=metadata.version,
+                    dependencies=deps
+                )
+                logger.debug(
+                    f"Added {plugin_id} to graph with {len(deps)} dependencies"
+                )
+            
+            # Build and validate graph
+            try:
+                self._dependency_graph.build()
+                logger.info(
+                    f"Dependency graph built successfully with "
+                    f"{len(self._dependency_graph)} plugins"
+                )
+            except MissingDependencyError as e:
+                logger.error(f"Missing dependencies: {e}")
+                raise
+            except CyclicDependencyError as e:
+                logger.error(f"Circular dependencies detected: {e.cycle}")
+                raise
+    
+    def get_load_order(self) -> List[str]:
+        """
+        Get plugin load order based on dependency graph.
+        
+        Returns:
+            List of plugin IDs in topological order (dependencies first)
+            
+        Raises:
+            RuntimeError: If dependency graph not built
+            
+        Example:
+            >>> manager = PluginManager()
+            >>> manager.build_dependency_graph()
+            >>> order = manager.get_load_order()
+            >>> print(f"Load order: {' -> '.join(order)}")
+        """
+        with self._lock:
+            return self._dependency_graph.get_load_order()
     
     def reload_plugin(self, plugin_id: str) -> PluginMetadata:
         """
@@ -293,9 +380,11 @@ class PluginManager:
         Can either load from provided manifest paths or auto-discover from directory.
         For each manifest:
         1. Validates and registers metadata via register_from_manifest()
-        2. Dynamically imports the Python module specified in entrypoint
-        3. Instantiates the plugin class
-        4. Stores instance for future use
+        2. Parses dependencies from manifest
+        3. Builds dependency graph and determines load order
+        4. Dynamically imports Python modules in topological order
+        5. Instantiates plugin classes
+        6. Stores instances for future use
         
         Args:
             manifest_paths: Optional list of manifest paths to load
@@ -308,6 +397,8 @@ class PluginManager:
             
         Raises:
             ValueError: If neither manifest_paths nor plugins_dir provided
+            CyclicDependencyError: If circular dependencies detected
+            MissingDependencyError: If required dependencies missing
             
         Example:
             >>> manager = PluginManager()
@@ -323,12 +414,81 @@ class PluginManager:
         loaded: List[PluginMetadata] = []
         failed: List[Tuple[Path, Exception]] = []
         
+        # Phase 1: Register all plugins and extract dependencies
+        manifest_map: Dict[str, Path] = {}  # plugin_id -> manifest_path
+        
         for manifest_path in manifest_paths:
             try:
                 # Register plugin metadata
                 metadata = self.register_from_manifest(manifest_path)
                 logger.info(f"Registered plugin: {metadata.id} v{metadata.version}")
+                manifest_map[metadata.id] = manifest_path
                 
+                # Load manifest to get dependencies and entrypoint
+                import yaml
+                with open(manifest_path) as f:
+                    manifest_data = yaml.safe_load(f)
+                
+                # Extract plugin dependencies
+                dependencies_config = manifest_data.get("dependencies", {})
+                if isinstance(dependencies_config, dict):
+                    plugin_deps = dependencies_config.get("plugins", {})
+                    # Convert dict {plugin_id: version_constraint} to list [plugin_id]
+                    if isinstance(plugin_deps, dict):
+                        dep_list = list(plugin_deps.keys())
+                    else:
+                        dep_list = []
+                else:
+                    dep_list = []
+                
+                # Store dependencies in metadata config for graph building
+                if not isinstance(metadata.config, dict):
+                    metadata.config = {}
+                metadata.config['dependencies'] = dep_list
+                
+                logger.debug(
+                    f"Plugin {metadata.id} has dependencies: {dep_list}"
+                )
+                
+                # Phase 1 complete for this plugin - just registration
+                    
+            except ManifestValidationError as e:
+                logger.error(f"Manifest validation failed for {manifest_path}: {e}")
+                failed.append((manifest_path, e))
+                
+            except Exception as e:
+                logger.error(
+                    f"Unexpected error loading plugin from {manifest_path}: {e}",
+                    exc_info=True
+                )
+                failed.append((manifest_path, e))
+        
+        # Phase 2: Build dependency graph and get load order
+        try:
+            self.build_dependency_graph()
+            load_order = self.get_load_order()
+            logger.info(
+                f"Determined load order: {' -> '.join(load_order)}"
+            )
+        except (CyclicDependencyError, MissingDependencyError) as e:
+            logger.error(f"Dependency graph error: {e}")
+            # All plugins failed due to dependency issues
+            for plugin_id, manifest_path in manifest_map.items():
+                failed.append((manifest_path, e))
+                self.remove(plugin_id)
+            return [], failed
+        
+        # Phase 3: Instantiate plugins in dependency order
+        for plugin_id in load_order:
+            manifest_path = manifest_map.get(plugin_id)
+            if not manifest_path:
+                continue  # Skip if already failed in registration
+            
+            metadata = self.get(plugin_id)
+            if not metadata:
+                continue
+            
+            try:
                 # Load manifest to get entrypoint
                 import yaml
                 with open(manifest_path) as f:
@@ -404,16 +564,13 @@ class PluginManager:
                     # Remove from registered plugins since instantiation failed
                     self.remove(metadata.id)
                     
-            except ManifestValidationError as e:
-                logger.error(f"Manifest validation failed for {manifest_path}: {e}")
-                failed.append((manifest_path, e))
-                
             except Exception as e:
                 logger.error(
-                    f"Unexpected error loading plugin from {manifest_path}: {e}",
+                    f"Error instantiating plugin {plugin_id}: {e}",
                     exc_info=True
                 )
                 failed.append((manifest_path, e))
+                self.remove(plugin_id)
         
         logger.info(
             f"Plugin loading complete: {len(loaded)} successful, {len(failed)} failed"
