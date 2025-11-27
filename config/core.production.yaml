@@ -1,0 +1,45 @@
+# Configuration for production environment
+# Override core.yaml values for production
+
+app_name: "RealEstatesAntiFraud"
+app_version: "0.1.0"
+environment: "production"
+debug: false
+
+# API Server
+api_host: "0.0.0.0"
+api_port: 8000
+api_workers: 8
+api_reload: false
+
+# Database - use environment variables for sensitive data
+db_host: "db.production.internal"
+db_port: 5432
+db_name: "realestates_antifraud_prod"
+db_user: "app_user"
+# db_password: set via CORE_DB_PASSWORD
+db_pool_size: 20
+db_max_overflow: 40
+
+# Redis
+redis_host: "redis.production.internal"
+redis_port: 6379
+redis_db: 0
+# redis_password: set via CORE_REDIS_PASSWORD
+
+# Message Queue
+mq_type: "rabbitmq"
+mq_host: "mq.production.internal"
+mq_port: 5672
+mq_user: "app_user"
+# mq_password: set via CORE_MQ_PASSWORD
+
+# Plugins
+plugins_dir: "plugins"
+plugins_autoload: true
+plugins_hot_reload: false
+
+# Logging
+log_level: "WARNING"
+log_format: "json"
+log_file: "/var/log/realestates-antifraud/app.log"
