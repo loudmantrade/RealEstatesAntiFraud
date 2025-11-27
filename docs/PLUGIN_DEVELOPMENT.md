@@ -65,7 +65,10 @@ dependencies:
   core_version: ">=1.0.0"
   python_version: ">=3.10"
   plugins:
-    - plugin-processing-normalizer: ">=1.0.0"
+    plugin-processing-normalizer: "^2.0.0"  # Caret: allows 2.x.x (not 3.0.0)
+    plugin-detection-ml: "~1.5.0"           # Tilde: allows 1.5.x (not 1.6.0)
+    plugin-source-base: ">=1.0.0 <2.0.0"    # Range: between 1.0.0 and 2.0.0
+    plugin-utils-common: "*"                 # Any version
   
 # Конфигурация
 config:
@@ -1226,7 +1229,308 @@ class CianSourcePlugin(SourcePlugin):
 
 This plugin is now ready to be placed in `plugins/cian-source/` and will be automatically discovered and loaded by the system.
 
+## Version Constraints and Dependency Management
 
+### Overview
+
+The plugin system uses semantic versioning (semver) to manage plugin dependencies. This ensures that plugins only load when their dependencies are available in compatible versions, preventing runtime errors and version conflicts.
+
+### Semantic Versioning Format
+
+Versions follow the semver format: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
+
+**Examples:**
+- `1.0.0` - Release version
+- `2.1.5` - Release with patches
+- `1.0.0-alpha.1` - Pre-release version
+- `1.0.0+build.123` - Version with build metadata
+- `2.0.0-beta.2+sha.5114f85` - Pre-release with build metadata
+
+**Version Comparison Rules:**
+- `1.0.0 < 1.0.1` (patch increment)
+- `1.0.0 < 1.1.0` (minor increment)
+- `1.0.0 < 2.0.0` (major increment)
+- `1.0.0-alpha < 1.0.0` (pre-release is lower)
+- `1.0.0+build.1 == 1.0.0+build.2` (build metadata ignored)
+
+### Constraint Formats
+
+The system supports multiple constraint formats for specifying version requirements:
+
+#### 1. Exact Version
+```yaml
+dependencies:
+  plugins:
+    plugin-a: "1.2.3"  # Only version 1.2.3
+```
+
+#### 2. Caret Constraint (^)
+Allows patch and minor updates, but not major version changes.
+
+```yaml
+dependencies:
+  plugins:
+    plugin-a: "^1.2.3"  # Allows: 1.2.3, 1.2.4, 1.9.9
+                         # Blocks: 2.0.0, 0.9.9
+```
+
+**Rules:**
+- `^1.2.3` → `>=1.2.3 <2.0.0`
+- `^0.2.3` → `>=0.2.3 <1.0.0`
+- `^0.0.3` → `>=0.0.3 <0.1.0`
+
+**Use Case**: Typical dependency where you trust minor updates won't break compatibility.
+
+#### 3. Tilde Constraint (~)
+Allows only patch updates.
+
+```yaml
+dependencies:
+  plugins:
+    plugin-a: "~1.2.3"  # Allows: 1.2.3, 1.2.4, 1.2.99
+                         # Blocks: 1.3.0, 2.0.0
+```
+
+**Rules:**
+- `~1.2.3` → `>=1.2.3 <1.3.0`
+- `~1.2` → `>=1.2.0 <1.3.0`
+- `~1` → `>=1.0.0 <2.0.0`
+
+**Use Case**: Conservative dependency where you only trust patch-level updates.
+
+#### 4. Comparison Operators
+Support for `>=`, `<=`, `>`, `<`, `=` operators.
+
+```yaml
+dependencies:
+  plugins:
+    plugin-a: ">=1.0.0"   # Any version 1.0.0 or higher
+    plugin-b: ">2.0.0"    # Strictly greater than 2.0.0
+    plugin-c: "<=3.0.0"   # Up to and including 3.0.0
+    plugin-d: "<2.0.0"    # Strictly less than 2.0.0
+    plugin-e: "=1.5.0"    # Exact version (same as "1.5.0")
+```
+
+**Use Cases:**
+- `>=X.Y.Z`: Minimum version requirement
+- `<X.0.0`: Maximum major version
+- `>X.Y.Z`: Exclude specific version
+
+#### 5. Range Constraints
+Combine multiple operators for precise ranges.
+
+```yaml
+dependencies:
+  plugins:
+    plugin-a: ">=1.0.0 <2.0.0"   # 1.x.x versions only
+    plugin-b: ">1.5.0 <=2.3.0"   # Between 1.5.0 and 2.3.0
+```
+
+**Use Case**: When you need precise control over acceptable version range.
+
+#### 6. Wildcard Constraints
+Use `*` for flexible matching.
+
+```yaml
+dependencies:
+  plugins:
+    plugin-a: "*"       # Any version
+    plugin-b: "1.*"     # Any 1.x.x version
+    plugin-c: "1.2.*"   # Any 1.2.x version
+```
+
+**Rules:**
+- `*` → `>=0.0.0` (any version)
+- `1.*` → `>=1.0.0 <2.0.0`
+- `1.2.*` → `>=1.2.0 <1.3.0`
+
+**Use Case**: Maximum flexibility for internal or tightly-controlled dependencies.
+
+### Dependency Validation
+
+The system validates dependencies in two phases:
+
+#### Phase 1: Load Time
+When plugins are loaded, the system:
+1. Parses all plugin manifests
+2. Extracts dependency constraints
+3. Validates that all required plugins exist
+
+#### Phase 2: Graph Building
+Before instantiating plugins:
+1. Builds dependency graph with all plugins
+2. Validates version constraints for each dependency
+3. Detects circular dependencies
+4. Computes topological load order
+
+**Example:**
+```python
+from core.plugin_manager import PluginManager
+from core.dependency_graph import VersionIncompatibilityError
+
+manager = PluginManager()
+
+try:
+    loaded, failed = manager.load_plugins(plugins_dir="plugins")
+    print(f"Successfully loaded {len(loaded)} plugins")
+except VersionIncompatibilityError as e:
+    print(f"Version conflict: {e}")
+    print(f"Plugin '{e.dependent_plugin}' requires")
+    print(f"'{e.dependency_plugin}' version '{e.required_version}'")
+    print(f"but found version '{e.actual_version}'")
+```
+
+### Error Handling
+
+#### Missing Dependency
+```
+MissingDependencyError: Plugin 'plugin-a' has missing dependencies: plugin-b, plugin-c
+```
+
+**Solution**: Install missing plugins or remove the dependent plugin.
+
+#### Version Incompatibility
+```
+VersionIncompatibilityError: Plugin 'plugin-a' requires 'plugin-b' version '^2.0.0', 
+but found version '1.5.0'
+```
+
+**Solutions:**
+1. Update `plugin-b` to compatible version (e.g., 2.0.0+)
+2. Downgrade `plugin-a` to version compatible with plugin-b 1.5.0
+3. Adjust version constraint in plugin-a manifest
+
+#### Circular Dependency
+```
+CyclicDependencyError: Cyclic dependency detected: plugin-a -> plugin-b -> plugin-a
+```
+
+**Solution**: Refactor plugins to remove circular dependency.
+
+### Best Practices
+
+#### 1. Use Caret for Most Dependencies
+```yaml
+dependencies:
+  plugins:
+    plugin-utils: "^1.0.0"  # Trust minor updates
+```
+**Reason**: Follows semver philosophy - minor/patch updates should be backwards-compatible.
+
+#### 2. Use Tilde for Risky Dependencies
+```yaml
+dependencies:
+  plugins:
+    plugin-experimental: "~0.5.0"  # Only patch updates
+```
+**Reason**: Pre-1.0 or unstable plugins may break compatibility in minor versions.
+
+#### 3. Use Ranges for Major Version Transitions
+```yaml
+dependencies:
+  plugins:
+    plugin-core: ">=1.5.0 <3.0.0"  # Support 1.x and 2.x
+```
+**Reason**: Allows gradual migration across major versions.
+
+#### 4. Pin Exact Versions for Critical Production
+```yaml
+dependencies:
+  plugins:
+    plugin-payment: "2.3.1"  # Exact version
+```
+**Reason**: Zero surprises - only update after thorough testing.
+
+#### 5. Use Wildcards for Internal Plugins
+```yaml
+dependencies:
+  plugins:
+    company-internal-utils: "*"  # Any version
+```
+**Reason**: Internal plugins are under your control and versioned together.
+
+#### 6. Document Breaking Changes
+When releasing a new major version:
+- Document all breaking changes in CHANGELOG.md
+- Provide migration guide
+- Consider deprecation warnings in previous version
+
+#### 7. Test Across Version Range
+Test your plugin with:
+- Minimum supported version of each dependency
+- Latest supported version of each dependency
+- Common intermediate versions
+
+### Example: Complete Dependency Declaration
+
+```yaml
+id: plugin-processing-enricher
+name: Property Enricher
+version: 2.1.0
+type: processing
+
+dependencies:
+  # Core system requirements
+  core_version: ">=1.0.0"
+  python_version: ">=3.10,<4.0"
+  
+  # Plugin dependencies with various constraints
+  plugins:
+    # Required base functionality - caret for stability
+    plugin-source-base: "^2.0.0"
+    
+    # Geocoding service - tilde for conservative updates
+    plugin-processing-geocoder: "~1.5.0"
+    
+    # ML model plugin - exact version for reproducibility
+    plugin-detection-ml-model: "3.2.1"
+    
+    # Utility library - range for flexibility
+    plugin-utils-common: ">=1.0.0 <2.0.0"
+    
+    # Optional enhancement - any version
+    plugin-enhancement-images: "*"
+    
+    # Cache service - support both v1 and v2
+    plugin-cache-redis: ">=1.5.0 <3.0.0"
+```
+
+### Troubleshooting
+
+#### Check Installed Versions
+```python
+from core.plugin_manager import manager
+
+for plugin_id, metadata in manager.list_plugins().items():
+    print(f"{plugin_id}: v{metadata.version}")
+```
+
+#### Validate Specific Constraint
+```python
+from core.utils.semver import Version, VersionConstraint
+
+version = Version.parse("2.1.5")
+constraint = VersionConstraint("^2.0.0")
+
+if constraint.satisfies(version):
+    print("✓ Version satisfies constraint")
+else:
+    print("✗ Version does not satisfy constraint")
+```
+
+#### Visualize Dependency Graph
+```python
+from core.plugin_manager import manager
+
+manager.build_dependency_graph()
+dot_graph = manager._dependency_graph.export_dot()
+
+# Save to file for visualization with Graphviz
+with open("dependencies.dot", "w") as f:
+    f.write(dot_graph)
+
+# Convert to image: dot -Tpng dependencies.dot -o dependencies.png
+```
 
 ## Hot Reload
 
