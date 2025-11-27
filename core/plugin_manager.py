@@ -94,6 +94,17 @@ class PluginManager:
                 # Assume it's direct mapping if no 'plugins' key
                 plugin_deps = deps_config
         
+        # Parse author field if present
+        author_data = manifest_data.get("author")
+        from core.models.plugin import PluginAuthor
+        author = None
+        if author_data:
+            if isinstance(author_data, dict):
+                author = PluginAuthor(**author_data)
+            elif isinstance(author_data, str):
+                # Legacy support: treat string as name
+                author = PluginAuthor(name=author_data)
+        
         metadata = PluginMetadata(
             id=manifest_data["id"],
             name=manifest_data["name"],
@@ -101,7 +112,7 @@ class PluginManager:
             type=manifest_data["type"],
             enabled=True,  # Default enabled
             description=manifest_data.get("description"),
-            author=manifest_data.get("author"),
+            author=author,
             capabilities=manifest_data.get("capabilities", []),
             dependencies=plugin_deps
         )
@@ -283,8 +294,17 @@ class PluginManager:
                 
                 # Step 2: Reload Python module to get updated code
                 try:
+                    import sys
+                    import importlib
                     module_name = getattr(old_module, '__name__', 'unknown')
                     logger.debug(f"Reloading module: {module_name}")
+                    
+                    # Ensure module is in sys.modules for reload
+                    if module_name not in sys.modules:
+                        logger.debug(f"Module {module_name} not in sys.modules, re-adding it")
+                        sys.modules[module_name] = old_module
+                    
+                    # Use standard reload
                     reloaded_module = importlib.reload(old_module)
                     logger.debug(f"Module reloaded successfully")
                 except Exception as e:

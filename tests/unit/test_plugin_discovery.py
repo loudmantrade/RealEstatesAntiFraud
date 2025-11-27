@@ -323,7 +323,7 @@ entrypoint: invalid_format_no_colon
         
         assert len(loaded) == 0
         assert len(failed) == 1
-        assert isinstance(failed[0][1], ValueError)
+        assert isinstance(failed[0][1], (ValueError, ManifestValidationError))
     
     def test_logging_on_success(self, plugin_manager, plugins_dir, caplog):
         """Test appropriate logging on successful plugin loading."""

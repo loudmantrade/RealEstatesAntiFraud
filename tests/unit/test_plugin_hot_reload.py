@@ -341,11 +341,15 @@ class TestPlugin(SourcePlugin):
             'self.value = "reloaded"'
         ))
         
-        # Force Python to reload the modified file by removing from sys.modules
-        # This is necessary because importlib.reload() uses cached bytecode
-        import sys
-        if "test_plugin_module" in sys.modules:
-            del sys.modules["test_plugin_module"]
+        # Clear Python bytecode cache to force reload from source
+        import shutil
+        pycache_dir = plugin_dir / "__pycache__"
+        if pycache_dir.exists():
+            shutil.rmtree(pycache_dir)
+        
+        # Invalidate import caches
+        import importlib
+        importlib.invalidate_caches()
         
         # Reload plugin
         result = plugin_manager.reload_plugin("plugin-source-test")
