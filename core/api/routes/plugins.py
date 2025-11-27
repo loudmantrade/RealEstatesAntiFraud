@@ -1,8 +1,9 @@
 from typing import List
+
 from fastapi import APIRouter, HTTPException
 
-from core.plugin_manager import manager
 from core.models.plugin import PluginMetadata, PluginRegistrationRequest
+from core.plugin_manager import manager
 
 router = APIRouter()
 
@@ -45,17 +46,17 @@ def delete_plugin(plugin_id: str):
 def reload_plugin(plugin_id: str) -> PluginMetadata:
     """
     Hot reload a plugin without restarting the service.
-    
+
     Updates the plugin code and creates a new instance while gracefully
     shutting down the old one. Useful for development and production
     updates without downtime.
-    
+
     Args:
         plugin_id: ID of the plugin to reload
-        
+
     Returns:
         Updated plugin metadata after successful reload
-        
+
     Raises:
         404: Plugin not found or not loaded
         500: Reload operation failed

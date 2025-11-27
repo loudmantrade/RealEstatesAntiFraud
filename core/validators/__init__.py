@@ -1,6 +1,7 @@
 """
 Core validators package.
 """
-from .manifest import validate_manifest, ManifestValidationError
+
+from .manifest import ManifestValidationError, validate_manifest
 
 __all__ = ["validate_manifest", "ManifestValidationError"]

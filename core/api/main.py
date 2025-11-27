@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.api.routes.plugins import router as plugins_router
 from core.api.routes.listings import router as listings_router
+from core.api.routes.plugins import router as plugins_router
 
 app = FastAPI(title="RealEstatesAntiFraud Core API", version="0.1.0")
 

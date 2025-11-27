@@ -4,14 +4,8 @@ Configuration management module.
 Provides unified configuration system for core and plugins.
 """
 
-from .config_manager import (
-    ConfigManager,
-    ConfigError,
-    ConfigValidationError,
-    ConfigNotFoundError,
-    CoreConfig,
-    PluginConfig
-)
+from .config_manager import (ConfigError, ConfigManager, ConfigNotFoundError,
+                             ConfigValidationError, CoreConfig, PluginConfig)
 
 __all__ = [
     "ConfigManager",
@@ -19,5 +13,5 @@ __all__ = [
     "ConfigValidationError",
     "ConfigNotFoundError",
     "CoreConfig",
-    "PluginConfig"
+    "PluginConfig",
 ]

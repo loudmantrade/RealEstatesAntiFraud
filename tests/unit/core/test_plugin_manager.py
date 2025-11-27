@@ -1,5 +1,5 @@
+from core.models.plugin import PluginAuthor, PluginMetadata
 from core.plugin_manager import PluginManager
-from core.models.plugin import PluginMetadata, PluginAuthor
 
 
 def test_register_and_enable_plugin():
