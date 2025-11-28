@@ -80,11 +80,15 @@
 ## 3. Система логирования и наблюдаемости
 | ID | Задача | Статус | P | Deps | Критерии |
 |----|--------|--------|---|------|----------|
-| 3.1 | Стандартизированный logger (структурированный JSON) | ⏳ | 1 | 0.x | logger доступен через `core.utils.logging` |
-| 3.2 | Корреляционные ID (trace & request id middleware) | ⏳ | 1 | 3.1 | Каждый запрос включает trace_id |
+| 3.1 | Стандартизированный logger (структурированный JSON) | ✅ | 1 | 0.x | logger доступен через `core.utils.logging` |
+| 3.2 | Корреляционные ID (trace & request id middleware) | ✅ | 1 | 3.1 | Каждый запрос включает trace_id |
 | 3.3 | Метрики Prometheus (плагины/ошибки/latency) | ⏳ | 2 | 3.1 | /metrics endpoint показывает core метрики |
-| 3.4 | OpenTelemetry интеграция (tracing) | ❌ | 3 | 3.2 | Трейсы видны в Jaeger локально |
-| 3.5 | Алерты базовые (ошибки > threshold) | ❌ | 3 | 3.3 | Документ threshold’ов + mock alert handler |
+| 3.4 | OpenTelemetry базовая интеграция (auto-instrumentation) | ⏳ | 1 | 3.2 | Трейсы FastAPI/PostgreSQL/HTTP видны в Jaeger |
+| 3.5 | OpenTelemetry custom spans (плагины, fraud detection) | ⏳ | 2 | 3.4 | Кастомные операции трейсятся |
+| 3.6 | OpenTelemetry metrics (custom instrumentation) | ⏳ | 2 | 3.4 | Custom метрики экспортируются через OTLP |
+| 3.7 | OpenTelemetry logs integration (unified correlation) | ⏳ | 2 | 3.4 | Логи содержат trace_id/span_id из context |
+| 3.8 | OpenTelemetry Collector deployment | ⏳ | 2 | 3.4 | Collector собирает и роутит telemetry |
+| 3.9 | Алерты базовые (ошибки > threshold) | ❌ | 3 | 3.3 | Документ threshold'ов + mock alert handler |
 
 ## 4. Хранилище и персистентность
 | ID | Задача | Статус | P | Deps | Критерии |
@@ -206,23 +210,23 @@
 
 ## 16. Дорожная карта по фазам (ядро)
 ### Фаза A (Технический фундамент)
-- Завершить: 1.1–1.3, 2.1–2.2, 3.1, 4.1–4.3, 5.1–5.3, 8.1, 11.1–11.2, 13.1–13.2
+- Завершить: 1.1–1.3, 2.1–2.2, 3.1–3.2, 4.1–4.3, 5.1–5.3, 8.1, 11.1–11.2, 13.1–13.2
 
-### Фаза B (Функциональное насыщение)
-- Задачи: 1.5–1.6, 5.6, 6.1–6.3, 7.1–7.2, 8.4, 9.1–9.2, 10.2–10.3, 3.2–3.3
+### Фаза B (Функциональное насыщение + Observability)
+- Задачи: 1.5–1.6, 5.6, 6.1–6.3, 7.1–7.2, 8.4, 9.1–9.2, 10.2–10.3, 3.3–3.5
 
-### Фаза C (Надёжность и масштабируемость)
-- Задачи: 4.4–4.5, 5.4–5.5, 6.4–6.6, 7.3–7.5, 12.1–12.3, 11.3–11.4, 3.4, 9.5
+### Фаза C (Надёжность и масштабируемость + Advanced Observability)
+- Задачи: 4.4–4.5, 5.4–5.5, 6.4–6.6, 7.3–7.5, 12.1–12.3, 11.3–11.4, 3.6–3.8, 9.5
 
 ### Фаза D (Продвинутая безопасность и аналитика)
-- Задачи: 8.5–8.6, 9.3–9.6, 10.4–10.6, 11.5–11.6, 3.5, 12.4–12.5, 13.3–13.5
+- Задачи: 8.5–8.6, 9.3–9.6, 10.4–10.6, 11.5–11.6, 3.9, 12.4–12.5, 13.3–13.5
 
 ## 17. Зависимости высокого уровня
 ```
 Plugin Manifest Spec → Validation → Dynamic Loading → Dependency Graph → Version Compatibility
 Queue Abstraction → Raw Event Format → Processing Orchestrator → Detection Orchestrator → Indexing
 Persistence (Listings) → Repository → API Pagination → Search Routing
-Logging Base → Trace IDs → Metrics → Alerts
+Logging Base → Trace IDs → OpenTelemetry (base) → Custom Spans → Custom Metrics → Logs Integration → OTel Collector → Alerts
 Security Baseline → Auth → Rate Limiting → Input Validation Audit
 CI (tests) → Docker Build → Vulnerability Scan → Release Tagging → Staging Deploy
 ```
@@ -263,6 +267,7 @@ CI (tests) → Docker Build → Vulnerability Scan → Release Tagging → Stagi
 | 2025-11-25 | 0.1 | Инициализация документа, добавлены выполненные задачи bootstrap |
 | 2025-11-25 | 0.2 | Расширено описание выполненных задач 0.1-0.13 с деталями реализации. Добавлены: 0.11 (документация плана), 0.12 (скрипты GitHub Issues), 0.13 (Makefile). Создано 42 GitHub Issues с labels и milestone |
 | 2024-12-26 | 0.3 | Завершён Sprint 1 (4/10 задач, 40%). Задачи 1.1-1.4 выполнены: Issue #1 (manifest spec, 58 тестов), Issue #2 (validation, 31 тест), Issue #3 (dynamic loading, 23 теста), Issue #4 (hot reload, 16 тестов). Итого 119/129 тестов проходят, покрытие 86%. Commit 315f07d. |
+| 2025-11-28 | 0.4 | Завершены observability issues: #19 (Structured JSON logging, 20 тестов, 97% покрытие), #20 (Request tracing, 29 тестов, 100% context coverage). Задачи 3.1-3.2 выполнены. Добавлен OpenTelemetry roadmap: 5 новых подзадач (3.4-3.8) для полной observability интеграции. Обновлена архитектурная диаграмма с OTel Collector. |
 
 ---
 **Примечание:** Задачи помеченные ❌ (Deferred) не входят в ближайшие фазы и могут быть возвращены при появлении ресурсов.

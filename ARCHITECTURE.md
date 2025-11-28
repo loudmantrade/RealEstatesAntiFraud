@@ -678,10 +678,19 @@ class DisplayPlugin(ABC):
 
 #### 7.3 Monitoring & Logging
 - **Технологии**:
+  - **OpenTelemetry** - единый стандарт observability (traces, metrics, logs)
   - Prometheus + Grafana (метрики)
   - ELK Stack (Elasticsearch, Logstash, Kibana) - логи
   - Sentry - отслеживание ошибок
-  - Jaeger - distributed tracing
+  - Jaeger / Tempo - distributed tracing (OpenTelemetry compatible)
+  
+**OpenTelemetry Integration:**
+- **Traces**: Автоматическая инструментация FastAPI, PostgreSQL, Redis, HTTP clients
+- **Metrics**: Custom метрики (plugin execution time, fraud detection accuracy, scraping stats)
+- **Logs**: Структурированные логи с correlation IDs (trace_id, span_id)
+- **Exporters**: OTLP (OpenTelemetry Protocol) для отправки в Jaeger/Tempo/Grafana Cloud
+- **Context Propagation**: W3C Trace Context для distributed tracing across services
+- **Sampling**: Head-based sampling (configurable rate) для production
 
 #### 7.4 Model Training Pipeline
 - **Технологии**: Kubeflow / MLflow
@@ -777,10 +786,15 @@ class DisplayPlugin(ABC):
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   MONITORING & OBSERVABILITY                    │
-│  ┌──────────────────────┐       ┌──────────────────────┐       │
-│  │  Prometheus+Grafana  │       │    ELK Stack         │       │
-│  │     (Metrics)        │       │    (Logs)            │       │
-│  └──────────────────────┘       └──────────────────────┘       │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              OpenTelemetry Collector                    │   │
+│  │  (Traces, Metrics, Logs aggregation & export)           │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
+│  │ Jaeger/Tempo │  │  Prometheus  │  │  ELK Stack   │         │
+│  │  (Traces)    │  │  +Grafana    │  │   (Logs)     │         │
+│  │              │  │  (Metrics)   │  │              │         │
+│  └──────────────┘  └──────────────┘  └──────────────┘         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -834,8 +848,12 @@ User Search Request → API Gateway
 ### ML/AI
 - TensorFlow/PyTorch, XGBoost, MLflow, Kubeflow
 
-### Monitoring
-- Prometheus, Grafana, ELK Stack, Sentry, Jaeger
+### Observability
+- **OpenTelemetry** (traces, metrics, logs)
+- Jaeger / Tempo (tracing backend)
+- Prometheus + Grafana (metrics & dashboards)
+- ELK Stack (log aggregation)
+- Sentry (error tracking)
 
 ### Frontend
 - React/Next.js, TypeScript, TailwindCSS
