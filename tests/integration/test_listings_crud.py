@@ -8,6 +8,8 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+pytestmark = pytest.mark.integration
+
 
 def test_full_crud_lifecycle(client: TestClient):
     """Test complete CRUD lifecycle: create → read → delete.

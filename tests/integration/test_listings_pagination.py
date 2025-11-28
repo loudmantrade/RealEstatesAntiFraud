@@ -8,6 +8,8 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def large_dataset(client: TestClient):
@@ -169,9 +171,7 @@ def test_pagination_with_city_filter(client: TestClient, large_dataset):
     - Pagination metadata reflects filtered results
     - All items on all pages match the filter
     """
-    response = client.get(
-        "/api/v1/listings/?page=1&page_size=10&city=TestCity"
-    )
+    response = client.get("/api/v1/listings/?page=1&page_size=10&city=TestCity")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
