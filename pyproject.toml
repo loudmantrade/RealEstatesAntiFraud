@@ -5,3 +5,14 @@ target-version = ['py311', 'py312', 'py313']
 [tool.isort]
 profile = "black"
 line_length = 88
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests (require database)",
+    "unit: marks tests as unit tests (no external dependencies)",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
