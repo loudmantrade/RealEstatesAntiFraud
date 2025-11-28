@@ -218,7 +218,8 @@ jobs:
         context: .
         file: ./Dockerfile
         push: false
-        tags: real-estate-api:${{ github.sha }}
+        load: true
+        tags: real-estate-api:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
     
@@ -230,7 +231,7 @@ jobs:
           -e DB_NAME=test \
           -e DB_USER=test \
           -e DB_PASSWORD=test \
-          real-estate-api:${{ github.sha }}
+          real-estate-api:test
         
         # Wait for container to start
         sleep 10
@@ -247,7 +248,7 @@ jobs:
     
     - name: Check image size
       run: |
-        IMAGE_SIZE=$(docker image inspect real-estate-api:${{ github.sha }} --format='{{.Size}}')
+        IMAGE_SIZE=$(docker image inspect real-estate-api:test --format='{{.Size}}')
         IMAGE_SIZE_MB=$((IMAGE_SIZE / 1024 / 1024))
         echo "Image size: ${IMAGE_SIZE_MB}MB"
         
