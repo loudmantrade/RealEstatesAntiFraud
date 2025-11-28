@@ -7,3 +7,4 @@ mypy==1.11.2
 bandit==1.7.9
 safety==3.2.3
 types-PyYAML==6.0.12.20240917
+httpx==0.28.1

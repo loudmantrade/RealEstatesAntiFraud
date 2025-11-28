@@ -6,7 +6,72 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from core.database.models import ListingModel
-from core.models.udm import Listing
+from core.models.udm import (
+    Coordinates,
+    Listing,
+    Location,
+    Media,
+    MediaImage,
+    Price,
+    SourceInfo,
+)
+
+
+def _model_to_udm(model: ListingModel) -> Listing:
+    """Convert database model to UDM Listing.
+
+    Args:
+        model: ListingModel database instance
+
+    Returns:
+        Listing UDM instance
+    """
+    coordinates = None
+    if model.location_lat is not None and model.location_lng is not None:
+        coordinates = Coordinates(
+            lat=model.location_lat,  # type: ignore[arg-type]
+            lng=model.location_lng,  # type: ignore[arg-type]
+        )
+
+    location = Location(
+        country=model.location_country,  # type: ignore[arg-type]
+        city=model.location_city,  # type: ignore[arg-type]
+        address=model.location_address,  # type: ignore[arg-type]
+        coordinates=coordinates,
+    )
+
+    price = Price(
+        amount=model.price_amount,  # type: ignore[arg-type]
+        currency=model.price_currency,  # type: ignore[arg-type]
+        price_per_sqm=model.price_per_sqm,  # type: ignore[arg-type]
+    )
+
+    source = SourceInfo(
+        plugin_id=model.source_plugin_id,  # type: ignore[arg-type]
+        platform=model.source_platform,  # type: ignore[arg-type]
+        original_id=model.source_original_id,  # type: ignore[arg-type]
+        url=model.source_url,  # type: ignore[arg-type]
+    )
+
+    media = None
+    if model.media:
+        images = [
+            MediaImage(url=img["url"], caption=img.get("caption"))
+            for img in model.media.get("images", [])
+        ]
+        media = Media(images=images)
+
+    return Listing(
+        listing_id=model.listing_id,  # type: ignore[arg-type]
+        source=source,
+        type=model.type,  # type: ignore[arg-type]
+        property_type=model.property_type,  # type: ignore[arg-type]
+        location=location,
+        price=price,
+        description=model.description,  # type: ignore[arg-type]
+        media=media,
+        fraud_score=model.fraud_score,  # type: ignore[arg-type]
+    )
 
 
 class ListingRepository:
@@ -20,14 +85,14 @@ class ListingRepository:
         """
         self.db = db
 
-    def create(self, listing: Listing) -> ListingModel:
+    def create(self, listing: Listing) -> Listing:
         """Create a new listing in the database.
 
         Args:
             listing: Listing UDM model
 
         Returns:
-            Created ListingModel instance
+            Created Listing UDM instance
         """
         # Convert media to dict if present
         media_dict = None
@@ -72,37 +137,39 @@ class ListingRepository:
         self.db.commit()
         self.db.refresh(db_listing)
 
-        return db_listing
+        return _model_to_udm(db_listing)
 
-    def get_by_id(self, listing_id: str) -> Optional[ListingModel]:
+    def get_by_id(self, listing_id: str) -> Optional[Listing]:
         """Get listing by listing_id.
 
         Args:
             listing_id: Unique listing identifier
 
         Returns:
-            ListingModel instance or None if not found
+            Listing UDM instance or None if not found
         """
-        return (
+        model = (
             self.db.query(ListingModel)
             .filter(ListingModel.listing_id == listing_id)
             .first()
         )
+        return _model_to_udm(model) if model else None
 
-    def get_by_db_id(self, id: int) -> Optional[ListingModel]:
+    def get_by_db_id(self, id: int) -> Optional[Listing]:
         """Get listing by database id.
 
         Args:
             id: Database primary key
 
         Returns:
-            ListingModel instance or None if not found
+            Listing UDM instance or None if not found
         """
-        return self.db.query(ListingModel).filter(ListingModel.id == id).first()
+        model = self.db.query(ListingModel).filter(ListingModel.id == id).first()
+        return _model_to_udm(model) if model else None
 
     def get_all(
         self, skip: int = 0, limit: int = 100, city: Optional[str] = None
-    ) -> List[ListingModel]:
+    ) -> List[Listing]:
         """Get all listings with pagination and optional filtering.
 
         Args:
@@ -111,14 +178,15 @@ class ListingRepository:
             city: Optional city filter
 
         Returns:
-            List of ListingModel instances
+            List of Listing UDM instances
         """
         query = self.db.query(ListingModel)
 
         if city:
             query = query.filter(ListingModel.location_city == city)
 
-        return query.offset(skip).limit(limit).all()
+        models = query.offset(skip).limit(limit).all()
+        return [_model_to_udm(model) for model in models]
 
     def count(self, city: Optional[str] = None) -> int:
         """Count total listings with optional filtering.
@@ -136,7 +204,53 @@ class ListingRepository:
 
         return query.scalar()
 
-    def update(self, listing_id: str, **kwargs) -> Optional[ListingModel]:
+    def count_by_fraud_score_range(self, min_score: float, max_score: float) -> int:
+        """Count listings filtered by fraud score range.
+
+        Args:
+            min_score: Minimum fraud score (inclusive)
+            max_score: Maximum fraud score (inclusive)
+
+        Returns:
+            Total count of listings in range
+        """
+        return (
+            self.db.query(func.count(ListingModel.id))
+            .filter(
+                ListingModel.fraud_score >= min_score,
+                ListingModel.fraud_score <= max_score,
+            )
+            .scalar()
+        )
+
+    def count_by_price_range(
+        self,
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None,
+        city: Optional[str] = None,
+    ) -> int:
+        """Count listings filtered by price range.
+
+        Args:
+            min_price: Minimum price (inclusive), None for no lower limit
+            max_price: Maximum price (inclusive), None for no upper limit
+            city: Optional city filter
+
+        Returns:
+            Total count of listings in range
+        """
+        query = self.db.query(func.count(ListingModel.id))
+
+        if min_price is not None:
+            query = query.filter(ListingModel.price_amount >= min_price)
+        if max_price is not None:
+            query = query.filter(ListingModel.price_amount <= max_price)
+        if city:
+            query = query.filter(ListingModel.location_city == city)
+
+        return query.scalar()
+
+    def update(self, listing_id: str, **kwargs) -> Optional[Listing]:
         """Update listing by listing_id.
 
         Args:
@@ -144,20 +258,24 @@ class ListingRepository:
             **kwargs: Fields to update
 
         Returns:
-            Updated ListingModel instance or None if not found
+            Updated Listing UDM instance or None if not found
         """
-        db_listing = self.get_by_id(listing_id)
-        if not db_listing:
+        model = (
+            self.db.query(ListingModel)
+            .filter(ListingModel.listing_id == listing_id)
+            .first()
+        )
+        if not model:
             return None
 
         for key, value in kwargs.items():
-            if hasattr(db_listing, key):
-                setattr(db_listing, key, value)
+            if hasattr(model, key):
+                setattr(model, key, value)
 
         self.db.commit()
-        self.db.refresh(db_listing)
+        self.db.refresh(model)
 
-        return db_listing
+        return _model_to_udm(model)
 
     def delete(self, listing_id: str) -> bool:
         """Delete listing by listing_id.
@@ -168,18 +286,22 @@ class ListingRepository:
         Returns:
             True if deleted, False if not found
         """
-        db_listing = self.get_by_id(listing_id)
-        if not db_listing:
+        model = (
+            self.db.query(ListingModel)
+            .filter(ListingModel.listing_id == listing_id)
+            .first()
+        )
+        if not model:
             return False
 
-        self.db.delete(db_listing)
+        self.db.delete(model)
         self.db.commit()
 
         return True
 
     def get_by_fraud_score_range(
         self, min_score: float, max_score: float, skip: int = 0, limit: int = 100
-    ) -> List[ListingModel]:
+    ) -> List[Listing]:
         """Get listings filtered by fraud score range.
 
         Args:
@@ -189,9 +311,9 @@ class ListingRepository:
             limit: Maximum number of records to return
 
         Returns:
-            List of ListingModel instances
+            List of Listing UDM instances
         """
-        return (
+        models = (
             self.db.query(ListingModel)
             .filter(
                 ListingModel.fraud_score >= min_score,
@@ -201,33 +323,37 @@ class ListingRepository:
             .limit(limit)
             .all()
         )
+        return [_model_to_udm(model) for model in models]
 
     def get_by_price_range(
         self,
-        min_price: float,
-        max_price: float,
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None,
         skip: int = 0,
         limit: int = 100,
         city: Optional[str] = None,
-    ) -> List[ListingModel]:
+    ) -> List[Listing]:
         """Get listings filtered by price range.
 
         Args:
-            min_price: Minimum price (inclusive)
-            max_price: Maximum price (inclusive)
+            min_price: Minimum price (inclusive), None for no lower limit
+            max_price: Maximum price (inclusive), None for no upper limit
             skip: Number of records to skip (offset)
             limit: Maximum number of records to return
             city: Optional city filter
 
         Returns:
-            List of ListingModel instances
+            List of Listing UDM instances
         """
-        query = self.db.query(ListingModel).filter(
-            ListingModel.price_amount >= min_price,
-            ListingModel.price_amount <= max_price,
-        )
+        query = self.db.query(ListingModel)
+
+        if min_price is not None:
+            query = query.filter(ListingModel.price_amount >= min_price)
+        if max_price is not None:
+            query = query.filter(ListingModel.price_amount <= max_price)
 
         if city:
             query = query.filter(ListingModel.location_city == city)
 
-        return query.offset(skip).limit(limit).all()
+        models = query.offset(skip).limit(limit).all()
+        return [_model_to_udm(model) for model in models]

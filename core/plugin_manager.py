@@ -309,7 +309,7 @@ class PluginManager:
 
                     # Use standard reload
                     reloaded_module = importlib.reload(old_module)
-                    logger.debug(f"Module reloaded successfully")
+                    logger.debug("Module reloaded successfully")
                 except Exception as e:
                     raise RuntimeError(
                         f"Failed to reload module for {plugin_id}: {e}"
@@ -529,7 +529,7 @@ class PluginManager:
 
                 if not module_path or not class_name:
                     raise ValueError(
-                        f"Entrypoint must have both 'module' and 'class' fields"
+                        "Entrypoint must have both 'module' and 'class' fields"
                     )
 
                 # Add plugin directory to sys.path for imports

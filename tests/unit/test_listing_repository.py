@@ -79,14 +79,13 @@ def test_create_listing(repository, sample_listing):
     """Test creating a new listing."""
     result = repository.create(sample_listing)
 
-    assert result.id is not None
     assert result.listing_id == "test-listing-1"
-    assert result.source_plugin_id == "test-plugin"
-    assert result.source_platform == "test-platform"
+    assert result.source.plugin_id == "test-plugin"
+    assert result.source.platform == "test-platform"
     assert result.type == "sale"
     assert result.property_type == "apartment"
-    assert result.location_city == "Moscow"
-    assert result.price_amount == 5000000.00
+    assert result.location.city == "Moscow"
+    assert result.price.amount == 5000000.00
     assert result.fraud_score == 25.5
 
 
@@ -98,7 +97,7 @@ def test_get_by_id(repository, sample_listing):
 
     assert result is not None
     assert result.listing_id == "test-listing-1"
-    assert result.location_city == "Moscow"
+    assert result.location.city == "Moscow"
 
 
 def test_get_by_id_not_found(repository):
@@ -108,14 +107,22 @@ def test_get_by_id_not_found(repository):
     assert result is None
 
 
-def test_get_by_db_id(repository, sample_listing):
+def test_get_by_db_id(repository, sample_listing, db_session):
     """Test getting listing by database id."""
     created = repository.create(sample_listing)
 
-    result = repository.get_by_db_id(created.id)
+    # Get the database ID from the database directly
+    from core.database.models import ListingModel
+
+    db_listing = (
+        db_session.query(ListingModel)
+        .filter(ListingModel.listing_id == "test-listing-1")
+        .first()
+    )
+
+    result = repository.get_by_db_id(db_listing.id)
 
     assert result is not None
-    assert result.id == created.id
     assert result.listing_id == "test-listing-1"
 
 
@@ -170,7 +177,7 @@ def test_get_all_with_city_filter(repository, sample_listing):
     result = repository.get_all(city="Moscow")
 
     assert len(result) == 1
-    assert result[0].location_city == "Moscow"
+    assert result[0].location.city == "Moscow"
 
 
 def test_count_all(repository, sample_listing):
@@ -289,7 +296,7 @@ def test_get_by_price_range(repository, sample_listing):
     result = repository.get_by_price_range(2000000.00, 6000000.00)
 
     assert len(result) == 2
-    assert all(2000000.00 <= listing.price_amount <= 6000000.00 for listing in result)
+    assert all(2000000.00 <= listing.price.amount <= 6000000.00 for listing in result)
 
 
 def test_get_by_price_range_with_city(repository, sample_listing):
@@ -308,7 +315,7 @@ def test_get_by_price_range_with_city(repository, sample_listing):
     result = repository.get_by_price_range(3000000.00, 6000000.00, city="Moscow")
 
     assert len(result) == 1
-    assert result[0].location_city == "Moscow"
+    assert result[0].location.city == "Moscow"
 
 
 def test_create_listing_with_media(repository, sample_listing):
@@ -316,7 +323,6 @@ def test_create_listing_with_media(repository, sample_listing):
     result = repository.create(sample_listing)
 
     assert result.media is not None
-    assert "images" in result.media
-    assert len(result.media["images"]) == 2
-    assert result.media["images"][0]["url"] == "https://example.com/img1.jpg"
-    assert result.media["images"][0]["caption"] == "Living room"
+    assert len(result.media.images) == 2
+    assert result.media.images[0].url == "https://example.com/img1.jpg"
+    assert result.media.images[0].caption == "Living room"
