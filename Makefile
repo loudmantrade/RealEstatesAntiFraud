@@ -132,13 +132,35 @@ test-unit: ## Run unit tests only
 	@echo "${GREEN}Running unit tests...${RESET}"
 	pytest tests/unit/ -v
 
-test-integration: ## Run integration tests only
+test-integration: ## Run integration tests with PostgreSQL
+	@echo "${GREEN}Starting test database...${RESET}"
+	docker-compose -f docker-compose.test.yml up -d postgres-test
+	@echo "${GREEN}Waiting for PostgreSQL to be ready...${RESET}"
+	@sleep 3
 	@echo "${GREEN}Running integration tests...${RESET}"
-	pytest tests/integration/ -v
+	pytest tests/integration/ -v --cov=core --cov-report=html --cov-report=term
+	@echo "${GREEN}Stopping test database...${RESET}"
+	docker-compose -f docker-compose.test.yml down
+
+test-integration-up: ## Start integration test database only
+	@echo "${GREEN}Starting test database...${RESET}"
+	docker-compose -f docker-compose.test.yml up -d postgres-test
+	@echo "${GREEN}Waiting for PostgreSQL to be ready...${RESET}"
+	@sleep 3
+	@echo "${GREEN}Test database is ready at localhost:5433${RESET}"
+
+test-integration-down: ## Stop integration test database
+	@echo "${YELLOW}Stopping test database...${RESET}"
+	docker-compose -f docker-compose.test.yml down
+
+test-integration-logs: ## Show integration test database logs
+	docker-compose -f docker-compose.test.yml logs -f postgres-test
 
 test-e2e: ## Run end-to-end tests
 	@echo "${GREEN}Running e2e tests...${RESET}"
 	pytest tests/e2e/ -v
+
+test-all: test-unit test-integration ## Run all tests (unit + integration)
 
 test-coverage: ## Generate test coverage report
 	@echo "${GREEN}Generating coverage report...${RESET}"
