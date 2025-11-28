@@ -200,3 +200,60 @@ jobs:
       with:
         name: bandit-security-report
         path: bandit-report.json
+  
+  docker-build:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        load: true
+        tags: real-estate-api:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-api -p 8000:8000 \
+          -e DB_HOST=localhost \
+          -e DB_PORT=5432 \
+          -e DB_NAME=test \
+          -e DB_USER=test \
+          -e DB_PASSWORD=test \
+          real-estate-api:test
+        
+        # Wait for container to start
+        sleep 10
+        
+        # Check health endpoint
+        curl -f http://localhost:8000/health || exit 1
+        
+        # Check container logs
+        docker logs test-api
+        
+        # Cleanup
+        docker stop test-api
+        docker rm test-api
+    
+    - name: Check image size
+      run: |
+        IMAGE_SIZE=$(docker image inspect real-estate-api:test --format='{{.Size}}')
+        IMAGE_SIZE_MB=$((IMAGE_SIZE / 1024 / 1024))
+        echo "Image size: ${IMAGE_SIZE_MB}MB"
+        
+        if [ $IMAGE_SIZE_MB -gt 200 ]; then
+          echo "::warning::Image size (${IMAGE_SIZE_MB}MB) exceeds 200MB target"
+        else
+          echo "::notice::Image size (${IMAGE_SIZE_MB}MB) is within 200MB target"
+        fi

@@ -1,6 +1,39 @@
 version: '3.8'
 
 services:
+  # Core API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: real-estate-api:latest
+    container_name: real-estate-api
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: real_estate_fraud
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - real-estate-network
+    restart: unless-stopped
+
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
