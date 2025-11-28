@@ -5,10 +5,13 @@ import logging
 import sys
 from pathlib import Path
 from threading import RLock
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from core.dependency_graph import (CyclicDependencyError, DependencyGraph,
-                                   MissingDependencyError)
+from core.dependency_graph import (
+    CyclicDependencyError,
+    DependencyGraph,
+    MissingDependencyError,
+)
 from core.models.plugin import PluginMetadata
 from core.validators.manifest import ManifestValidationError, validate_manifest
 
@@ -20,8 +23,8 @@ class PluginManager:
 
     def __init__(self) -> None:
         self._plugins: Dict[str, PluginMetadata] = {}
-        self._instances: Dict[str, any] = {}  # Store plugin instances
-        self._modules: Dict[str, any] = {}  # Store imported modules for reload
+        self._instances: Dict[str, Any] = {}  # Store plugin instances
+        self._modules: Dict[str, Any] = {}  # Store imported modules for reload
         self._dependency_graph = DependencyGraph()  # Manage plugin dependencies
         self._lock = RLock()
 

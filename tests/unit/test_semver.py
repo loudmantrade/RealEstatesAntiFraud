@@ -6,10 +6,15 @@ Tests version parsing, comparison, and constraint matching.
 
 import pytest
 
-from core.utils.semver import (IncompatibleVersionError,
-                               InvalidConstraintError, InvalidVersionError,
-                               Version, VersionConstraint, VersionError,
-                               check_compatibility)
+from core.utils.semver import (
+    IncompatibleVersionError,
+    InvalidConstraintError,
+    InvalidVersionError,
+    Version,
+    VersionConstraint,
+    VersionError,
+    check_compatibility,
+)
 
 
 class TestVersionParsing:

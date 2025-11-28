@@ -52,7 +52,7 @@ class CoreConfig(BaseModel):
     debug: bool = Field(default=False)
 
     # API settings
-    api_host: str = Field(default="0.0.0.0")
+    api_host: str = Field(default="0.0.0.0")  # nosec B104
     api_port: int = Field(default=8000, ge=1, le=65535)
     api_workers: int = Field(default=4, ge=1)
     api_reload: bool = Field(default=False)

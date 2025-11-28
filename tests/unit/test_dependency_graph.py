@@ -12,9 +12,13 @@ Tests:
 
 import pytest
 
-from core.dependency_graph import (CyclicDependencyError, DependencyGraph,
-                                   MissingDependencyError, PluginNode,
-                                   VersionIncompatibilityError)
+from core.dependency_graph import (
+    CyclicDependencyError,
+    DependencyGraph,
+    MissingDependencyError,
+    PluginNode,
+    VersionIncompatibilityError,
+)
 
 
 class TestPluginNode:
