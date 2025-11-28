@@ -69,6 +69,9 @@ class JSONFormatter(logging.Formatter):
         Returns:
             JSON string representation of the log record
         """
+        # Import here to avoid circular imports
+        from core.utils.context import get_request_id, get_trace_id
+        
         # Build the standard log structure
         log_data: Dict[str, Any] = {
             "timestamp": datetime.fromtimestamp(
@@ -81,6 +84,14 @@ class JSONFormatter(logging.Formatter):
             "function": record.funcName,
             "line": record.lineno,
         }
+        
+        # Add trace IDs if available (from context)
+        trace_id = get_trace_id()
+        request_id = get_request_id()
+        if trace_id:
+            log_data["trace_id"] = trace_id
+        if request_id:
+            log_data["request_id"] = request_id
 
         # Extract context from extra fields
         context: Dict[str, Any] = {}
