@@ -7,4 +7,4 @@ description: Plugin in nested directory for discovery testing
 
 entrypoint:
   module: processor
-  class: ProcessingPlugin
+  class: NestedProcessingPlugin

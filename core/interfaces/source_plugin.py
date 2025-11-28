@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Dict, Iterator, Optional
 
@@ -33,4 +34,18 @@ class SourcePlugin(ABC):
 
     @abstractmethod
     def get_statistics(self) -> Dict:
+        pass
+
+    def shutdown(self) -> None:
+        """
+        Optional graceful shutdown hook for cleanup before reload.
+
+        Override this method to:
+        - Close database connections
+        - Stop background tasks
+        - Release resources
+        - Save state
+
+        Default implementation does nothing.
+        """
         pass

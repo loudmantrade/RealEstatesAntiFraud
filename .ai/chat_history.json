@@ -1,0 +1,31 @@
+{
+  "saved_at": "2025-11-27T14:55:00+00:00",
+  "repository": "loudmantrade/RealEstatesAntiFraud",
+  "local_path": "/Users/admin.oleksandr.gugnin/Own/git/RealEstatesAntiFraud",
+  "branch": "feature/plugin-dependency-graph",
+  "head_commit": "f677208",
+  "remote_origin": "https://github.com/loudmantrade/RealEstatesAntiFraud.git",
+  "summary": {
+    "issue": 5,
+    "feature": "Plugin dependency graph",
+    "tests_passing": 38,
+    "notes": "DependencyGraph implemented, PluginManager integrated, docs updated"
+  },
+  "snapshot_files": [
+    "core/dependency_graph.py",
+    "core/plugin_manager.py",
+    "docs/PLUGIN_DEVELOPMENT.md",
+    "tests/unit/test_dependency_graph.py",
+    "tests/unit/test_plugin_manager_dependencies.py"
+  ],
+  "git_status": [
+    "?? tests/fixtures/plugins/init_error_plugin/plugin.yaml",
+    "?? tests/fixtures/plugins/test_source_plugin/__init__.py",
+    "?? tests/unit/test_plugin_manager_dependencies.py"
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "pip_freeze_file": ".ai/pip_freeze.txt"
+  },
+  "chat_text_path": ".ai/chat_history.txt"
+}

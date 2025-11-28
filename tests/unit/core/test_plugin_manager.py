@@ -1,5 +1,5 @@
+from core.models.plugin import PluginAuthor, PluginMetadata
 from core.plugin_manager import PluginManager
-from core.models.plugin import PluginMetadata
 
 
 def test_register_and_enable_plugin():
@@ -11,7 +11,7 @@ def test_register_and_enable_plugin():
         version="1.0.0",
         type="source",
         description="Example plugin",
-        author="Tester",
+        author=PluginAuthor(name="Tester"),
         capabilities=["incremental_scraping"],
     )
 

@@ -1,0 +1,10 @@
+id: plugin-source-init-error
+name: Plugin With Init Error
+version: 1.0.0
+type: source
+api_version: "1.0"
+description: Plugin that raises error during initialization
+
+entrypoint:
+  module: broken_plugin
+  class: BrokenPlugin

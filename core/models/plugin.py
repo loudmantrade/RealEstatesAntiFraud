@@ -1,5 +1,14 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
+
+
+class PluginAuthor(BaseModel):
+    """Plugin author information"""
+
+    name: str
+    email: Optional[str] = None
+    url: Optional[str] = None
 
 
 class PluginMetadata(BaseModel):
@@ -8,9 +17,13 @@ class PluginMetadata(BaseModel):
     version: str
     type: str  # source | processing | detection | search | display
     description: Optional[str] = None
-    author: Optional[str] = None
+    author: Optional[PluginAuthor] = None
     capabilities: List[str] = []
     enabled: bool = False
+    dependencies: Optional[Dict[str, str]] = Field(
+        default_factory=dict,
+        description="Plugin dependencies with version constraints (plugin_id -> constraint)",
+    )
 
 
 class PluginRegistrationRequest(BaseModel):
