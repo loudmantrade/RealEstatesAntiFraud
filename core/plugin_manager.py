@@ -7,11 +7,8 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.dependency_graph import (
-    CyclicDependencyError,
-    DependencyGraph,
-    MissingDependencyError,
-)
+from core.dependency_graph import (CyclicDependencyError, DependencyGraph,
+                                   MissingDependencyError)
 from core.models.plugin import PluginMetadata
 from core.validators.manifest import ManifestValidationError, validate_manifest
 

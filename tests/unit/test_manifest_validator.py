@@ -6,12 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from core.validators.manifest import (
-    ManifestValidationError,
-    format_validation_errors,
-    validate_manifest,
-    validate_manifest_strict,
-)
+from core.validators.manifest import (ManifestValidationError,
+                                      format_validation_errors,
+                                      validate_manifest,
+                                      validate_manifest_strict)
 
 
 @pytest.fixture

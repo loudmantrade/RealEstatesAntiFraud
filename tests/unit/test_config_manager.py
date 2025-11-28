@@ -13,12 +13,8 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from core.config import (
-    ConfigError,
-    ConfigManager,
-    ConfigNotFoundError,
-    ConfigValidationError,
-)
+from core.config import (ConfigError, ConfigManager, ConfigNotFoundError,
+                         ConfigValidationError)
 from core.config.config_manager import CoreConfig, PluginConfig
 
 
