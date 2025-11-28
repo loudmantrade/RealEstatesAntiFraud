@@ -139,18 +139,101 @@ RealEstatesAntiFraud/
 
 ## 🧪 Тестирование
 
+### Unit Tests
+Быстрые тесты с in-memory SQLite:
 ```bash
-# Unit тесты
-pytest tests/unit
+# Запуск всех unit тестов
+make test-unit
 
-# Integration тесты
-pytest tests/integration
+# Или напрямую через pytest
+pytest tests/unit/ -v
+```
 
-# E2E тесты
-npm run test:e2e
+### Integration Tests
+Тесты с реальной PostgreSQL базой данных в Docker:
 
-# Coverage report
-pytest --cov=services --cov-report=html
+**Предварительные требования:**
+- Docker и docker-compose установлены
+- Порт 5433 свободен (или измените в `docker-compose.test.yml`)
+
+**Запуск integration тестов:**
+```bash
+# Полный цикл (запуск DB → тесты → остановка DB)
+make test-integration
+
+# Или вручную:
+# 1. Запустить тестовую БД
+make test-integration-up
+
+# 2. Запустить тесты
+pytest tests/integration/ -v --cov=core
+
+# 3. Остановить БД
+make test-integration-down
+```
+
+**Просмотр логов тестовой БД:**
+```bash
+make test-integration-logs
+```
+
+**Конфигурация:**
+- Database URL: `postgresql://test_user:test_pass@localhost:5433/realestate_test`
+- Настройки в файле `.env.test`
+- Docker Compose: `docker-compose.test.yml`
+
+### All Tests
+```bash
+# Запуск unit + integration тестов
+make test-all
+
+# Все тесты с coverage
+make test-coverage
+```
+
+### Test Structure
+```
+tests/
+├── unit/              # Юнит-тесты (in-memory SQLite)
+│   ├── test_api_listings.py
+│   ├── test_listing_repository.py
+│   └── ...
+└── integration/       # Интеграционные тесты (PostgreSQL)
+    ├── conftest.py    # Fixtures (db_session, client)
+    └── ...            # Будут добавлены в Issue #62
+```
+
+### Troubleshooting
+
+**Проблема: "Port 5433 is already in use"**
+```bash
+# Проверьте запущенные контейнеры
+docker ps | grep 5433
+
+# Остановите конфликтующие контейнеры
+docker stop <container_id>
+
+# Или измените порт в docker-compose.test.yml
+```
+
+**Проблема: "Database connection failed"**
+```bash
+# Убедитесь, что контейнер запущен и здоров
+docker-compose -f docker-compose.test.yml ps
+
+# Проверьте логи
+docker-compose -f docker-compose.test.yml logs postgres-test
+
+# Подождите 3-5 секунд для инициализации PostgreSQL
+```
+
+**Проблема: "Fixtures not found"**
+```bash
+# Убедитесь, что conftest.py существует
+ls tests/integration/conftest.py
+
+# Проверьте PYTHONPATH
+export PYTHONPATH=$PWD:$PYTHONPATH
 ```
 
 ## 📊 ML Модели
