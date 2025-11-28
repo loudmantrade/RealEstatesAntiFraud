@@ -37,7 +37,9 @@ def test_config() -> dict:
 
     # If individual components are provided, use them (CI mode)
     if db_host and db_port and db_name and db_user and db_password:
-        database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        database_url = (
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
     else:
         # Otherwise load from .env.test (local development)
         load_dotenv(".env.test", override=False)
