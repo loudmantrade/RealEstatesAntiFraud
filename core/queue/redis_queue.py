@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 try:
     import redis
     from redis.exceptions import RedisError
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -27,14 +28,14 @@ except ImportError:
 class RedisQueuePlugin(QueuePlugin):
     """
     Redis-based queue implementation using Redis Streams.
-    
+
     Features:
     - Persistent message storage
     - Consumer groups for load balancing
     - Acknowledgment and retry mechanism
     - Dead letter queue support
     - High throughput and low latency
-    
+
     Requirements:
     - redis >= 4.0.0
     - Redis server >= 5.0 (for Streams support)
@@ -53,7 +54,7 @@ class RedisQueuePlugin(QueuePlugin):
     ):
         """
         Initialize Redis queue plugin.
-        
+
         Args:
             host: Redis server host
             port: Redis server port
@@ -66,7 +67,7 @@ class RedisQueuePlugin(QueuePlugin):
         """
         if not REDIS_AVAILABLE:
             raise ImportError("redis package is required for RedisQueuePlugin")
-        
+
         self.host = host
         self.port = port
         self.db = db
@@ -75,7 +76,7 @@ class RedisQueuePlugin(QueuePlugin):
         self.consumer_name = consumer_name or f"consumer-{uuid.uuid4().hex[:8]}"
         self.max_pending = max_pending
         self.block_ms = block_ms
-        
+
         self._client: Optional[redis.Redis] = None
         self._subscriptions: Dict[str, bool] = {}
         self._stats = {
@@ -99,11 +100,11 @@ class RedisQueuePlugin(QueuePlugin):
                 socket_connect_timeout=5,
                 socket_keepalive=True,
             )
-            
+
             # Test connection
             self._client.ping()
             logger.info(f"Connected to Redis at {self.host}:{self.port}")
-            
+
         except RedisError as e:
             logger.error(f"Failed to connect to Redis: {e}")
             raise ConnectionError(f"Redis connection failed: {e}")
@@ -114,86 +115,78 @@ class RedisQueuePlugin(QueuePlugin):
             # Stop all subscriptions
             for subscription_id in list(self._subscriptions.keys()):
                 self._subscriptions[subscription_id] = False
-            
+
             self._client.close()
             self._client = None
             logger.info("Disconnected from Redis")
 
-    def publish(
-        self,
-        topic: str,
-        message: Dict[str, Any],
-        **kwargs: Any
-    ) -> str:
+    def publish(self, topic: str, message: Dict[str, Any], **kwargs: Any) -> str:
         """Publish message to Redis Stream"""
         if not self._client:
             raise ConnectionError("Not connected to Redis")
-        
+
         try:
             # Serialize message
             payload = json.dumps(message)
-            
+
             # Add to stream
             message_id = self._client.xadd(
                 topic,
                 {"payload": payload, "timestamp": time.time()},
                 maxlen=kwargs.get("maxlen", 10000),  # Limit stream size
             )
-            
+
             self._stats["messages_published"] += 1
             logger.debug(f"Published message {message_id} to topic {topic}")
-            
+
             return message_id
-            
+
         except RedisError as e:
             logger.error(f"Failed to publish message: {e}")
             self._stats["errors"] += 1
             raise
 
     def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[Dict[str, Any]], None],
-        **kwargs: Any
+        self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any
     ) -> str:
         """Subscribe to Redis Stream with consumer group"""
         if not self._client:
             raise ConnectionError("Not connected to Redis")
-        
+
         subscription_id = str(uuid.uuid4())
-        
+
         try:
             # Create consumer group if it doesn't exist
             try:
                 self._client.xgroup_create(
-                    topic,
-                    self.consumer_group,
-                    id="0",
-                    mkstream=True
+                    topic, self.consumer_group, id="0", mkstream=True
                 )
-                logger.info(f"Created consumer group {self.consumer_group} for topic {topic}")
+                logger.info(
+                    f"Created consumer group {self.consumer_group} for topic {topic}"
+                )
             except RedisError as e:
                 # Group might already exist
                 if "BUSYGROUP" not in str(e):
                     raise
-            
+
             # Start consuming in background
             self._subscriptions[subscription_id] = True
             self._stats["active_subscriptions"] += 1
-            
+
             # Note: In production, this should be handled by a separate worker process
             # For now, we'll use a simple polling approach
             import threading
+
             thread = threading.Thread(
                 target=self._consume_loop,
                 args=(topic, subscription_id, callback),
-                daemon=True
+                daemon=True,
             )
             thread.start()
-            
+
             logger.info(f"Subscribed to topic {topic} with ID {subscription_id}")
             return subscription_id
-            
+
         except RedisError as e:
             logger.error(f"Failed to subscribe: {e}")
             self._stats["errors"] += 1
@@ -203,7 +196,7 @@ class RedisQueuePlugin(QueuePlugin):
         self,
         topic: str,
         subscription_id: str,
-        callback: Callable[[Dict[str, Any]], None]
+        callback: Callable[[Dict[str, Any]], None],
     ) -> None:
         """Consumer loop for processing messages"""
         while self._subscriptions.get(subscription_id, False):
@@ -214,30 +207,30 @@ class RedisQueuePlugin(QueuePlugin):
                     self.consumer_name,
                     {topic: ">"},
                     count=10,
-                    block=self.block_ms
+                    block=self.block_ms,
                 )
-                
+
                 if not messages:
                     continue
-                
+
                 for stream_name, stream_messages in messages:
                     for message_id, fields in stream_messages:
                         try:
                             # Deserialize payload
                             payload = json.loads(fields["payload"])
-                            
+
                             # Process message
                             callback(payload)
-                            
+
                             # Acknowledge
                             self.acknowledge(message_id)
                             self._stats["messages_consumed"] += 1
-                            
+
                         except Exception as e:
                             logger.error(f"Error processing message {message_id}: {e}")
                             self._stats["errors"] += 1
                             self.reject(message_id, requeue=False)
-                
+
             except RedisError as e:
                 logger.error(f"Consumer error: {e}")
                 self._stats["errors"] += 1
@@ -255,15 +248,15 @@ class RedisQueuePlugin(QueuePlugin):
         """Acknowledge message processing"""
         if not self._client:
             return
-        
+
         try:
             # Extract topic from message_id format: "topic-123-456"
             topic = message_id.split("-")[0] if "-" in message_id else message_id
-            
+
             self._client.xack(topic, self.consumer_group, message_id)
             self._stats["messages_acked"] += 1
             logger.debug(f"Acknowledged message {message_id}")
-            
+
         except RedisError as e:
             logger.error(f"Failed to acknowledge message: {e}")
             self._stats["errors"] += 1
@@ -272,30 +265,28 @@ class RedisQueuePlugin(QueuePlugin):
         """Reject message"""
         if not self._client:
             return
-        
+
         try:
             if not requeue:
                 # Move to dead letter queue
                 topic = message_id.split("-")[0] if "-" in message_id else message_id
                 dlq_topic = f"{topic}:dlq"
-                
+
                 # Get message details
                 pending = self._client.xpending_range(
-                    topic,
-                    self.consumer_group,
-                    min=message_id,
-                    max=message_id,
-                    count=1
+                    topic, self.consumer_group, min=message_id, max=message_id, count=1
                 )
-                
+
                 if pending:
                     # Move to DLQ and acknowledge original
-                    self._client.xadd(dlq_topic, {"message_id": message_id, "reason": "rejected"})
+                    self._client.xadd(
+                        dlq_topic, {"message_id": message_id, "reason": "rejected"}
+                    )
                     self._client.xack(topic, self.consumer_group, message_id)
-                    
+
             self._stats["messages_rejected"] += 1
             logger.debug(f"Rejected message {message_id}, requeue={requeue}")
-            
+
         except RedisError as e:
             logger.error(f"Failed to reject message: {e}")
             self._stats["errors"] += 1
@@ -304,7 +295,7 @@ class RedisQueuePlugin(QueuePlugin):
         """Get stream length"""
         if not self._client:
             return 0
-        
+
         try:
             return self._client.xlen(topic)
         except RedisError:
@@ -314,7 +305,7 @@ class RedisQueuePlugin(QueuePlugin):
         """Delete all messages from stream"""
         if not self._client:
             return 0
-        
+
         try:
             count = self._client.xlen(topic)
             self._client.delete(topic)
@@ -332,7 +323,7 @@ class RedisQueuePlugin(QueuePlugin):
         """Delete stream"""
         if not self._client:
             return
-        
+
         try:
             self._client.delete(topic)
             logger.info(f"Deleted topic {topic}")
@@ -343,7 +334,7 @@ class RedisQueuePlugin(QueuePlugin):
         """List all streams"""
         if not self._client:
             return []
-        
+
         try:
             # Get all keys and filter streams
             keys = self._client.keys("*")
@@ -363,7 +354,7 @@ class RedisQueuePlugin(QueuePlugin):
         """Check connection status"""
         if not self._client:
             return False
-        
+
         try:
             self._client.ping()
             return True
@@ -376,14 +367,14 @@ class RedisQueuePlugin(QueuePlugin):
             return {
                 "status": "unhealthy",
                 "latency_ms": -1,
-                "details": {"error": "Not connected"}
+                "details": {"error": "Not connected"},
             }
-        
+
         try:
             start = time.time()
             self._client.ping()
             latency = (time.time() - start) * 1000
-            
+
             return {
                 "status": "healthy",
                 "latency_ms": latency,
@@ -392,11 +383,11 @@ class RedisQueuePlugin(QueuePlugin):
                     "host": self.host,
                     "port": self.port,
                     "statistics": self.get_statistics(),
-                }
+                },
             }
         except RedisError as e:
             return {
                 "status": "unhealthy",
                 "latency_ms": -1,
-                "details": {"error": str(e)}
+                "details": {"error": str(e)},
             }

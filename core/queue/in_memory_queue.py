@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 class InMemoryQueuePlugin(QueuePlugin):
     """
     In-memory queue implementation for development and testing.
-    
+
     Features:
     - Thread-safe operations
     - Basic pub/sub functionality
     - Message acknowledgment
     - Dead letter queue for failed messages
-    
+
     Limitations:
     - No persistence (data lost on restart)
     - No distributed support
@@ -57,7 +57,7 @@ class InMemoryQueuePlugin(QueuePlugin):
         if self._connected:
             logger.warning("Already connected")
             return
-        
+
         self._connected = True
         logger.info("In-memory queue connected")
 
@@ -65,28 +65,23 @@ class InMemoryQueuePlugin(QueuePlugin):
         """Close connection and stop all workers"""
         if not self._connected:
             return
-        
+
         # Stop all worker threads
         for topic, stop_flag in self._stop_flags.items():
             stop_flag.set()
-        
+
         # Wait for threads to finish
         for thread in self._worker_threads.values():
             thread.join(timeout=5.0)
-        
+
         self._connected = False
         logger.info("In-memory queue disconnected")
 
-    def publish(
-        self,
-        topic: str,
-        message: Dict[str, Any],
-        **kwargs: Any
-    ) -> str:
+    def publish(self, topic: str, message: Dict[str, Any], **kwargs: Any) -> str:
         """Publish a message to a queue"""
         if not self._connected:
             raise ConnectionError("Not connected to queue")
-        
+
         message_id = str(uuid.uuid4())
         envelope = {
             "message_id": message_id,
@@ -95,43 +90,40 @@ class InMemoryQueuePlugin(QueuePlugin):
             "timestamp": time.time(),
             "metadata": kwargs,
         }
-        
+
         with self._lock:
             self._queues[topic].append(envelope)
             self._stats["messages_published"] += 1
-        
+
         logger.debug(f"Published message {message_id} to topic {topic}")
         return message_id
 
     def subscribe(
-        self,
-        topic: str,
-        callback: Callable[[Dict[str, Any]], None],
-        **kwargs: Any
+        self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any
     ) -> str:
         """Subscribe to a topic with a callback"""
         if not self._connected:
             raise ConnectionError("Not connected to queue")
-        
+
         subscription_id = str(uuid.uuid4())
-        
+
         with self._lock:
             self._subscribers[topic].append((subscription_id, callback, kwargs))
             self._stats["active_subscriptions"] += 1
-        
+
         # Start worker thread for this subscription
         stop_flag = threading.Event()
         self._stop_flags[subscription_id] = stop_flag
-        
+
         worker = threading.Thread(
             target=self._worker_loop,
             args=(topic, subscription_id, callback, stop_flag),
             daemon=True,
-            name=f"worker-{topic}-{subscription_id[:8]}"
+            name=f"worker-{topic}-{subscription_id[:8]}",
         )
         self._worker_threads[subscription_id] = worker
         worker.start()
-        
+
         logger.info(f"Subscribed to topic {topic} with ID {subscription_id}")
         return subscription_id
 
@@ -140,11 +132,11 @@ class InMemoryQueuePlugin(QueuePlugin):
         topic: str,
         subscription_id: str,
         callback: Callable[[Dict[str, Any]], None],
-        stop_flag: threading.Event
+        stop_flag: threading.Event,
     ) -> None:
         """Worker thread that processes messages from a queue"""
         logger.info(f"Worker started for subscription {subscription_id}")
-        
+
         while not stop_flag.is_set():
             try:
                 # Try to get a message
@@ -152,19 +144,19 @@ class InMemoryQueuePlugin(QueuePlugin):
                 with self._lock:
                     if self._queues[topic]:
                         envelope = self._queues[topic].popleft()
-                
+
                 if envelope:
                     message_id = envelope["message_id"]
                     payload = envelope["payload"]
-                    
+
                     # Store for acknowledgment
                     self._pending_acks[message_id] = envelope
-                    
+
                     try:
                         # Process message
                         callback(payload)
                         self._stats["messages_consumed"] += 1
-                        
+
                         # Auto-acknowledge if not explicitly rejected
                         if message_id in self._pending_acks:
                             self.acknowledge(message_id)
@@ -175,12 +167,12 @@ class InMemoryQueuePlugin(QueuePlugin):
                 else:
                     # No messages, sleep briefly
                     time.sleep(0.1)
-                    
+
             except Exception as e:
                 logger.error(f"Worker error: {e}")
                 self._stats["errors"] += 1
                 time.sleep(1.0)
-        
+
         logger.info(f"Worker stopped for subscription {subscription_id}")
 
     def unsubscribe(self, subscription_id: str) -> None:
@@ -188,12 +180,12 @@ class InMemoryQueuePlugin(QueuePlugin):
         # Stop worker thread
         if subscription_id in self._stop_flags:
             self._stop_flags[subscription_id].set()
-        
+
         if subscription_id in self._worker_threads:
             self._worker_threads[subscription_id].join(timeout=5.0)
             del self._worker_threads[subscription_id]
             del self._stop_flags[subscription_id]
-        
+
         # Remove from subscribers
         with self._lock:
             for topic, subs in self._subscribers.items():
@@ -201,7 +193,7 @@ class InMemoryQueuePlugin(QueuePlugin):
                     (sid, cb, kw) for sid, cb, kw in subs if sid != subscription_id
                 ]
             self._stats["active_subscriptions"] -= 1
-        
+
         logger.info(f"Unsubscribed {subscription_id}")
 
     def acknowledge(self, message_id: str) -> None:
@@ -218,7 +210,7 @@ class InMemoryQueuePlugin(QueuePlugin):
             if message_id in self._pending_acks:
                 envelope = self._pending_acks.pop(message_id)
                 self._stats["messages_rejected"] += 1
-                
+
                 if requeue:
                     # Put back at the end of the queue
                     topic = envelope["topic"]
@@ -280,7 +272,7 @@ class InMemoryQueuePlugin(QueuePlugin):
     def health_check(self) -> Dict[str, Any]:
         """Perform health check"""
         status = "healthy" if self._connected else "unhealthy"
-        
+
         return {
             "status": status,
             "latency_ms": 0.0,  # No network latency for in-memory
@@ -288,7 +280,7 @@ class InMemoryQueuePlugin(QueuePlugin):
                 "connected": self._connected,
                 "active_workers": len(self._worker_threads),
                 "statistics": self.get_statistics(),
-            }
+            },
         }
 
     def get_dead_letter_messages(self, limit: int = 100) -> List[Dict[str, Any]]:

@@ -11,6 +11,7 @@ __all__ = ["InMemoryQueuePlugin"]
 # Redis queue is optional (requires redis package)
 try:
     from core.queue.redis_queue import RedisQueuePlugin
+
     __all__.append("RedisQueuePlugin")
 except ImportError:
     pass
