@@ -80,37 +80,47 @@
 
 ## 📋 Требования
 
-- Python 3.10+
-- Node.js 18+
+- Python 3.11+
 - Docker & Docker Compose
-- Kubernetes (для production)
-- PostgreSQL 14+
-- Elasticsearch 8+
+- PostgreSQL 15+
 - Redis 7+
-- MongoDB 6+
 
 ## 🏁 Быстрый старт
 
+### Docker (рекомендуется)
+
 ```bash
 # Клонирование репозитория
-git clone https://github.com/yourusername/RealEstatesAntiFraud.git
+git clone https://github.com/loudmantrade/RealEstatesAntiFraud.git
 cd RealEstatesAntiFraud
 
-# Запуск с Docker Compose (для разработки)
+# Запуск всех сервисов с Docker Compose
 docker-compose up -d
 
-# Установка зависимостей Python
-pip install -r requirements.txt
+# Проверка статуса
+docker-compose ps
 
-# Установка зависимостей Node.js
-npm install
-
-# Запуск миграций
-python manage.py migrate
-
-# Запуск в режиме разработки
-python manage.py runserver
+# API доступно по адресу
+open http://localhost:8000/api/v1/docs
 ```
+
+### Локальная разработка
+
+```bash
+# Установка зависимостей
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Запуск БД в Docker
+docker-compose up -d postgres redis
+
+# Запуск API
+uvicorn core.api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**📚 Подробная документация:** См. [docs/DOCKER.md](docs/DOCKER.md)
 
 ## 📁 Структура проекта
 
