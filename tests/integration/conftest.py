@@ -19,19 +19,37 @@ from core.database import Base, get_db
 
 @pytest.fixture(scope="session")
 def test_config() -> dict:
-    """Load test configuration from .env.test file.
+    """Load test configuration from .env.test file or environment variables.
+
+    For CI/CD environments, configuration can be provided via environment variables.
+    For local development, loads from .env.test file.
 
     Returns:
         dict: Configuration dictionary with DATABASE_URL and other settings.
     """
-    # Load .env.test file
-    load_dotenv(".env.test", override=True)
+    # Priority: CI environment variables > individual DB_* vars > .env.test file
+    # First check if individual DB components are provided (CI pattern)
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_name = os.getenv("DB_NAME")
+    db_user = os.getenv("DB_USER")
+    db_password = os.getenv("DB_PASSWORD")
 
-    config = {
-        "database_url": os.getenv(
+    # If individual components are provided, use them (CI mode)
+    if db_host and db_port and db_name and db_user and db_password:
+        database_url = (
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
+    else:
+        # Otherwise load from .env.test (local development)
+        load_dotenv(".env.test", override=False)
+        database_url = os.getenv(
             "DATABASE_URL",
             "postgresql://test_user:test_pass@localhost:5433/realestate_test",
-        ),
+        )
+
+    config = {
+        "database_url": database_url,
         "api_host": os.getenv("API_HOST", "0.0.0.0"),
         "api_port": int(os.getenv("API_PORT", "8001")),
         "log_level": os.getenv("LOG_LEVEL", "DEBUG"),
