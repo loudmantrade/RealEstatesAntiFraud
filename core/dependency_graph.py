@@ -13,10 +13,9 @@ Author: RealEstatesAntiFraud Core Team
 import logging
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set
 
 from core.utils.semver import (
-    IncompatibleVersionError,
     InvalidConstraintError,
     InvalidVersionError,
     Version,
