@@ -14,3 +14,17 @@ class ProcessingPlugin(ABC):
     @abstractmethod
     def get_priority(self) -> int:
         return 10
+
+    def shutdown(self) -> None:
+        """
+        Optional graceful shutdown hook for cleanup before reload.
+
+        Override this method to:
+        - Close connections
+        - Stop background tasks
+        - Release resources
+        - Save state
+
+        Default implementation does nothing.
+        """
+        pass

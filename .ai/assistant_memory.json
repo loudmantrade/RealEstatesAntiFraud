@@ -1,0 +1,30 @@
+{
+  "saved_at": "2025-11-27T14:55:00+00:00",
+  "repository": "loudmantrade/RealEstatesAntiFraud",
+  "local_path": "/Users/admin.oleksandr.gugnin/Own/git/RealEstatesAntiFraud",
+  "branch": "feature/plugin-dependency-graph",
+  "head_commit": "f677208",
+  "python": "3.13.5",
+  "venv": ".venv",
+  "authoritative_files": [
+    "core/dependency_graph.py",
+    "core/plugin_manager.py",
+    "docs/PLUGIN_DEVELOPMENT.md",
+    "tests/unit/test_dependency_graph.py",
+    "tests/unit/test_plugin_manager_dependencies.py"
+  ],
+  "operational_rules": [
+    "Read .ai/metadata.json and .ai/chat_history.json to restore session metadata",
+    "Activate .venv when present",
+    "Run key tests before editing (tests/unit/test_dependency_graph.py)",
+    "Use apply_patch for edits and run related tests",
+    "Use manage_todo_list to plan multi-step work",
+    "Do not commit .ai by default; ask the user"
+  ],
+  "common_commands": {
+    "activate_venv": "source .venv/bin/activate",
+    "run_dependency_tests": ".venv/bin/python -m pytest tests/unit/test_dependency_graph.py -q",
+    "run_all_tests": ".venv/bin/python -m pytest -q",
+    "pack_snapshot": "tar -czf realestates-ai-snapshot.tar.gz .ai"
+  }
+}

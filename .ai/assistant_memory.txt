@@ -1,0 +1,50 @@
+Assistant working conventions / session memory
+
+Saved: 2025-11-27T14:55:00+00:00
+Repository: loudmantrade/RealEstatesAntiFraud
+Local path: /Users/admin.oleksandr.gugnin/Own/git/RealEstatesAntiFraud
+Branch: feature/plugin-dependency-graph (HEAD f677208)
+Python: 3.13.5 (use .venv when available)
+
+Authoritative files and roles:
+- core/dependency_graph.py : DAG + topological sort + cycle detection
+- core/plugin_manager.py : 3-phase plugin loading, integration points
+- docs/PLUGIN_DEVELOPMENT.md : plugin developer guidance
+- tests/unit/test_dependency_graph.py : unit tests (38 passing)
+- tests/unit/test_plugin_manager_dependencies.py : integration test skeleton (untracked)
+
+Untracked files at snapshot:
+- tests/fixtures/plugins/init_error_plugin/plugin.yaml
+- tests/fixtures/plugins/test_source_plugin/__init__.py
+- tests/unit/test_plugin_manager_dependencies.py
+
+Operational rules for a resumed assistant (how to continue):
+1) Read `.ai/metadata.json` and `.ai/chat_history.json` to restore session metadata.
+2) Load `.ai/chat_history.txt` (human readable) and `.ai/chat_history.json` (structured) for context.
+3) Activate virtualenv: `source .venv/bin/activate` if `.venv` exists.
+4) Re-run key tests before editing: `.venv/bin/python -m pytest tests/unit/test_dependency_graph.py -q`.
+5) Make minimal, focused edits. Use `apply_patch` for changes, then run the related test(s).
+6) Use `manage_todo_list` to plan multi-step tasks. Keep items small and mark them completed as you go.
+7) Do not commit `.ai` by default — ask the user. If asked to commit, prefer adding a `.gitignore` entry for secrets and large files.
+
+Common commands to run:
+- Activate venv:
+  source .venv/bin/activate
+- Run dependency graph tests:
+  .venv/bin/python -m pytest tests/unit/test_dependency_graph.py -q
+- Run all tests:
+  .venv/bin/python -m pytest -q
+- Create snapshot archive:
+  tar -czf realestates-ai-snapshot.tar.gz .ai
+
+Coding guidelines (assistant memory):
+- Make minimal changes required by the task.
+- Prefer leaving unrelated modules unchanged.
+- Run unit tests when changing files; fix only issues caused by the edit.
+- Keep changes consistent with repo style and existing locking (RLock) patterns.
+
+Privacy notes:
+- Do not store secrets in `.ai`.
+- If secret/config required for reproducing locally, store only retrieval instructions.
+
+If you want the assistant memory to include more details (coding preferences, contact points, CI commands, reviewer names), tell me and I will append them.

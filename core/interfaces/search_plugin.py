@@ -14,3 +14,12 @@ class SearchPlugin(ABC):
     @abstractmethod
     def suggest(self, prefix: str) -> List[str]:
         return []
+
+    def shutdown(self) -> None:
+        """
+        Optional graceful shutdown hook for cleanup before reload.
+
+        Override this method to close search index connections and
+        release resources. Default implementation does nothing.
+        """
+        pass

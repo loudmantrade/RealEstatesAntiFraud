@@ -1,0 +1,55 @@
+Chat snapshot for RealEstatesAntiFraud
+
+Saved: 2025-11-27T14:55:00+00:00
+Repository: loudmantrade/RealEstatesAntiFraud
+Branch: feature/plugin-dependency-graph
+Head commit: f677208
+Remote: https://github.com/loudmantrade/RealEstatesAntiFraud.git
+
+Purpose: Resume work on this project from another machine using the .ai snapshot.
+
+Summary of recent work included in snapshot:
+- Implemented plugin dependency graph (Issue #5) with DAG, Kahn's algorithm, DFS cycle detection.
+- Integrated dependency graph into `core/plugin_manager.py` with 3-phase loading.
+- Added `export_dot()` visualization.
+- Wrote 38 unit tests for `DependencyGraph` (all passing).
+- Created integration test skeletons for `PluginManager`.
+- Updated `docs/PLUGIN_DEVELOPMENT.md` with Plugin Dependencies section.
+
+Files included in `.ai/snapshot/`:
+- core/dependency_graph.py
+- core/plugin_manager.py (snapshot)
+- docs/PLUGIN_DEVELOPMENT.md (snapshot)
+- tests/unit/test_dependency_graph.py
+- tests/unit/test_plugin_manager_dependencies.py
+
+Untracked files at time of snapshot (git status --porcelain):
+- tests/fixtures/plugins/init_error_plugin/plugin.yaml
+- tests/fixtures/plugins/test_source_plugin/__init__.py
+- tests/unit/test_plugin_manager_dependencies.py
+
+How to resume on another machine
+1. Copy the whole repository folder (including the `.ai` directory) to the other machine, or transfer just the `.ai` folder.
+   - Recommended: compress the `.ai` directory and move it.
+
+   Example (on source machine):
+   ```bash
+   cd /path/to/RealEstatesAntiFraud
+   tar -czf realestates-ai-snapshot.tar.gz .ai
+   scp realestates-ai-snapshot.tar.gz user@other-machine:/path/to/project/
+   ```
+
+2. On the other machine, extract the snapshot into the project root (same relative path recommended):
+   ```bash
+   tar -xzf realestates-ai-snapshot.tar.gz -C /path/to/RealEstatesAntiFraud
+   ```
+
+3. Inspect `.ai/metadata.json` for environment details (python version, pip freeze) and follow to recreate environment.
+
+4. To continue the chat with Copilot on the other machine, open the repo in VSCode and provide Copilot the path to `.ai/chat_history.txt` (or paste its contents). The chat assistant can then pick up from that snapshot.
+
+Contents of `.ai/chat_history.txt` are human-readable; `.ai/chat_history.json` (also saved) contains structured metadata for easier automated resume.
+
+Notes:
+- `.ai` typically should remain local. If you want it in the repo, consider adding it to git, otherwise add an entry to `.gitignore`.
+- If you want, I can produce a single archive `realestates-ai-snapshot.tar.gz` now and place it in the project root for easy download.
