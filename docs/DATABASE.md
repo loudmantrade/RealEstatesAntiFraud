@@ -105,6 +105,22 @@ Default (if not set): `postgresql://postgres:postgres@localhost:5432/real_estate
 
 ### Running PostgreSQL with Docker
 
+**Using docker-compose (recommended):**
+```bash
+# Start PostgreSQL, Redis, and optional pgAdmin
+docker-compose up -d
+
+# Start only PostgreSQL
+docker-compose up -d postgres
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean state)
+docker-compose down -v
+```
+
+**Using docker run (manual):**
 ```bash
 docker run -d \
   --name real-estate-postgres \
@@ -113,6 +129,22 @@ docker run -d \
   -e POSTGRES_DB=real_estate_fraud \
   -p 5432:5432 \
   postgres:16-alpine
+```
+
+**For testing environment:**
+```bash
+# Start test databases (different ports)
+docker-compose -f docker-compose.test.yml up -d
+
+# Environment variables for tests
+export DATABASE_URL="postgresql://test_user:test_password@localhost:5433/real_estate_fraud_test"
+export REDIS_URL="redis://localhost:6380"
+
+# Run tests
+pytest tests/
+
+# Cleanup
+docker-compose -f docker-compose.test.yml down
 ```
 
 ### Alembic Migrations
@@ -229,6 +261,59 @@ Migration history in `alembic/versions/`.
 - **Timezone Handling**: All timestamps use UTC (`datetime.utcnow()`)
 - **Connection Pooling**: Configured with `pool_size=5` and `max_overflow=10`
 - **Pre-ping**: Connection validation enabled via `pool_pre_ping=True`
+
+## Docker Compose Services
+
+### Development Environment (`docker-compose.yml`)
+
+**Services:**
+- **postgres** - PostgreSQL 16 database (port 5432)
+- **redis** - Redis 7 for caching and message queue (port 6379)
+- **pgadmin** - Database management UI (port 5050, optional, use `--profile dev`)
+
+**Usage:**
+```bash
+# Start all services
+docker-compose up -d
+
+# Start with pgAdmin
+docker-compose --profile dev up -d
+
+# View logs
+docker-compose logs -f postgres
+
+# Access pgAdmin
+# URL: http://localhost:5050
+# Email: admin@realestate.local
+# Password: admin
+```
+
+### Test Environment (`docker-compose.test.yml`)
+
+**Services:**
+- **postgres-test** - PostgreSQL for tests (port 5433)
+- **redis-test** - Redis for tests (port 6380)
+
+**Features:**
+- Uses tmpfs for faster I/O
+- Different ports to avoid conflicts with dev
+- Minimal persistence configuration
+- Quick startup and teardown
+
+**Usage:**
+```bash
+# Start test environment
+docker-compose -f docker-compose.test.yml up -d
+
+# Wait for services to be ready
+docker-compose -f docker-compose.test.yml ps
+
+# Run integration tests
+DATABASE_URL="postgresql://test_user:test_password@localhost:5433/real_estate_fraud_test" pytest tests/integration/
+
+# Cleanup
+docker-compose -f docker-compose.test.yml down
+```
 
 ## Future Enhancements
 
