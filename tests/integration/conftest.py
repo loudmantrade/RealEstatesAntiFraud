@@ -19,19 +19,32 @@ from core.database import Base, get_db
 
 @pytest.fixture(scope="session")
 def test_config() -> dict:
-    """Load test configuration from .env.test file.
+    """Load test configuration from .env.test file or environment variables.
+
+    For CI/CD environments, configuration can be provided via environment variables.
+    For local development, loads from .env.test file.
 
     Returns:
         dict: Configuration dictionary with DATABASE_URL and other settings.
     """
-    # Load .env.test file
-    load_dotenv(".env.test", override=True)
+    # Load .env.test file if exists (for local development)
+    load_dotenv(".env.test", override=False)
+
+    # Build database URL from individual components or use full URL
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5433")
+    db_name = os.getenv("DB_NAME", "realestate_test")
+    db_user = os.getenv("DB_USER", "test_user")
+    db_password = os.getenv("DB_PASSWORD", "test_pass")
+
+    # Use DATABASE_URL if provided, otherwise construct from components
+    database_url = os.getenv(
+        "DATABASE_URL",
+        f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}",
+    )
 
     config = {
-        "database_url": os.getenv(
-            "DATABASE_URL",
-            "postgresql://test_user:test_pass@localhost:5433/realestate_test",
-        ),
+        "database_url": database_url,
         "api_host": os.getenv("API_HOST", "0.0.0.0"),
         "api_port": int(os.getenv("API_PORT", "8001")),
         "log_level": os.getenv("LOG_LEVEL", "DEBUG"),

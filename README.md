@@ -139,6 +139,19 @@ RealEstatesAntiFraud/
 
 ## 🧪 Тестирование
 
+Проект использует комплексную стратегию тестирования с автоматическими проверками в CI/CD pipeline.
+
+### CI/CD Pipeline
+
+GitHub Actions автоматически запускает тесты на каждый push и pull request:
+
+- ✅ **Unit Tests** - быстрые тесты на Python 3.11, 3.12, 3.13
+- ✅ **Integration Tests** - тесты с PostgreSQL на всех версиях Python
+- ✅ **Linting** - black, isort, flake8
+- ✅ **Type Checking** - mypy
+- ✅ **Security Scan** - bandit
+- ✅ **Coverage Reports** - автоматическая загрузка в Codecov
+
 ### Unit Tests
 Быстрые тесты с in-memory SQLite:
 ```bash
@@ -172,6 +185,9 @@ pytest tests/integration/ -v --cov=core
 make test-integration-down
 ```
 
+**В CI/CD:**
+Integration tests автоматически запускаются с PostgreSQL service container на каждый PR.
+
 **Просмотр логов тестовой БД:**
 ```bash
 make test-integration-logs
@@ -195,13 +211,24 @@ make test-coverage
 ```
 tests/
 ├── unit/              # Юнит-тесты (in-memory SQLite)
-│   ├── test_api_listings.py
-│   ├── test_listing_repository.py
+│   ├── core/
+│   │   └── test_plugin_manager.py
+│   ├── test_dependency_graph.py
+│   ├── test_manifest_schema.py
+│   ├── test_manifest_validator.py
 │   └── ...
 └── integration/       # Интеграционные тесты (PostgreSQL)
     ├── conftest.py    # Fixtures (db_session, client)
-    └── ...            # Будут добавлены в Issue #62
+    ├── test_listings_crud.py         # CRUD операции (5 тестов)
+    ├── test_listings_pagination.py   # Пагинация (11 тестов)
+    ├── test_listings_filters.py      # Фильтрация (15 тестов)
+    └── test_listings_advanced.py     # Транзакции и целостность (13 тестов)
 ```
+
+**Статистика тестов:**
+- 44 integration tests - полное покрытие Listings API
+- Все тесты проходят в CI на Python 3.11, 3.12, 3.13
+- Покрытие кода доступно на [Codecov](https://codecov.io/gh/loudmantrade/RealEstatesAntiFraud)
 
 ### Troubleshooting
 
