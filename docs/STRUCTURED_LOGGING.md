@@ -398,16 +398,19 @@ Test categories:
 - **Performance**: Minimal overhead, efficient JSON serialization
 - **Extensibility**: Easy to add custom fields or formatters
 
+## Request Tracing
+
+The logging system integrates with distributed tracing via correlation IDs. See [REQUEST_TRACING.md](./REQUEST_TRACING.md) for details on:
+- Trace ID and Request ID propagation
+- HTTP header support (`X-Trace-ID`, `X-Request-ID`)
+- Automatic inclusion in all logs
+- Context management
+
 ## Future Enhancements
 
 Planned improvements for the logging system:
 
-1. **Request Tracing** (Issue #20):
-   - Correlation IDs for distributed tracing
-   - Request chain tracking across services
-   - Integration with OpenTelemetry
-
-2. **Log Sampling**:
+1. **Log Sampling**:
    - Reduce log volume in high-traffic scenarios
    - Configurable sampling rates per log level
 
