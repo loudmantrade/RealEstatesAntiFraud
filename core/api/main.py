@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.api.routes.listings import router as listings_router
