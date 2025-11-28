@@ -1,9 +1,10 @@
 """Tests for queue plugin implementations"""
 
-import pytest
 import time
 from threading import Event
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
+import pytest
 
 from core.queue import InMemoryQueuePlugin
 
