@@ -110,10 +110,15 @@ def test_get_by_id_not_found(repository):
 def test_get_by_db_id(repository, sample_listing, db_session):
     """Test getting listing by database id."""
     created = repository.create(sample_listing)
-    
+
     # Get the database ID from the database directly
     from core.database.models import ListingModel
-    db_listing = db_session.query(ListingModel).filter(ListingModel.listing_id == "test-listing-1").first()
+
+    db_listing = (
+        db_session.query(ListingModel)
+        .filter(ListingModel.listing_id == "test-listing-1")
+        .first()
+    )
 
     result = repository.get_by_db_id(db_listing.id)
 

@@ -1,4 +1,5 @@
 """Unit tests for listings API endpoints."""
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -54,19 +55,13 @@ def make_listing_data(
             "source": {
                 "plugin_id": "test_plugin",
                 "platform": "test_platform",
-                "url": f"https://example.com/listing/{listing_id}"
+                "url": f"https://example.com/listing/{listing_id}",
             },
             "type": "sale",
             "property_type": "apartment",
-            "location": {
-                "city": city,
-                "country": "TestCountry"
-            },
-            "price": {
-                "amount": price,
-                "currency": "USD"
-            },
-            "description": f"Test listing {listing_id}"
+            "location": {"city": city, "country": "TestCountry"},
+            "price": {"amount": price, "currency": "USD"},
+            "description": f"Test listing {listing_id}",
         }
     }
     if fraud_score is not None:
@@ -95,22 +90,16 @@ def test_create_listing():
             "source": {
                 "plugin_id": "test_plugin",
                 "platform": "test_platform",
-                "url": "https://example.com/listing/001"
+                "url": "https://example.com/listing/001",
             },
             "type": "sale",
             "property_type": "apartment",
-            "location": {
-                "city": "TestCity",
-                "country": "TestCountry"
-            },
-            "price": {
-                "amount": 100000.0,
-                "currency": "USD"
-            },
-            "description": "A test apartment"
+            "location": {"city": "TestCity", "country": "TestCountry"},
+            "price": {"amount": 100000.0, "currency": "USD"},
+            "description": "A test apartment",
         }
     }
-    
+
     response = client.post("/api/v1/listings/", json=listing_data)
     assert response.status_code == 201
     data = response.json()
@@ -121,11 +110,11 @@ def test_create_listing():
 def test_create_duplicate_listing():
     """Test creating a duplicate listing returns 400."""
     listing_data = make_listing_data("test-002")
-    
+
     # Create first listing
     response = client.post("/api/v1/listings/", json=listing_data)
     assert response.status_code == 201
-    
+
     # Try to create duplicate
     response = client.post("/api/v1/listings/", json=listing_data)
     assert response.status_code == 400
@@ -137,7 +126,7 @@ def test_get_listing():
     # Create a listing first
     listing_data = make_listing_data("test-003", price=200000.0)
     client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Retrieve it
     response = client.get("/api/v1/listings/test-003")
     assert response.status_code == 200
@@ -158,14 +147,14 @@ def test_delete_listing():
     # Create a listing first
     listing_data = make_listing_data("test-004", price=500000.0)
     client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Delete it
     response = client.delete("/api/v1/listings/test-004")
     assert response.status_code == 200
     data = response.json()
     assert data["listing_id"] == "test-004"
     assert data["deleted"] is True
-    
+
     # Verify it's gone
     response = client.get("/api/v1/listings/test-004")
     assert response.status_code == 404
@@ -188,7 +177,7 @@ def test_list_listings_with_data():
     for i in range(5):
         listing_data = make_listing_data(f"test-{i:03d}", price=100000.0 + (i * 10000))
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # List all
     response = client.get("/api/v1/listings/")
     assert response.status_code == 200
@@ -205,7 +194,7 @@ def test_pagination():
     for i in range(25):
         listing_data = make_listing_data(f"test-{i:03d}")
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Get first page (default 20 items)
     response = client.get("/api/v1/listings/?page=1")
     assert response.status_code == 200
@@ -214,14 +203,14 @@ def test_pagination():
     assert data["total"] == 25
     assert data["page"] == 1
     assert data["total_pages"] == 2
-    
+
     # Get second page
     response = client.get("/api/v1/listings/?page=2")
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 5
     assert data["page"] == 2
-    
+
     # Test custom page size
     response = client.get("/api/v1/listings/?page=1&page_size=10")
     assert response.status_code == 200
@@ -237,7 +226,7 @@ def test_filter_by_city():
     for i, city in enumerate(cities):
         listing_data = make_listing_data(f"test-{i:03d}", city=city)
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Filter by CityA
     response = client.get("/api/v1/listings/?city=CityA")
     assert response.status_code == 200
@@ -253,7 +242,7 @@ def test_filter_by_price_range():
     for i, price in enumerate(prices):
         listing_data = make_listing_data(f"test-{i:03d}", price=float(price))
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Filter by price range
     response = client.get("/api/v1/listings/?price_min=100000&price_max=200000")
     assert response.status_code == 200
@@ -270,7 +259,7 @@ def test_filter_by_fraud_score_range():
     for i, score in enumerate(scores):
         listing_data = make_listing_data(f"test-{i:03d}", fraud_score=score)
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Filter by fraud score range
     response = client.get("/api/v1/listings/?fraud_score_min=0.3&fraud_score_max=0.7")
     assert response.status_code == 200
@@ -288,9 +277,11 @@ def test_combined_filters():
         price = 100000.0 + (i * 20000)
         listing_data = make_listing_data(f"test-{i:03d}", city=city, price=price)
         client.post("/api/v1/listings/", json=listing_data)
-    
+
     # Filter by city and price
-    response = client.get("/api/v1/listings/?city=CityA&price_min=100000&price_max=150000")
+    response = client.get(
+        "/api/v1/listings/?city=CityA&price_min=100000&price_max=150000"
+    )
     assert response.status_code == 200
     data = response.json()
     # CityA listings: 0, 2, 4, 6, 8

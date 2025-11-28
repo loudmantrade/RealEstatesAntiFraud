@@ -28,26 +28,29 @@ def _model_to_udm(model: ListingModel) -> Listing:
     """
     coordinates = None
     if model.location_lat is not None and model.location_lng is not None:
-        coordinates = Coordinates(lat=model.location_lat, lng=model.location_lng)
+        coordinates = Coordinates(
+            lat=model.location_lat,  # type: ignore[arg-type]
+            lng=model.location_lng,  # type: ignore[arg-type]
+        )
 
     location = Location(
-        country=model.location_country,
-        city=model.location_city,
-        address=model.location_address,
+        country=model.location_country,  # type: ignore[arg-type]
+        city=model.location_city,  # type: ignore[arg-type]
+        address=model.location_address,  # type: ignore[arg-type]
         coordinates=coordinates,
     )
 
     price = Price(
-        amount=model.price_amount,
-        currency=model.price_currency,
-        price_per_sqm=model.price_per_sqm,
+        amount=model.price_amount,  # type: ignore[arg-type]
+        currency=model.price_currency,  # type: ignore[arg-type]
+        price_per_sqm=model.price_per_sqm,  # type: ignore[arg-type]
     )
 
     source = SourceInfo(
-        plugin_id=model.source_plugin_id,
-        platform=model.source_platform,
-        original_id=model.source_original_id,
-        url=model.source_url,
+        plugin_id=model.source_plugin_id,  # type: ignore[arg-type]
+        platform=model.source_platform,  # type: ignore[arg-type]
+        original_id=model.source_original_id,  # type: ignore[arg-type]
+        url=model.source_url,  # type: ignore[arg-type]
     )
 
     media = None
@@ -59,15 +62,15 @@ def _model_to_udm(model: ListingModel) -> Listing:
         media = Media(images=images)
 
     return Listing(
-        listing_id=model.listing_id,
+        listing_id=model.listing_id,  # type: ignore[arg-type]
         source=source,
-        type=model.type,
-        property_type=model.property_type,
+        type=model.type,  # type: ignore[arg-type]
+        property_type=model.property_type,  # type: ignore[arg-type]
         location=location,
         price=price,
-        description=model.description,
+        description=model.description,  # type: ignore[arg-type]
         media=media,
-        fraud_score=model.fraud_score,
+        fraud_score=model.fraud_score,  # type: ignore[arg-type]
     )
 
 
