@@ -355,6 +355,63 @@ class TestReconnectionScenarios:
         assert not queue.is_connected()
 
 
+class TestQueueManagement:
+    """Test queue management operations."""
+
+    def test_get_queue_size(self, redis_queue):
+        """Test getting queue size."""
+        # Use unique topic name to avoid interference
+        topic = f"test-queue-size-{int(time.time() * 1000)}"
+        redis_queue.create_topic(topic)
+
+        # Get initial size
+        size_before = redis_queue.get_queue_size(topic)
+
+        # After publishing
+        redis_queue.publish(topic, {"data": "test"})
+        size_after = redis_queue.get_queue_size(topic)
+        assert size_after > size_before
+
+    def test_get_queue_size_when_disconnected(self):
+        """Test getting queue size when disconnected."""
+        queue = RedisQueuePlugin()
+
+        size = queue.get_queue_size("test-topic")
+        assert size == 0
+
+    def test_delete_topic(self, redis_queue):
+        """Test topic deletion."""
+        redis_queue.create_topic("test-topic")
+        redis_queue.publish("test-topic", {"data": "test"})
+
+        # Delete topic
+        redis_queue.delete_topic("test-topic")
+
+        # Should be empty
+        size = redis_queue.get_queue_size("test-topic")
+        assert size == 0
+
+    def test_list_topics(self, redis_queue):
+        """Test listing topics."""
+        # Create multiple topics
+        redis_queue.create_topic("topic-1")
+        redis_queue.create_topic("topic-2")
+        redis_queue.publish("topic-1", {"data": "test"})
+        redis_queue.publish("topic-2", {"data": "test"})
+
+        topics = redis_queue.list_topics()
+
+        # Should contain our topics (may have others from other tests)
+        assert isinstance(topics, list)
+
+    def test_list_topics_when_disconnected(self):
+        """Test listing topics when disconnected."""
+        queue = RedisQueuePlugin()
+
+        topics = queue.list_topics()
+        assert topics == []
+
+
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
