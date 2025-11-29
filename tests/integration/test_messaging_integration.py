@@ -30,7 +30,6 @@ from core.plugin_manager import PluginManager
 from core.queue.in_memory_queue import InMemoryQueuePlugin
 from core.queue.redis_queue import REDIS_AVAILABLE, RedisQueuePlugin
 
-
 # ============================================================================
 # InMemoryQueue Integration Tests
 # ============================================================================
