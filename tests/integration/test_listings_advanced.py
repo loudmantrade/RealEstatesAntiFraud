@@ -333,7 +333,7 @@ def test_error_handling_invalid_json(client: TestClient):
     """Test API error handling for invalid JSON payload."""
     response = client.post(
         "/api/v1/listings/",
-        data="invalid json{",
+        content=b"invalid json{",
         headers={"Content-Type": "application/json"},
     )
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
