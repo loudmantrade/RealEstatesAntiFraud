@@ -88,9 +88,7 @@ class TestListingFactory:
             3, property_type="apartment", listing_type="sale"
         )
 
-        assert all(
-            listing.property_type == "apartment" for listing in listings
-        )
+        assert all(listing.property_type == "apartment" for listing in listings)
         assert all(listing.type == "sale" for listing in listings)
 
 
@@ -117,9 +115,7 @@ class TestMoscowApartments:
         """Test creating apartments in specific Moscow district."""
         factory = ListingFactory()
         district = "Центральный"
-        apartments = factory.create_moscow_apartments(
-            count=2, district=district
-        )
+        apartments = factory.create_moscow_apartments(count=2, district=district)
 
         assert len(apartments) == 2
         for apt in apartments:
@@ -163,9 +159,7 @@ class TestSuspiciousListings:
 
         # At least some should have suspiciously low prices
         low_price_listings = [
-            listing
-            for listing in suspicious
-            if listing.price.amount < 2_000_000
+            listing for listing in suspicious if listing.price.amount < 2_000_000
         ]
         assert len(low_price_listings) > 0
 
@@ -261,9 +255,7 @@ class TestDataRealism:
         factory = ListingFactory()
         listings = factory.create_batch(10)
 
-        assert all(
-            listing.price.currency == "RUB" for listing in listings
-        )
+        assert all(listing.price.currency == "RUB" for listing in listings)
 
     def test_coordinates_in_russia(self):
         """Test that coordinates are within Russia."""

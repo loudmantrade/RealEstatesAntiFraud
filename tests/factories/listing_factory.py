@@ -223,9 +223,7 @@ class ListingFactory:
             location = {
                 "country": "Россия",
                 "city": "Москва",
-                "address": (
-                    f"{selected_district}, {self.faker.street_address()}"
-                ),
+                "address": (f"{selected_district}, {self.faker.street_address()}"),
                 "coordinates": {
                     "lat": random.uniform(55.55, 55.88),  # Moscow lat
                     "lng": random.uniform(37.37, 37.84),  # Moscow lng
