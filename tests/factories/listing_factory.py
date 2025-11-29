@@ -15,7 +15,6 @@ from core.models.udm import (
     Listing,
     Location,
     Media,
-    MediaImage,
     Price,
     SourceInfo,
 )
@@ -24,7 +23,7 @@ from core.models.udm import (
 class ListingFactory:
     """
     Factory for creating test Listing instances with realistic Russian data.
-    
+
     Examples:
         >>> factory = ListingFactory()
         >>> listing = factory.create_listing()
@@ -69,7 +68,7 @@ class ListingFactory:
     def __init__(self, seed: Optional[int] = None):
         """
         Initialize the ListingFactory.
-        
+
         Args:
             seed: Optional seed for reproducible random data
         """
@@ -94,9 +93,9 @@ class ListingFactory:
     ) -> Listing:
         """
         Create a single Listing with realistic Russian real estate data.
-        
+
         Args:
-            listing_id: Unique listing identifier (auto-generated if not provided)
+            listing_id: Unique listing identifier (auto-generated)
             source: Source information dict
             listing_type: 'sale' or 'rent'
             property_type: 'apartment', 'house', 'commercial', or 'land'
@@ -106,15 +105,15 @@ class ListingFactory:
             media: Media dict with images
             fraud_score: Fraud detection score (0-100)
             **kwargs: Additional fields for model overrides
-            
+
         Returns:
             Listing instance with realistic data
-            
+
         Examples:
             >>> factory = ListingFactory()
             >>> # Default listing
             >>> listing = factory.create_listing()
-            >>> 
+            >>>
             >>> # Custom price and location
             >>> listing = factory.create_listing(
             ...     price={'amount': 5_000_000, 'currency': 'RUB'},
@@ -170,14 +169,14 @@ class ListingFactory:
     def create_batch(self, count: int, **kwargs) -> List[Listing]:
         """
         Create multiple listings at once.
-        
+
         Args:
             count: Number of listings to create
             **kwargs: Common parameters to apply to all listings
-            
+
         Returns:
             List of Listing instances
-            
+
         Example:
             >>> factory = ListingFactory()
             >>> listings = factory.create_batch(10, property_type='apartment')
@@ -189,17 +188,19 @@ class ListingFactory:
     ) -> List[Listing]:
         """
         Create Moscow apartment listings with realistic district prices.
-        
+
         Args:
             count: Number of apartments to create
             district: Specific Moscow district (random if not provided)
-            
+
         Returns:
             List of Moscow apartment Listing instances
-            
+
         Example:
             >>> factory = ListingFactory()
-            >>> apts = factory.create_moscow_apartments(5, district='Центральный')
+            >>> apts = factory.create_moscow_apartments(
+            ...     5, district='Центральный'
+            ... )
         """
         listings = []
         for _ in range(count):
@@ -222,10 +223,12 @@ class ListingFactory:
             location = {
                 "country": "Россия",
                 "city": "Москва",
-                "address": f"{selected_district}, {self.faker.street_address()}",
+                "address": (
+                    f"{selected_district}, {self.faker.street_address()}"
+                ),
                 "coordinates": {
-                    "lat": random.uniform(55.55, 55.88),  # Moscow latitude range
-                    "lng": random.uniform(37.37, 37.84),  # Moscow longitude range
+                    "lat": random.uniform(55.55, 55.88),  # Moscow lat
+                    "lng": random.uniform(37.37, 37.84),  # Moscow lng
                 },
             }
 
@@ -249,13 +252,13 @@ class ListingFactory:
     def create_suspicious_listings(self, count: int = 1) -> List[Listing]:
         """
         Create listings with fraud indicators for testing fraud detection.
-        
+
         Args:
             count: Number of suspicious listings to create
-            
+
         Returns:
             List of Listing instances with high fraud scores
-            
+
         Example:
             >>> factory = ListingFactory()
             >>> suspicious = factory.create_suspicious_listings(3)
@@ -278,10 +281,10 @@ class ListingFactory:
     def create_edge_cases(self) -> List[Listing]:
         """
         Create listings with edge case data for testing validation.
-        
+
         Returns:
             List of Listing instances with edge case values
-            
+
         Example:
             >>> factory = ListingFactory()
             >>> edge_cases = factory.create_edge_cases()
@@ -360,9 +363,11 @@ class ListingFactory:
         return {
             "amount": round(base_price, 2),
             "currency": "RUB",
-            "price_per_sqm": round(base_price / random.uniform(50, 150), 2)
-            if property_type in ["apartment", "house"]
-            else None,
+            "price_per_sqm": (
+                round(base_price / random.uniform(50, 150), 2)
+                if property_type in ["apartment", "house"]
+                else None
+            ),
         }
 
     def _generate_description(
@@ -371,10 +376,12 @@ class ListingFactory:
         """Generate realistic property description in Russian."""
         city = location.get("city", "Москва")
 
+        s1 = self.faker.sentence()
+        s2 = self.faker.sentence()
         templates = [
-            f"Продается {property_type} в {city}. {self.faker.sentence()} {self.faker.sentence()}",
-            f"Отличная {property_type} в центре {city}. {self.faker.sentence()}",
-            f"{property_type.capitalize()} в {city}, {self.faker.sentence()} {self.faker.sentence()}",
+            f"Продается {property_type} в {city}. {s1} {s2}",
+            f"Отличная {property_type} в центре {city}. {s1}",
+            f"{property_type.capitalize()} в {city}, {s1} {s2}",
         ]
 
         return random.choice(templates)
@@ -385,10 +392,11 @@ class ListingFactory:
         images = []
 
         for i in range(num_images):
+            caption = f"Фото {i+1}" if random.random() > 0.5 else None
             images.append(
                 {
                     "url": self.faker.image_url(width=1024, height=768),
-                    "caption": f"Фото {i+1}" if random.random() > 0.5 else None,
+                    "caption": caption,
                 }
             )
 
@@ -436,7 +444,9 @@ class ListingFactory:
             type=random.choice(self.LISTING_TYPES),
             property_type=random.choice(self.PROPERTY_TYPES),
             location=Location(**self._generate_location()),
-            price=Price(**self._generate_price("apartment", "sale", {"city": "Москва"})),
+            price=Price(
+                **self._generate_price("apartment", "sale", {"city": "Москва"})
+            ),
             description=None,
             media=None,
             fraud_score=None,
@@ -446,7 +456,15 @@ class ListingFactory:
         """Create listing with all fields populated."""
         return self.create_listing(
             description=self.faker.text(max_nb_chars=500),
-            media={"images": [{"url": self.faker.image_url(), "caption": self.faker.sentence()} for _ in range(15)]},
+            media={
+                "images": [
+                    {
+                        "url": self.faker.image_url(),
+                        "caption": self.faker.sentence(),
+                    }
+                    for _ in range(15)
+                ]
+            },
             fraud_score=random.uniform(0, 100),
         )
 

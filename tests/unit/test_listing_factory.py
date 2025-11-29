@@ -5,8 +5,6 @@ Tests the factory's ability to generate realistic test data
 with proper validation and edge cases.
 """
 
-import pytest
-
 from core.models.udm import Listing
 from tests.factories.listing_factory import ListingFactory
 
@@ -24,7 +22,12 @@ class TestListingFactory:
         assert listing.listing_id is not None
         assert listing.source is not None
         assert listing.type in ["sale", "rent"]
-        assert listing.property_type in ["apartment", "house", "commercial", "land"]
+        assert listing.property_type in [
+            "apartment",
+            "house",
+            "commercial",
+            "land",
+        ]
         assert listing.location is not None
         assert listing.price is not None
         assert listing.price.currency == "RUB"
@@ -72,19 +75,23 @@ class TestListingFactory:
         listings = factory.create_batch(count)
 
         assert len(listings) == count
-        assert all(isinstance(l, Listing) for l in listings)
+        assert all(isinstance(listing, Listing) for listing in listings)
 
         # All should have unique IDs
-        ids = [l.listing_id for l in listings]
+        ids = [listing.listing_id for listing in listings]
         assert len(ids) == len(set(ids))
 
     def test_create_batch_with_common_params(self):
         """Test creating batch with shared parameters."""
         factory = ListingFactory()
-        listings = factory.create_batch(3, property_type="apartment", listing_type="sale")
+        listings = factory.create_batch(
+            3, property_type="apartment", listing_type="sale"
+        )
 
-        assert all(l.property_type == "apartment" for l in listings)
-        assert all(l.type == "sale" for l in listings)
+        assert all(
+            listing.property_type == "apartment" for listing in listings
+        )
+        assert all(listing.type == "sale" for listing in listings)
 
 
 class TestMoscowApartments:
@@ -110,12 +117,14 @@ class TestMoscowApartments:
         """Test creating apartments in specific Moscow district."""
         factory = ListingFactory()
         district = "Центральный"
-        apartments = factory.create_moscow_apartments(count=2, district=district)
+        apartments = factory.create_moscow_apartments(
+            count=2, district=district
+        )
 
         assert len(apartments) == 2
         for apt in apartments:
             assert district in apt.location.address
-            # Central district should have higher prices (300k-500k per sqm)
+            # Central district has higher prices (300k-500k/sqm)
             assert apt.price.price_per_sqm >= 300_000
 
     def test_moscow_apartments_price_ranges(self):
@@ -154,7 +163,9 @@ class TestSuspiciousListings:
 
         # At least some should have suspiciously low prices
         low_price_listings = [
-            l for l in suspicious if l.price.amount < 2_000_000
+            listing
+            for listing in suspicious
+            if listing.price.amount < 2_000_000
         ]
         assert len(low_price_listings) > 0
 
@@ -165,7 +176,9 @@ class TestSuspiciousListings:
 
         # At least some should have no photos
         no_photo_listings = [
-            l for l in suspicious if l.media and len(l.media.images) == 0
+            listing
+            for listing in suspicious
+            if listing.media and len(listing.media.images) == 0
         ]
         assert len(no_photo_listings) > 0
 
@@ -179,7 +192,7 @@ class TestEdgeCases:
         edge_cases = factory.create_edge_cases()
 
         assert len(edge_cases) == 3
-        assert all(isinstance(l, Listing) for l in edge_cases)
+        assert all(isinstance(case, Listing) for case in edge_cases)
 
     def test_minimal_listing(self):
         """Test minimal listing with optional fields missing."""
@@ -225,7 +238,7 @@ class TestDataRealism:
         factory = ListingFactory(seed=42)
         listings = factory.create_batch(20)
 
-        cities = [l.location.city for l in listings]
+        cities = [listing.location.city for listing in listings]
         expected_cities = [
             "Москва",
             "Санкт-Петербург",
@@ -248,7 +261,9 @@ class TestDataRealism:
         factory = ListingFactory()
         listings = factory.create_batch(10)
 
-        assert all(l.price.currency == "RUB" for l in listings)
+        assert all(
+            listing.price.currency == "RUB" for listing in listings
+        )
 
     def test_coordinates_in_russia(self):
         """Test that coordinates are within Russia."""
@@ -266,7 +281,12 @@ class TestDataRealism:
         factory = ListingFactory()
         listings = factory.create_batch(20)
 
-        expected_platforms = ["cian.ru", "avito.ru", "domofond.ru", "yandex.ru/realty"]
+        expected_platforms = [
+            "cian.ru",
+            "avito.ru",
+            "domofond.ru",
+            "yandex.ru/realty",
+        ]
 
         for listing in listings:
             assert listing.source.platform in expected_platforms
