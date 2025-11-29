@@ -20,3 +20,15 @@ python_functions = ["test_*"]
 addopts = "-v --strict-markers"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Ignore datetime.utcnow() deprecation from SQLAlchemy internals (will be fixed in SQLAlchemy 2.1)
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning:sqlalchemy",
+    # Ignore datetime.utcnow() deprecation from Pydantic internals (will be fixed in Pydantic v3)
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning:pydantic",
+    # Ignore httpx content parameter deprecation
+    "ignore:Use 'content=<...>' to upload:DeprecationWarning:httpx",
+    # Ignore SAWarning for transaction deassociation in test fixtures (expected behavior)
+    "ignore:transaction already deassociated:sqlalchemy.exc.SAWarning",
+    # Ignore pytest collection warnings for plugin test classes
+    "ignore:cannot collect test class.*__init__:pytest.PytestCollectionWarning",
+]
