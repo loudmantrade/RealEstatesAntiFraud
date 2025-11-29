@@ -33,7 +33,7 @@ def redis_queue(test_config):
 
 
 @pytest.fixture
-async def clean_redis_queue(redis_clean, test_config):
+def clean_redis_queue(redis_clean, test_config):
     """Create a clean RedisQueuePlugin instance with empty database."""
     queue = RedisQueuePlugin(
         host=test_config["redis_host"],
