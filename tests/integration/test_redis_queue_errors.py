@@ -14,13 +14,14 @@ Covers:
 """
 
 import json
-import pytest
 import time
-from unittest.mock import Mock, patch, MagicMock
-from redis.exceptions import RedisError, ConnectionError as RedisConnectionError
+from unittest.mock import MagicMock, Mock, patch
 
-from core.queue.redis_queue import RedisQueuePlugin, REDIS_AVAILABLE
+import pytest
+from redis.exceptions import ConnectionError as RedisConnectionError
+from redis.exceptions import RedisError
 
+from core.queue.redis_queue import REDIS_AVAILABLE, RedisQueuePlugin
 
 pytestmark = pytest.mark.skipif(not REDIS_AVAILABLE, reason="Redis not installed")
 
