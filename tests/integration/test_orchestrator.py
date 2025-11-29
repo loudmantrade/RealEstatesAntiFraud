@@ -690,10 +690,15 @@ class TestPluginPipelineExecution:
         result = orchestrator._execute_pipeline(event)
 
         # Verify plugin modified the data
-        assert result["listing_data"]["price_normalized"] == 1000000.0  # multiplier=1.0 default
+        assert (
+            result["listing_data"]["price_normalized"] == 1000000.0
+        )  # multiplier=1.0 default
         assert result["listing_data"]["processed"] is True
         assert "metadata" in result["listing_data"]
-        assert result["listing_data"]["metadata"]["processed_by"] == "plugin-processing-test"
+        assert (
+            result["listing_data"]["metadata"]["processed_by"]
+            == "plugin-processing-test"
+        )
 
         # Verify plugin was recorded
         assert len(result["plugins"]) == 1

@@ -339,9 +339,11 @@ async def orchestrator_with_real_plugins(
     manager = PluginManager()
 
     # Load processing plugin for testing
-    processing_plugin_manifest = plugin_fixtures_dir / "test_processing_plugin" / "plugin.yaml"
+    processing_plugin_manifest = (
+        plugin_fixtures_dir / "test_processing_plugin" / "plugin.yaml"
+    )
     loaded, _ = manager.load_plugins(manifest_paths=[processing_plugin_manifest])
-    
+
     # Enable the loaded plugin (synchronous method)
     if loaded:
         manager.enable("plugin-processing-test")
