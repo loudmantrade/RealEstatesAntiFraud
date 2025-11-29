@@ -10,12 +10,9 @@ Tests the Redis-based queue implementation including:
 - Error handling
 """
 
-import asyncio
 import time
-from typing import List
 
 import pytest
-import redis.asyncio as aioredis
 
 from core.queue.redis_queue import RedisQueuePlugin
 
@@ -60,14 +57,14 @@ class TestRedisQueueConnection:
             port=test_config["redis_port"],
             db=test_config["redis_db"],
         )
-        
+
         queue.connect()
         assert queue._client is not None
-        
+
         # Test connection is working
         result = queue._client.ping()
         assert result is True
-        
+
         queue.disconnect()
 
     def test_connect_with_password(self, test_config):
@@ -79,7 +76,7 @@ class TestRedisQueueConnection:
             db=test_config["redis_db"],
             password=None,  # Use None for no-auth Redis
         )
-        
+
         queue.connect()
         assert queue._client is not None
         queue.disconnect()
@@ -87,16 +84,16 @@ class TestRedisQueueConnection:
     def test_disconnect(self, redis_queue):
         """Test disconnection from Redis."""
         assert redis_queue._client is not None
-        
+
         redis_queue.disconnect()
-        
+
         # After disconnect, client should be None or connection closed
         # Depending on implementation
 
     def test_health_check_connected(self, redis_queue):
         """Test health check when connected."""
         health = redis_queue.health_check()
-        
+
         assert health["status"] == "healthy"
         assert "details" in health
         assert health["details"]["connected"] is True
@@ -110,10 +107,10 @@ class TestRedisQueueConnection:
             port=test_config["redis_port"],
             db=test_config["redis_db"],
         )
-        
+
         # Don't connect
         health = queue.health_check()
-        
+
         assert health["status"] == "unhealthy"
         assert "details" in health
         assert "error" in health["details"]
@@ -125,13 +122,13 @@ class TestRedisQueueTopics:
     def test_create_topic(self, clean_redis_queue):
         """Test creating a new topic (stream)."""
         topic = "test.topic"
-        
+
         # create_topic marks topic for creation
         clean_redis_queue.create_topic(topic)
-        
+
         # Stream is created on first publish
         clean_redis_queue.publish(topic, {"test": "data"})
-        
+
         # Verify stream exists (check with Redis directly)
         exists = clean_redis_queue._client.exists(topic)
         assert exists == 1
@@ -139,23 +136,23 @@ class TestRedisQueueTopics:
     def test_create_topic_idempotent(self, clean_redis_queue):
         """Test creating same topic multiple times is safe."""
         topic = "test.topic.idempotent"
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.create_topic(topic)  # Should not error
-        
+
         # Publish to actually create stream
         clean_redis_queue.publish(topic, {"test": "data"})
-        
+
         exists = clean_redis_queue._client.exists(topic)
         assert exists == 1
 
     def test_delete_topic(self, clean_redis_queue):
         """Test deleting a topic."""
         topic = "test.topic.delete"
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.delete_topic(topic)
-        
+
         # Verify stream is deleted
         exists = clean_redis_queue._client.exists(topic)
         assert exists == 0
@@ -173,10 +170,10 @@ class TestRedisQueuePublish:
         """Test publishing a simple message."""
         topic = "test.publish.simple"
         message = {"key": "value", "number": 42}
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, message)
-        
+
         # Check message was added to stream
         messages = clean_redis_queue._client.xread({topic: "0"}, count=1)
         assert len(messages) == 1
@@ -190,12 +187,12 @@ class TestRedisQueuePublish:
             {"id": 2, "data": "second"},
             {"id": 3, "data": "third"},
         ]
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         for msg in messages:
             clean_redis_queue.publish(topic, msg)
-        
+
         # Check all messages are in stream
         stream_messages = clean_redis_queue._client.xread({topic: "0"}, count=10)
         assert len(stream_messages) == 1
@@ -212,10 +209,10 @@ class TestRedisQueuePublish:
             },
             "metadata": {"timestamp": 1234567890, "source": "test"},
         }
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, message)
-        
+
         # Verify message exists
         messages = clean_redis_queue._client.xread({topic: "0"}, count=1)
         assert len(messages) == 1
@@ -224,10 +221,10 @@ class TestRedisQueuePublish:
         """Test publishing to non-existent topic creates it."""
         topic = "test.publish.autocreate"
         message = {"test": "data"}
-        
+
         # Don't create topic explicitly
         clean_redis_queue.publish(topic, message)
-        
+
         # Topic should be auto-created
         exists = clean_redis_queue._client.exists(topic)
         assert exists == 1
@@ -235,12 +232,12 @@ class TestRedisQueuePublish:
     def test_publish_updates_statistics(self, clean_redis_queue):
         """Test that publishing updates statistics."""
         topic = "test.publish.stats"
-        
+
         initial_count = clean_redis_queue._stats["messages_published"]
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, {"test": "message"})
-        
+
         assert clean_redis_queue._stats["messages_published"] == initial_count + 1
 
 
@@ -251,23 +248,23 @@ class TestRedisQueueSubscribe:
         """Test subscribing to a topic and receiving messages."""
         topic = "test.subscribe.basic"
         received_messages = []
-        
+
         def callback(msg):
             received_messages.append(msg)
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Subscribe
         sub_id = clean_redis_queue.subscribe(topic, callback)
         assert sub_id is not None
-        
+
         # Publish message
         test_message = {"test": "data", "id": 123}
         clean_redis_queue.publish(topic, test_message)
-        
+
         # Give time for message to be processed
         time.sleep(0.2)
-        
+
         # Check message was received
         assert len(received_messages) >= 1
         # Note: message may be wrapped, check it contains our data
@@ -277,20 +274,24 @@ class TestRedisQueueSubscribe:
         topic = "test.subscribe.multiple"
         received_1 = []
         received_2 = []
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Subscribe twice
-        sub_id_1 = clean_redis_queue.subscribe(topic, lambda msg: received_1.append(msg))
-        sub_id_2 = clean_redis_queue.subscribe(topic, lambda msg: received_2.append(msg))
-        
+        sub_id_1 = clean_redis_queue.subscribe(
+            topic, lambda msg: received_1.append(msg)
+        )
+        sub_id_2 = clean_redis_queue.subscribe(
+            topic, lambda msg: received_2.append(msg)
+        )
+
         assert sub_id_1 != sub_id_2
-        
+
         # Publish message
         clean_redis_queue.publish(topic, {"test": "multi"})
-        
+
         time.sleep(0.2)
-        
+
         # Both should receive (or one if using consumer groups)
         # Behavior depends on consumer group implementation
 
@@ -298,19 +299,19 @@ class TestRedisQueueSubscribe:
         """Test unsubscribing from a topic."""
         topic = "test.subscribe.unsub"
         received = []
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         sub_id = clean_redis_queue.subscribe(topic, lambda msg: received.append(msg))
-        
+
         # Unsubscribe
         clean_redis_queue.unsubscribe(sub_id)
-        
+
         # Publish after unsubscribe
         clean_redis_queue.publish(topic, {"test": "after_unsub"})
-        
+
         time.sleep(0.2)
-        
+
         # Should not receive message after unsubscribe
         # (or receive 0 messages if unsubscribed before any were sent)
 
@@ -318,18 +319,18 @@ class TestRedisQueueSubscribe:
         """Test subscribing before messages are published."""
         topic = "test.subscribe.before"
         received = []
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Subscribe first
         clean_redis_queue.subscribe(topic, lambda msg: received.append(msg))
-        
+
         # Then publish
         clean_redis_queue.publish(topic, {"order": "first"})
         clean_redis_queue.publish(topic, {"order": "second"})
-        
+
         time.sleep(0.3)
-        
+
         # Should receive both messages
         assert len(received) >= 2
 
@@ -340,10 +341,10 @@ class TestRedisQueueAcknowledgment:
     def test_acknowledge_message(self, clean_redis_queue):
         """Test acknowledging a message."""
         topic = "test.ack.basic"
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, {"test": "ack"})
-        
+
         # Get message ID somehow (depends on implementation)
         # For now, test the method exists and doesn't error
         try:
@@ -355,10 +356,10 @@ class TestRedisQueueAcknowledgment:
     def test_reject_message(self, clean_redis_queue):
         """Test rejecting a message."""
         topic = "test.reject.basic"
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, {"test": "reject"})
-        
+
         # Test reject method exists
         try:
             clean_redis_queue.reject("test-message-id")
@@ -373,7 +374,7 @@ class TestRedisQueueStatistics:
     def test_get_statistics(self, clean_redis_queue):
         """Test getting queue statistics."""
         stats = clean_redis_queue.get_statistics()
-        
+
         assert "messages_published" in stats
         assert "messages_consumed" in stats
         assert "messages_acked" in stats
@@ -383,30 +384,30 @@ class TestRedisQueueStatistics:
     def test_statistics_after_operations(self, clean_redis_queue):
         """Test statistics are updated after operations."""
         topic = "test.stats.ops"
-        
+
         initial_stats = clean_redis_queue.get_statistics()
         initial_published = initial_stats["messages_published"]
-        
+
         clean_redis_queue.create_topic(topic)
         clean_redis_queue.publish(topic, {"test": "stats"})
-        
+
         updated_stats = clean_redis_queue.get_statistics()
-        
+
         assert updated_stats["messages_published"] == initial_published + 1
 
     def test_get_queue_size(self, clean_redis_queue):
         """Test getting queue size for a topic."""
         topic = "test.size"
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Publish some messages
         for i in range(5):
             clean_redis_queue.publish(topic, {"id": i})
-        
+
         # Get queue size
         size = clean_redis_queue.get_queue_size(topic)
-        
+
         # Size should reflect messages in stream
         assert size >= 5
 
@@ -421,7 +422,7 @@ class TestRedisQueueErrorHandling:
             port=test_config["redis_port"],
             db=test_config["redis_db"],
         )
-        
+
         # Don't connect
         with pytest.raises(Exception):
             queue.publish("test.topic", {"test": "data"})
@@ -433,16 +434,16 @@ class TestRedisQueueErrorHandling:
             port=6379,
             db=0,
         )
-        
+
         with pytest.raises(Exception):
             queue.connect()
 
     def test_invalid_message_handling(self, clean_redis_queue):
         """Test handling of invalid message types."""
         topic = "test.invalid"
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Try to publish non-serializable data
         # Should handle gracefully or raise appropriate error
         try:
@@ -458,16 +459,16 @@ class TestRedisQueuePurge:
     def test_purge_queue(self, clean_redis_queue):
         """Test purging all messages from a queue."""
         topic = "test.purge"
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Add messages
         for i in range(10):
             clean_redis_queue.publish(topic, {"id": i})
-        
+
         # Purge
         clean_redis_queue.purge_queue(topic)
-        
+
         # Check queue is empty
         size = clean_redis_queue.get_queue_size(topic)
         assert size == 0
@@ -480,22 +481,22 @@ class TestRedisQueueIntegration:
         """Test complete message lifecycle: publish -> subscribe -> ack."""
         topic = "test.integration.lifecycle"
         received = []
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Subscribe
         clean_redis_queue.subscribe(topic, lambda msg: received.append(msg))
-        
+
         # Publish
         message = {"lifecycle": "test", "timestamp": time.time()}
         clean_redis_queue.publish(topic, message)
-        
+
         # Wait for delivery
         time.sleep(0.2)
-        
+
         # Verify received
         assert len(received) >= 1
-        
+
         # Get statistics
         stats = clean_redis_queue.get_statistics()
         assert stats["messages_published"] >= 1
@@ -503,13 +504,13 @@ class TestRedisQueueIntegration:
     def test_concurrent_publishers(self, clean_redis_queue):
         """Test multiple publishers publishing concurrently."""
         topic = "test.integration.concurrent"
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Publish from "multiple" sources
         for i in range(20):
             clean_redis_queue.publish(topic, {"source": i % 3, "message": i})
-        
+
         # All should be in queue
         size = clean_redis_queue.get_queue_size(topic)
         assert size >= 20
@@ -518,18 +519,18 @@ class TestRedisQueueIntegration:
         """Test that messages maintain order."""
         topic = "test.integration.order"
         received = []
-        
+
         clean_redis_queue.create_topic(topic)
-        
+
         # Subscribe
         clean_redis_queue.subscribe(topic, lambda msg: received.append(msg))
-        
+
         # Publish in order
         for i in range(10):
             clean_redis_queue.publish(topic, {"seq": i})
             time.sleep(0.01)  # Small delay
-        
+
         time.sleep(0.3)
-        
+
         # Messages should arrive in order (Redis Streams guarantee this)
         assert len(received) >= 10
