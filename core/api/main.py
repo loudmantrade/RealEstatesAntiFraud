@@ -7,7 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.api.routes.listings import router as listings_router
 from core.api.routes.plugins import router as plugins_router
-from core.utils.context import clear_trace_context, get_trace_id, set_trace_context
+from core.utils.context import (
+    clear_trace_context,
+    get_trace_id,
+    set_trace_context,
+)
 from core.utils.logging import configure_logging, get_logger
 
 # Initialize structured logging
