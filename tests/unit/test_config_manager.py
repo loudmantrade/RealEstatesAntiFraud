@@ -473,7 +473,7 @@ class TestConfigReload:
 
         manager = ConfigManager(config_dir=config_dir, force_new=True)
         manager.load()
-        
+
         # Load a plugin config without file (will use defaults)
         manager.load_plugin_config("test-plugin")
 
