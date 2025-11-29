@@ -27,7 +27,7 @@ class MockDetectionPlugin(DetectionPlugin):
             "description": "Mock detection plugin",
         }
 
-    def analyze(self, listing):
+    async def analyze(self, listing):
         self.analyze_called = True
         return {"signals": [], "score": 0.5}
 
@@ -233,11 +233,12 @@ class TestDetectionPluginWrapper:
         assert metadata["id"] == "test-plugin"
         assert metadata["name"] == "Mock Plugin test-plugin"
 
-    def test_wrapper_delegates_analyze(self, mock_plugin):
+    @pytest.mark.asyncio
+    async def test_wrapper_delegates_analyze(self, mock_plugin):
         """Test wrapper delegates analyze to plugin."""
         wrapper = DetectionPluginWrapper(mock_plugin, "test-plugin")
 
-        result = wrapper.analyze({"listing_id": "test"})
+        result = await wrapper.analyze({"listing_id": "test"})
         assert mock_plugin.analyze_called is True
         assert "signals" in result
 

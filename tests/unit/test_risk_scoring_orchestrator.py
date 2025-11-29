@@ -116,7 +116,7 @@ class TestRiskScoringOrchestrator:
         assert result.listing_id == "test-123"
         assert result.overall_score == 0.0
         assert result.confidence == 0.0
-        assert result.risk_level == "low"
+        assert result.risk_level == "safe"
         assert len(result.signals) == 0
         assert len(result.plugin_results) == 0
 
@@ -140,7 +140,7 @@ class TestRiskScoringOrchestrator:
         result = await orchestrator.run(sample_listing)
 
         assert result.overall_score == 80.0  # 0.8 * 100
-        assert result.risk_level == "critical"  # 80 is > 75
+        assert result.risk_level == "fraud"  # 80 is >= 70
         assert len(result.signals) == 1
         assert len(result.plugin_results) == 1
         assert result.plugin_results[0].plugin_id == "price-detector"
@@ -186,7 +186,7 @@ class TestRiskScoringOrchestrator:
 
         # Expected: (0.9 * 0.6 + 0.2 * 0.4) * 100 = 62.0
         assert abs(result.overall_score - 62.0) < 0.1
-        assert result.risk_level == "high"  # 62 is in [50, 75) range
+        assert result.risk_level == "suspicious"  # 62 is in [30, 70) range
         assert len(result.signals) == 2
         assert len(result.plugin_results) == 2
 
@@ -247,15 +247,16 @@ class TestRiskScoringOrchestrator:
         assert result.plugin_results[0].plugin_id == "good-plugin"
 
     def test_determine_risk_level(self, orchestrator):
-        """Test risk level determination."""
-        assert orchestrator._determine_risk_level(10.0) == "low"
-        assert orchestrator._determine_risk_level(24.9) == "low"
-        assert orchestrator._determine_risk_level(25.0) == "medium"
-        assert orchestrator._determine_risk_level(49.9) == "medium"
-        assert orchestrator._determine_risk_level(50.0) == "high"
-        assert orchestrator._determine_risk_level(74.9) == "high"
-        assert orchestrator._determine_risk_level(75.0) == "critical"
-        assert orchestrator._determine_risk_level(100.0) == "critical"
+        """Test risk level determination per ARCHITECTURE.md."""
+        assert orchestrator._determine_risk_level(0.0) == "safe"
+        assert orchestrator._determine_risk_level(10.0) == "safe"
+        assert orchestrator._determine_risk_level(29.9) == "safe"
+        assert orchestrator._determine_risk_level(30.0) == "suspicious"
+        assert orchestrator._determine_risk_level(50.0) == "suspicious"
+        assert orchestrator._determine_risk_level(69.9) == "suspicious"
+        assert orchestrator._determine_risk_level(70.0) == "fraud"
+        assert orchestrator._determine_risk_level(85.0) == "fraud"
+        assert orchestrator._determine_risk_level(100.0) == "fraud"
 
     def test_compute_weighted_score_empty(self, orchestrator):
         """Test weighted score computation with no results."""

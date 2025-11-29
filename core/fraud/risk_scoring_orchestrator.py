@@ -112,11 +112,13 @@ class RiskScoringOrchestrator:
 
         logger.info(f"Starting fraud analysis for listing: {listing_id}")
 
-        # Run all detection plugins
+        # Run all detection plugins concurrently
         plugin_results: List[DetectionResult] = []
         all_signals: List[RiskSignal] = []
 
-        for plugin in self.detection_plugins:
+        # Create tasks for all plugins
+        async def run_plugin_safe(plugin: DetectionPlugin) -> Optional[DetectionResult]:
+            """Run plugin with error handling."""
             try:
                 metadata = plugin.get_metadata()
                 plugin_id = metadata.get("id", "unknown")
@@ -124,23 +126,36 @@ class RiskScoringOrchestrator:
                 logger.debug(f"Running detection plugin: {plugin_id}")
                 result = await plugin.analyze(listing)
 
+                logger.debug(
+                    f"Plugin {plugin_id}: score={result.overall_score:.2f}, "
+                    f"signals={len(result.signals)}, time={result.processing_time_ms:.1f}ms"
+                )
+                return result
+
+            except Exception as e:
+                plugin_id = plugin.get_metadata().get("id", "unknown")
+                logger.error(
+                    f"Error running detection plugin {plugin_id}: {e}", exc_info=True
+                )
+                return None
+
+        # Execute all plugins concurrently
+        import asyncio
+
+        results = await asyncio.gather(
+            *[run_plugin_safe(plugin) for plugin in self.detection_plugins],
+            return_exceptions=False,
+        )
+
+        # Process results and collect signals
+        for result in results:
+            if result is not None:
                 plugin_results.append(result)
 
                 # Collect signals that meet confidence threshold
                 for signal in result.signals:
                     if signal.confidence >= self.min_confidence_threshold:
                         all_signals.append(signal)
-
-                logger.debug(
-                    f"Plugin {plugin_id}: score={result.overall_score:.2f}, "
-                    f"signals={len(result.signals)}, time={result.processing_time_ms:.1f}ms"
-                )
-
-            except Exception as e:
-                logger.error(
-                    f"Error running detection plugin {plugin_id}: {e}", exc_info=True
-                )
-                continue
 
         # Compute weighted fraud score
         overall_score, confidence = self._compute_weighted_score(plugin_results)
@@ -255,20 +270,23 @@ class RiskScoringOrchestrator:
     def _determine_risk_level(self, score: float) -> str:
         """Determine risk level from fraud score.
 
+        Implements the classification from ARCHITECTURE.md:
+        - safe: score < 30
+        - suspicious: 30 <= score < 70
+        - fraud: score >= 70
+
         Args:
             score: Fraud score from 0.0 to 100.0
 
         Returns:
-            Risk level: 'low', 'medium', 'high', or 'critical'
+            Risk level: 'safe', 'suspicious', or 'fraud'
         """
-        if score < 25.0:
-            return "low"
-        elif score < 50.0:
-            return "medium"
-        elif score < 75.0:
-            return "high"
+        if score < 30.0:
+            return "safe"
+        elif score < 70.0:
+            return "suspicious"
         else:
-            return "critical"
+            return "fraud"
 
     def get_statistics(self) -> Dict:
         """Get orchestrator statistics.
