@@ -10,13 +10,12 @@ from tests.fixtures.plugins.test_processing_plugin import TestProcessingPlugin
 class TestPluginFixtures:
     """Test suite for plugin test fixtures."""
 
-    @pytest.mark.asyncio
-    async def test_processing_plugin_basic(self):
+    def test_processing_plugin_basic(self):
         """Test basic processing plugin functionality."""
         plugin = TestProcessingPlugin({"price_multiplier": 1.5})
 
         listing = {"id": "123", "price": 1000000}
-        result = await plugin.process(listing)
+        result = plugin.process(listing)
 
         assert result["price_normalized"] == 1500000
         assert result["processed"] is True
@@ -34,13 +33,12 @@ class TestPluginFixtures:
         assert "price_normalization" in metadata["capabilities"]
         assert metadata["processed_count"] == 0
 
-    @pytest.mark.asyncio
-    async def test_processing_plugin_without_metadata(self):
+    def test_processing_plugin_without_metadata(self):
         """Test processing plugin with add_metadata=False."""
         plugin = TestProcessingPlugin({"add_metadata": False})
 
         listing = {"id": "123", "price": 1000000}
-        result = await plugin.process(listing)
+        result = plugin.process(listing)
 
         assert "metadata" not in result or "processed_by" not in result.get(
             "metadata", {}
@@ -125,14 +123,13 @@ class TestPluginFixtures:
         assert "plugin-processing-test" in metadata["dependencies"]
         assert "plugin-detection-test" in metadata["dependencies"]
 
-    @pytest.mark.asyncio
-    async def test_plugin_shutdown(self):
+    def test_plugin_shutdown(self):
         """Test plugin shutdown resets state."""
         plugin = TestProcessingPlugin()
 
         # Process some listings
-        await plugin.process({"id": "1", "price": 1000})
-        await plugin.process({"id": "2", "price": 2000})
+        plugin.process({"id": "1", "price": 1000})
+        plugin.process({"id": "2", "price": 2000})
         assert plugin.processed_count == 2
 
         # Shutdown should reset

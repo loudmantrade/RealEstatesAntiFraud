@@ -235,7 +235,7 @@ class ProcessingOrchestrator:
             if plugin_meta.type == "processing" and plugin_meta.enabled:
                 try:
                     # Get plugin instance
-                    plugin = self.plugin_manager.get(plugin_meta.id)
+                    plugin = self.plugin_manager.get_instance(plugin_meta.id)
                     if isinstance(plugin, ProcessingPlugin):
                         processing_plugins.append(plugin)
                 except Exception as e:

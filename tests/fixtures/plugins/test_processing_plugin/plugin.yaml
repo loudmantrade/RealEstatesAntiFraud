@@ -14,8 +14,8 @@ entrypoint:
   class: TestProcessingPlugin
 
 capabilities:
-  - price_normalization
-  - data_enrichment
+  - batch_processing
+  - parallel_safe
 
 configuration:
   price_multiplier: 1.0

@@ -39,7 +39,7 @@ class TestProcessingPlugin(ProcessingPlugin):
             "processed_count": self.processed_count,
         }
 
-    async def process(self, listing: Dict[str, Any]) -> Dict[str, Any]:
+    def process(self, listing: Dict[str, Any]) -> Dict[str, Any]:
         """Process a listing.
 
         Args:

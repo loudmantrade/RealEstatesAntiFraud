@@ -18,7 +18,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from core.api.main import app
 from core.database import Base, get_db
+from core.models.events import Topics
+from core.pipeline.orchestrator import ProcessingOrchestrator
 from core.plugin_manager import PluginManager
+from core.queue.in_memory_queue import InMemoryQueuePlugin
 from tests.integration.plugin_utils import PluginTestHelper
 
 
@@ -306,3 +309,54 @@ async def plugin_manager_with_fixtures(
 
     # Cleanup
     await manager.shutdown_all()
+
+
+@pytest.fixture
+async def orchestrator_with_real_plugins(
+    plugin_fixtures_dir: Path,
+) -> AsyncGenerator[ProcessingOrchestrator, None]:
+    """Create ProcessingOrchestrator with real test processing plugin loaded and enabled.
+
+    Initializes a PluginManager with test plugins, enables the processing plugin,
+    creates an in-memory queue, and creates a ProcessingOrchestrator instance.
+    This fixture is designed to test real plugin execution paths including plugin
+    loading, priority ordering, timing measurement, and statistics tracking.
+
+    Args:
+        plugin_fixtures_dir: Path to plugin fixtures directory.
+
+    Yields:
+        ProcessingOrchestrator: Initialized orchestrator with real plugins ready for execution.
+    """
+    # Create in-memory queue for testing
+    queue = InMemoryQueuePlugin()
+    queue.connect()
+    queue.create_topic(Topics.RAW_LISTINGS)
+    queue.create_topic(Topics.PROCESSED_LISTINGS)
+    queue.create_topic(Topics.PROCESSING_FAILED)
+
+    # Create plugin manager
+    manager = PluginManager()
+
+    # Load processing plugin for testing
+    processing_plugin_manifest = plugin_fixtures_dir / "test_processing_plugin" / "plugin.yaml"
+    loaded, _ = manager.load_plugins(manifest_paths=[processing_plugin_manifest])
+    
+    # Enable the loaded plugin (synchronous method)
+    if loaded:
+        manager.enable("plugin-processing-test")
+
+    # Create orchestrator with manager
+    orchestrator = ProcessingOrchestrator(
+        plugin_manager=manager,
+        queue=queue,
+    )
+
+    # Start orchestrator (synchronous method)
+    orchestrator.start()
+
+    yield orchestrator
+
+    # Cleanup (synchronous methods)
+    orchestrator.stop()
+    queue.disconnect()
