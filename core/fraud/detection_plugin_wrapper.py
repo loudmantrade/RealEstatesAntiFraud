@@ -38,9 +38,9 @@ class DetectionPluginWrapper(DetectionPlugin):
         """Delegate to wrapped plugin."""
         return self._plugin.get_metadata()
 
-    def analyze(self, listing: Dict) -> Dict:
+    async def analyze(self, listing: Dict):
         """Delegate to wrapped plugin."""
-        return self._plugin.analyze(listing)
+        return await self._plugin.analyze(listing)
 
     def get_weight(self) -> float:
         """
