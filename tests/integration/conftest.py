@@ -1,13 +1,15 @@
 """Pytest fixtures for integration tests.
 
-This module provides fixtures for integration testing with real PostgreSQL database.
-Fixtures include database engine, session management, and test client setup.
+This module provides fixtures for integration testing with real PostgreSQL database
+and Redis instance. Fixtures include database engine, session management, Redis client,
+and test client setup.
 """
 
 import os
-from typing import Generator
+from typing import AsyncGenerator, Generator
 
 import pytest
+import redis.asyncio as redis
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -48,8 +50,17 @@ def test_config() -> dict:
             "postgresql://test_user:test_pass@localhost:5433/realestate_test",
         )
 
+    # Redis configuration
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", "6380"))  # 6380 for local, 6379 for CI
+    redis_db = int(os.getenv("REDIS_DB", "0"))
+
     config = {
         "database_url": database_url,
+        "redis_url": f"redis://{redis_host}:{redis_port}/{redis_db}",
+        "redis_host": redis_host,
+        "redis_port": redis_port,
+        "redis_db": redis_db,
         "api_host": os.getenv("API_HOST", "0.0.0.0"),
         "api_port": int(os.getenv("API_PORT", "8001")),
         "log_level": os.getenv("LOG_LEVEL", "DEBUG"),
@@ -149,3 +160,60 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
 
     # Clear dependency overrides
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+async def redis_client(test_config: dict) -> AsyncGenerator[redis.Redis, None]:
+    """Create Redis client for each test.
+
+    Provides a Redis client instance for integration testing.
+    Automatically closes the connection after test completes.
+
+    Args:
+        test_config: Test configuration dictionary with Redis connection details.
+
+    Yields:
+        redis.Redis: Async Redis client instance.
+    """
+    client = await redis.from_url(
+        test_config["redis_url"],
+        encoding="utf-8",
+        decode_responses=True,
+        max_connections=10,
+    )
+
+    # Verify connection
+    try:
+        await client.ping()
+    except Exception as e:
+        await client.aclose()
+        raise RuntimeError(
+            f"Failed to connect to Redis at {test_config['redis_url']}: {e}"
+        )
+
+    yield client
+
+    # Cleanup: close connection
+    await client.aclose()
+
+
+@pytest.fixture
+async def redis_clean(redis_client: redis.Redis) -> AsyncGenerator[redis.Redis, None]:
+    """Provide clean Redis instance for each test function.
+
+    Flushes the Redis database before and after each test to ensure isolation.
+    Use this fixture when tests need a clean Redis state.
+
+    Args:
+        redis_client: Redis client fixture.
+
+    Yields:
+        redis.Redis: Redis client with clean database.
+    """
+    # Clean before test
+    await redis_client.flushdb()
+
+    yield redis_client
+
+    # Clean after test
+    await redis_client.flushdb()
