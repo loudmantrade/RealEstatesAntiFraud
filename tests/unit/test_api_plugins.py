@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from core.api.main import app
 from core.models.plugin import PluginAuthor, PluginMetadata
 
+
 # Use TestClient without database (plugins API doesn't need DB)
 @pytest.fixture
 def client():
