@@ -3,7 +3,7 @@
 import asyncio
 import time
 from statistics import mean, stdev
-from typing import List
+from typing import Any, Dict, List
 
 import pytest
 
@@ -18,18 +18,18 @@ from core.interfaces.detection_plugin import (
 class BenchmarkPlugin(DetectionPlugin):
     """Plugin for benchmarking with configurable processing time."""
 
-    def __init__(self, plugin_id: str, processing_delay_ms: float = 1.0):
+    def __init__(self, plugin_id: str, processing_delay_ms: float = 1.0) -> None:
         self.plugin_id = plugin_id
         self.processing_delay = processing_delay_ms / 1000.0  # Convert to seconds
 
-    def get_metadata(self):
+    def get_metadata(self) -> Dict[str, str]:
         return {
             "id": self.plugin_id,
             "name": f"Benchmark Plugin {self.plugin_id}",
             "version": "1.0.0",
         }
 
-    async def analyze(self, listing):
+    async def analyze(self, listing: Dict[str, Any]) -> DetectionResult:
         # Simulate processing time
         await asyncio.sleep(self.processing_delay)
 
@@ -47,13 +47,13 @@ class BenchmarkPlugin(DetectionPlugin):
             processing_time_ms=self.processing_delay * 1000,
         )
 
-    def get_weight(self):
+    def get_weight(self) -> float:
         return 1.0
 
 
 async def run_benchmark(
     num_plugins: int, plugin_delay_ms: float, num_iterations: int = 100
-) -> dict:
+) -> Dict[str, Any]:
     """Run benchmark with specified configuration.
 
     Args:
@@ -65,7 +65,7 @@ async def run_benchmark(
         Dictionary with benchmark results
     """
     # Create orchestrator with plugins
-    plugins = [
+    plugins: List[DetectionPlugin] = [
         BenchmarkPlugin(f"plugin-{i}", plugin_delay_ms) for i in range(num_plugins)
     ]
     orchestrator = RiskScoringOrchestrator(detection_plugins=plugins)
@@ -107,7 +107,7 @@ async def run_benchmark(
 class TestPerformanceBenchmarks:
     """Performance benchmarks for fraud scoring."""
 
-    async def test_benchmark_single_plugin_fast(self):
+    async def test_benchmark_single_plugin_fast(self) -> None:
         """Benchmark with single fast plugin."""
         result = await run_benchmark(
             num_plugins=1, plugin_delay_ms=1.0, num_iterations=100
@@ -123,7 +123,7 @@ class TestPerformanceBenchmarks:
         # Overhead should be minimal (< 5ms for single plugin)
         assert result["mean_ms"] < 10.0
 
-    async def test_benchmark_multiple_plugins_concurrent(self):
+    async def test_benchmark_multiple_plugins_concurrent(self) -> None:
         """Benchmark with multiple plugins running concurrently."""
         result = await run_benchmark(
             num_plugins=5, plugin_delay_ms=10.0, num_iterations=50
@@ -141,7 +141,7 @@ class TestPerformanceBenchmarks:
             result["mean_ms"] < 25.0
         ), f"Concurrent execution too slow: {result['mean_ms']:.2f}ms"
 
-    async def test_benchmark_many_plugins(self):
+    async def test_benchmark_many_plugins(self) -> None:
         """Benchmark with many plugins to test scalability."""
         result = await run_benchmark(
             num_plugins=20, plugin_delay_ms=5.0, num_iterations=30
@@ -155,7 +155,7 @@ class TestPerformanceBenchmarks:
         # Should still be fast with concurrent execution
         assert result["mean_ms"] < 50.0
 
-    async def test_benchmark_no_plugins(self):
+    async def test_benchmark_no_plugins(self) -> None:
         """Benchmark with no plugins (edge case)."""
         orchestrator = RiskScoringOrchestrator()
         listing = {"listing_id": "test"}
@@ -176,7 +176,7 @@ class TestPerformanceBenchmarks:
 
 
 @pytest.mark.asyncio
-async def test_compare_sequential_vs_concurrent():
+async def test_compare_sequential_vs_concurrent() -> None:
     """Compare sequential vs concurrent plugin execution."""
     num_plugins = 5
     plugin_delay_ms = 10.0
@@ -202,7 +202,7 @@ async def test_compare_sequential_vs_concurrent():
 if __name__ == "__main__":
     """Run benchmarks directly."""
 
-    async def run_all_benchmarks():
+    async def run_all_benchmarks() -> None:
         print("=" * 60)
         print("Fraud Scoring Orchestrator Performance Benchmarks")
         print("=" * 60)
