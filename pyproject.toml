@@ -5,6 +5,7 @@ target-version = ['py311', 'py312', 'py313']
 [tool.isort]
 profile = "black"
 line_length = 88
+known_first_party = ["core", "tests"]
 
 [tool.pytest.ini_options]
 markers = [
