@@ -12,7 +12,7 @@ from core.interfaces.detection_plugin import (
 
 class TestDetectionPlugin(DetectionPlugin):
     """Test detection plugin that detects price anomalies and duplicates.
-    
+
     This plugin demonstrates basic fraud detection:
     1. Price anomaly detection (unrealistic prices)
     2. Duplicate listing detection (seen IDs)
@@ -21,20 +21,22 @@ class TestDetectionPlugin(DetectionPlugin):
 
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize the plugin with configuration.
-        
+
         Args:
             config: Plugin configuration dictionary with:
                 - price_threshold_multiplier: Float for price anomaly detection (default: 2.0)
                 - enable_duplicate_check: Boolean to enable duplicate detection (default: True)
         """
         self.config = config or {}
-        self.price_threshold_multiplier = self.config.get("price_threshold_multiplier", 2.0)
+        self.price_threshold_multiplier = self.config.get(
+            "price_threshold_multiplier", 2.0
+        )
         self.enable_duplicate_check = self.config.get("enable_duplicate_check", True)
-        
+
         # Track seen listings for duplicate detection
         self.seen_ids = set()
         self.analysis_count = 0
-        
+
         # Average market price for anomaly detection (simplified)
         self.average_price = 5_000_000  # 5M rubles
 
@@ -52,23 +54,23 @@ class TestDetectionPlugin(DetectionPlugin):
 
     async def analyze(self, listing: Dict[str, Any]) -> DetectionResult:
         """Analyze a listing for fraud indicators.
-        
+
         Args:
             listing: Listing data dictionary
-            
+
         Returns:
             DetectionResult with signals and overall score
         """
         start_time = time.time()
         self.analysis_count += 1
-        
+
         signals = []
-        
+
         # Check for price anomalies
         if "price" in listing and listing["price"] is not None:
             price = listing["price"]
             threshold = self.average_price * self.price_threshold_multiplier
-            
+
             if price > threshold:
                 signals.append(
                     RiskSignal(
@@ -93,7 +95,7 @@ class TestDetectionPlugin(DetectionPlugin):
                         metadata={"price": price},
                     )
                 )
-        
+
         # Check for duplicate listings
         if self.enable_duplicate_check:
             listing_id = listing.get("id") or listing.get("listing_id")
@@ -110,13 +112,13 @@ class TestDetectionPlugin(DetectionPlugin):
                     )
                 else:
                     self.seen_ids.add(listing_id)
-        
+
         # Calculate overall score (max of individual signals)
         overall_score = max([s.score for s in signals], default=0.0)
-        
+
         # Calculate processing time
         processing_time_ms = (time.time() - start_time) * 1000
-        
+
         return DetectionResult(
             plugin_id="plugin-detection-test",
             signals=signals,

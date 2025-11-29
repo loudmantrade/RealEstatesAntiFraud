@@ -7,7 +7,7 @@ from core.interfaces.processing_plugin import ProcessingPlugin
 
 class TestProcessingPlugin(ProcessingPlugin):
     """Test processing plugin that normalizes prices and adds metadata.
-    
+
     This plugin demonstrates a simple processing pipeline:
     1. Normalize price with configurable multiplier
     2. Add processing metadata
@@ -16,7 +16,7 @@ class TestProcessingPlugin(ProcessingPlugin):
 
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize the plugin with configuration.
-        
+
         Args:
             config: Plugin configuration dictionary with:
                 - price_multiplier: Float multiplier for price normalization (default: 1.0)
@@ -41,10 +41,10 @@ class TestProcessingPlugin(ProcessingPlugin):
 
     async def process(self, listing: Dict[str, Any]) -> Dict[str, Any]:
         """Process a listing.
-        
+
         Args:
             listing: Listing data dictionary
-            
+
         Returns:
             Processed listing with normalized price and metadata
         """
@@ -58,12 +58,12 @@ class TestProcessingPlugin(ProcessingPlugin):
         if "price" in processed and processed["price"] is not None:
             original_price = processed["price"]
             processed["price_normalized"] = original_price * self.price_multiplier
-        
+
         # Add metadata if enabled
         if self.add_metadata:
             if "metadata" not in processed:
                 processed["metadata"] = {}
-            
+
             processed["metadata"]["processed_by"] = "plugin-processing-test"
             processed["metadata"]["processing_version"] = "1.0.0"
             processed["metadata"]["price_multiplier"] = self.price_multiplier

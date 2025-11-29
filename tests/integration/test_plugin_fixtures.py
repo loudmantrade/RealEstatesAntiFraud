@@ -2,9 +2,9 @@
 
 import pytest
 
+from tests.fixtures.plugins.test_dependent_plugin import TestDependentPlugin
 from tests.fixtures.plugins.test_detection_plugin import TestDetectionPlugin
 from tests.fixtures.plugins.test_processing_plugin import TestProcessingPlugin
-from tests.fixtures.plugins.test_dependent_plugin import TestDependentPlugin
 
 
 class TestPluginFixtures:
