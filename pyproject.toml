@@ -11,6 +11,7 @@ markers = [
     "integration: marks tests as integration tests (require database)",
     "unit: marks tests as unit tests (no external dependencies)",
     "asyncio: marks tests as async tests",
+    "benchmark: marks tests as performance benchmarks",
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
