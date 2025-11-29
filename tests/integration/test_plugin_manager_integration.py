@@ -84,9 +84,8 @@ class TestPluginDiscoveryAndLoading:
     @pytest.mark.skip(reason="Plugin class name mismatch")
     def test_load_plugins_from_directory(self, processing_plugins_dir):
         """Test loading plugins from directory."""
-        loaded, failed = manager.load_plugins(
-            plugins_dir=processing_plugins_dir
-        )
+        plugins_dir = processing_plugins_dir
+        loaded, failed = manager.load_plugins(plugins_dir=plugins_dir)
 
         assert len(loaded) >= 1
         assert len(failed) == 0
@@ -262,9 +261,8 @@ class TestDependencyHandling:
         plugins_dir.mkdir()
 
         # Copy processing plugin (dependency)
-        proc_src = (
-            plugin_fixtures_dir / "nested" / "deep" / "processing_plugin"
-        )
+        proc_src = plugin_fixtures_dir / "nested" / "deep"
+        proc_src = proc_src / "processing_plugin"
         shutil.copytree(proc_src, plugins_dir / "processing")
 
         # Copy dependent plugin
