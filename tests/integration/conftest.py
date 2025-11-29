@@ -1,11 +1,12 @@
 """Pytest fixtures for integration tests.
 
-This module provides fixtures for integration testing with real PostgreSQL database
-and Redis instance. Fixtures include database engine, session management, Redis client,
-and test client setup.
+This module provides fixtures for integration testing with real PostgreSQL database,
+Redis instance, and plugin system. Fixtures include database engine, session management,
+Redis client, test client setup, and plugin testing utilities.
 """
 
 import os
+from pathlib import Path
 from typing import AsyncGenerator, Generator
 
 import pytest
@@ -17,6 +18,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from core.api.main import app
 from core.database import Base, get_db
+from core.plugin_manager import PluginManager
+from tests.integration.plugin_utils import PluginTestHelper
 
 
 @pytest.fixture(scope="session")
@@ -217,3 +220,89 @@ async def redis_clean(redis_client: redis.Redis) -> AsyncGenerator[redis.Redis, 
 
     # Clean after test
     await redis_client.flushdb()
+
+
+# ============================================================================
+# Plugin Testing Fixtures
+# ============================================================================
+
+
+@pytest.fixture
+def plugin_test_helper(tmp_path: Path) -> Generator[PluginTestHelper, None, None]:
+    """Provide PluginTestHelper for plugin testing.
+
+    Creates a temporary directory for test plugins and provides helper
+    methods for managing plugin fixtures. Automatically cleans up after tests.
+
+    Args:
+        tmp_path: pytest temporary directory fixture.
+
+    Yields:
+        PluginTestHelper: Helper instance for plugin testing.
+    """
+    helper = PluginTestHelper(tmp_path)
+    yield helper
+    helper.cleanup()
+
+
+@pytest.fixture
+def plugin_fixtures_dir() -> Path:
+    """Get path to plugin fixtures directory.
+
+    Returns:
+        Path: Path to tests/fixtures/plugins/ directory.
+    """
+    return Path(__file__).parent.parent / "fixtures" / "plugins"
+
+
+@pytest.fixture
+def sample_plugins(plugin_test_helper: PluginTestHelper) -> dict[str, Path]:
+    """Copy sample plugin fixtures for testing.
+
+    Creates copies of test plugins in the temporary test directory.
+    Provides paths to commonly used test plugins.
+
+    Args:
+        plugin_test_helper: PluginTestHelper fixture.
+
+    Returns:
+        dict: Dictionary mapping plugin names to their paths.
+    """
+    return {
+        "processing": plugin_test_helper.copy_plugin_fixture("test_processing_plugin"),
+        "detection": plugin_test_helper.copy_plugin_fixture("test_detection_plugin"),
+        "dependent": plugin_test_helper.copy_plugin_fixture("test_dependent_plugin"),
+        "source": plugin_test_helper.copy_plugin_fixture("test_source_plugin"),
+    }
+
+
+@pytest.fixture
+async def plugin_manager_with_fixtures(
+    sample_plugins: dict[str, Path],
+    tmp_path: Path,
+) -> AsyncGenerator[PluginManager, None]:
+    """Create PluginManager with sample plugin fixtures.
+
+    Initializes a PluginManager instance with paths to test plugins.
+    Automatically discovers and loads plugins. Cleans up after tests.
+
+    Args:
+        sample_plugins: Sample plugin paths fixture.
+        tmp_path: pytest temporary directory fixture.
+
+    Yields:
+        PluginManager: Initialized plugin manager with test plugins.
+    """
+    # Create plugin directories list
+    plugin_dirs = list(sample_plugins.values())
+
+    # Initialize plugin manager
+    manager = PluginManager(plugin_dirs=plugin_dirs)
+
+    # Discover and load plugins
+    await manager.discover_plugins()
+
+    yield manager
+
+    # Cleanup
+    await manager.shutdown_all()

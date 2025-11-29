@@ -1,0 +1,22 @@
+id: plugin-dependent-test
+name: Test Dependent Plugin
+version: 1.0.0
+type: processing
+entrypoint: dependent.TestDependentPlugin
+description: Test plugin that depends on other plugins
+author: Test Suite
+license: MIT
+
+dependencies:
+  - plugin-processing-test
+  - plugin-detection-test
+
+capabilities:
+  - enriched_processing
+  - dependent_processing
+
+configuration:
+  use_normalization:
+    type: boolean
+    default: true
+    description: Use price normalization from dependent plugin
