@@ -3,43 +3,68 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from core.api.main import app
 from core.database import Base, get_db
 from core.models.udm import Listing
 
-# Test database setup
+# Test database setup - use unique in-memory DB per test module
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+@pytest.fixture(scope="module")
+def test_engine():
+    """Create a test database engine."""
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(bind=engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
 
 
-def override_get_db():
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-client = TestClient(app)
+@pytest.fixture(scope="module")
+def TestingSessionLocal(test_engine):
+    """Create a session factory."""
+    return sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 @pytest.fixture(autouse=True)
-def setup_database():
+def setup_database(test_engine, TestingSessionLocal):
     """Create tables before each test and drop after."""
-    Base.metadata.create_all(bind=engine)
+    # Clean all data before each test
+    Base.metadata.drop_all(bind=test_engine)
+    Base.metadata.create_all(bind=test_engine)
+    
+    # Override the dependency
+    def override_get_db():
+        try:
+            db = TestingSessionLocal()
+            yield db
+        finally:
+            db.close()
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
     yield
-    Base.metadata.drop_all(bind=engine)
+    
+    # Clean up after test
+    Base.metadata.drop_all(bind=test_engine)
+    
+    # Remove override
+    if get_db in app.dependency_overrides:
+        del app.dependency_overrides[get_db]
+
+
+@pytest.fixture
+def client(setup_database):
+    """Create a test client."""
+    return TestClient(app)
 
 
 def make_listing_data(
@@ -69,20 +94,20 @@ def make_listing_data(
     return data
 
 
-def test_health_endpoint():
+def test_health_endpoint(client):
     """Test health check endpoint is not versioned."""
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "version": "1.0.0"}
 
 
-def test_openapi_docs_at_v1_path():
+def test_openapi_docs_at_v1_path(client):
     """Test OpenAPI docs are available at /api/v1/docs."""
     response = client.get("/api/v1/docs")
     assert response.status_code == 200
 
 
-def test_create_listing():
+def test_create_listing(client):
     """Test creating a new listing via API."""
     listing_data = {
         "listing": {
@@ -107,7 +132,7 @@ def test_create_listing():
     assert data["data"]["description"] == "A test apartment"
 
 
-def test_create_duplicate_listing():
+def test_create_duplicate_listing(client):
     """Test creating a duplicate listing returns 400."""
     listing_data = make_listing_data("test-002")
 
@@ -121,7 +146,7 @@ def test_create_duplicate_listing():
     assert "already exists" in response.json()["detail"]
 
 
-def test_get_listing():
+def test_get_listing(client):
     """Test retrieving a listing by ID."""
     # Create a listing first
     listing_data = make_listing_data("test-003", price=200000.0)
@@ -135,14 +160,14 @@ def test_get_listing():
     assert data["data"]["description"] == "Test listing test-003"
 
 
-def test_get_nonexistent_listing():
+def test_get_nonexistent_listing(client):
     """Test retrieving a non-existent listing returns 404."""
     response = client.get("/api/v1/listings/nonexistent")
     assert response.status_code == 404
     assert "not found" in response.json()["detail"]
 
 
-def test_delete_listing():
+def test_delete_listing(client):
     """Test deleting a listing."""
     # Create a listing first
     listing_data = make_listing_data("test-004", price=500000.0)
@@ -160,7 +185,7 @@ def test_delete_listing():
     assert response.status_code == 404
 
 
-def test_list_listings_empty():
+def test_list_listings_empty(client):
     """Test listing when no listings exist."""
     response = client.get("/api/v1/listings/")
     assert response.status_code == 200
@@ -171,7 +196,7 @@ def test_list_listings_empty():
     assert data["total_pages"] == 0
 
 
-def test_list_listings_with_data():
+def test_list_listings_with_data(client):
     """Test listing with multiple listings."""
     # Create some listings
     for i in range(5):
@@ -188,7 +213,7 @@ def test_list_listings_with_data():
     assert data["total_pages"] == 1
 
 
-def test_pagination():
+def test_pagination(client):
     """Test pagination with page and page_size parameters."""
     # Create 25 listings
     for i in range(25):
@@ -219,7 +244,7 @@ def test_pagination():
     assert data["total_pages"] == 3
 
 
-def test_filter_by_city():
+def test_filter_by_city(client):
     """Test filtering listings by city."""
     # Create listings in different cities
     cities = ["CityA", "CityB", "CityA", "CityC", "CityA"]
@@ -235,7 +260,7 @@ def test_filter_by_city():
     assert all(item["location"]["city"] == "CityA" for item in data["items"])
 
 
-def test_filter_by_price_range():
+def test_filter_by_price_range(client):
     """Test filtering listings by price range."""
     # Create listings with different prices
     prices = [50000, 100000, 150000, 200000, 250000]
@@ -252,7 +277,7 @@ def test_filter_by_price_range():
         assert 100000 <= item["price"]["amount"] <= 200000
 
 
-def test_filter_by_fraud_score_range():
+def test_filter_by_fraud_score_range(client):
     """Test filtering listings by fraud score range."""
     # Create listings with different fraud scores
     scores = [0.1, 0.3, 0.5, 0.7, 0.9]
@@ -269,7 +294,7 @@ def test_filter_by_fraud_score_range():
         assert 0.3 <= item["fraud_score"] <= 0.7
 
 
-def test_combined_filters():
+def test_combined_filters(client):
     """Test combining multiple filters."""
     # Create listings with varied properties
     for i in range(10):
