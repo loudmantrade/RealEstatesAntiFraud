@@ -1,0 +1,22 @@
+id: plugin-processing-test
+name: Test Processing Plugin
+version: 1.0.0
+type: processing
+api_version: "1.0"
+description: Test processing plugin for integration testing
+
+author:
+  name: Test Author
+  email: test@example.com
+
+entrypoint:
+  module: processor
+  class: TestProcessingPlugin
+
+capabilities:
+  - price_normalization
+  - data_enrichment
+
+configuration:
+  price_multiplier: 1.0
+  add_metadata: true

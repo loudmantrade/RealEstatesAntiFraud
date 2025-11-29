@@ -1,0 +1,23 @@
+id: plugin-detection-test
+name: Test Detection Plugin
+version: 1.0.0
+type: detection
+entrypoint: detector.TestDetectionPlugin
+description: Test detection plugin for integration testing
+author: Test Suite
+license: MIT
+
+capabilities:
+  - price_anomaly_detection
+  - basic_fraud_signals
+
+configuration:
+  price_threshold_multiplier:
+    type: float
+    default: 2.0
+    description: Multiplier for average price to flag anomalies
+  
+  enable_duplicate_check:
+    type: boolean
+    default: true
+    description: Enable duplicate listing detection
