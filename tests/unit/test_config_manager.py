@@ -334,6 +334,32 @@ class TestPluginConfiguration:
             assert plugin_config.config["api_key"] == "env_secret"
             assert plugin_config.config["rate_limit"] == 200
 
+    def test_load_plugin_with_invalid_yaml(self, config_dir):
+        """Test loading plugin config with invalid YAML."""
+        manager = ConfigManager(config_dir=config_dir, force_new=True)
+        manager.load()
+
+        # Create invalid YAML file
+        invalid_file = config_dir / "invalid.yaml"
+        with open(invalid_file, "w") as f:
+            f.write("invalid: yaml: [unclosed")
+
+        with pytest.raises(ConfigValidationError, match="Invalid YAML"):
+            manager.load_plugin_config("invalid-plugin", "invalid.yaml")
+
+    def test_load_plugin_with_validation_error(self, config_dir):
+        """Test loading plugin config with Pydantic validation error."""
+        manager = ConfigManager(config_dir=config_dir, force_new=True)
+        manager.load()
+
+        # Create file with invalid structure
+        bad_file = config_dir / "bad.yaml"
+        with open(bad_file, "w") as f:
+            yaml.dump({"enabled": "not-a-boolean"}, f)
+
+        with pytest.raises(ConfigValidationError, match="validation failed"):
+            manager.load_plugin_config("bad-plugin", "bad.yaml")
+
 
 class TestConfigGetSet:
     """Test get/set methods for configuration access."""
@@ -366,6 +392,15 @@ class TestConfigGetSet:
     def test_get_with_default(self, loaded_manager):
         """Test get with default value."""
         value = loaded_manager.get("nonexistent_key", "default")
+        assert value == "default"
+
+    def test_get_before_load_returns_default(self, tmp_path):
+        """Test get returns default when config not loaded."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+        manager = ConfigManager(config_dir=config_dir, force_new=True)
+        # Don't call load()
+        value = manager.get("any_key", "default")
         assert value == "default"
 
     def test_get_nested_key_with_dot_notation(self, loaded_manager):
@@ -425,6 +460,30 @@ class TestConfigReload:
 
         assert manager.get("db_host") == "updated_host"
         assert manager.get("api_port") == 9000
+
+    def test_reload_with_plugin_failure_warning(self, tmp_path):
+        """Test reload logs warning when plugin config reload fails."""
+        config_dir = tmp_path / "config"
+        config_dir.mkdir()
+
+        # Create core config
+        core_file = config_dir / "core.yaml"
+        with open(core_file, "w") as f:
+            yaml.dump({"app_name": "Test"}, f)
+
+        manager = ConfigManager(config_dir=config_dir, force_new=True)
+        manager.load()
+        
+        # Load a plugin config without file (will use defaults)
+        manager.load_plugin_config("test-plugin")
+
+        # Reload should work (it will log warning but continue)
+        manager.reload()
+
+        # Plugin config should still exist (with defaults)
+        plugin_config = manager.get_plugin_config("test-plugin")
+        assert plugin_config is not None
+        assert plugin_config.plugin_id == "test-plugin"
 
 
 class TestThreadSafety:
