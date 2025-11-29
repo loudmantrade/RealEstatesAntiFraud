@@ -40,7 +40,7 @@ def setup_database(test_engine, TestingSessionLocal):
     # Clean all data before each test
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
-    
+
     # Override the dependency
     def override_get_db():
         try:
@@ -48,14 +48,14 @@ def setup_database(test_engine, TestingSessionLocal):
             yield db
         finally:
             db.close()
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     yield
-    
+
     # Clean up after test
     Base.metadata.drop_all(bind=test_engine)
-    
+
     # Remove override
     if get_db in app.dependency_overrides:
         del app.dependency_overrides[get_db]
