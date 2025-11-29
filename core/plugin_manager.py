@@ -130,6 +130,99 @@ class PluginManager:
         with self._lock:
             return self._plugins.get(plugin_id)
 
+    def get_by_type(
+        self, plugin_type: str, enabled_only: bool = True
+    ) -> List[PluginMetadata]:
+        """
+        Get all plugins of specific type.
+
+        Args:
+            plugin_type: Plugin type to filter by (e.g., 'detection', 'source')
+            enabled_only: If True, return only enabled plugins
+
+        Returns:
+            List of plugin metadata matching the type
+
+        Example:
+            >>> manager = PluginManager()
+            >>> detection_plugins = manager.get_by_type('detection', enabled_only=True)
+            >>> print(f"Active detection plugins: {len(detection_plugins)}")
+        """
+        with self._lock:
+            plugins = [p for p in self._plugins.values() if p.type == plugin_type]
+            if enabled_only:
+                plugins = [p for p in plugins if p.enabled]
+            return plugins
+
+    def get_instance(self, plugin_id: str) -> Optional[Any]:
+        """
+        Get loaded plugin instance.
+
+        Args:
+            plugin_id: ID of plugin to get instance for
+
+        Returns:
+            Plugin instance if loaded, None otherwise
+
+        Example:
+            >>> manager = PluginManager()
+            >>> instance = manager.get_instance('plugin-detection-price')
+            >>> if instance:
+            ...     result = instance.analyze(listing)
+        """
+        with self._lock:
+            return self._instances.get(plugin_id)
+
+    def get_detection_plugins(
+        self, enabled_only: bool = True, wrap_with_config: bool = True
+    ) -> List[Any]:
+        """
+        Get all loaded detection plugin instances.
+
+        Args:
+            enabled_only: If True, return only enabled plugins
+            wrap_with_config: If True, wraps plugins with DetectionPluginWrapper
+                             to apply configured weights
+
+        Returns:
+            List of detection plugin instances (wrapped or unwrapped)
+
+        Example:
+            >>> manager = PluginManager()
+            >>> plugins = manager.get_detection_plugins()
+            >>> orchestrator = RiskScoringOrchestrator(detection_plugins=plugins)
+        """
+        with self._lock:
+            detection_metadata = self.get_by_type(
+                "detection", enabled_only=enabled_only
+            )
+            instances = []
+
+            for metadata in detection_metadata:
+                instance = self._instances.get(metadata.id)
+                if not instance:
+                    logger.warning(
+                        f"Detection plugin {metadata.id} registered but not loaded"
+                    )
+                    continue
+
+                if wrap_with_config:
+                    # Wrap plugin with configured weight override
+                    from core.fraud.detection_plugin_wrapper import (
+                        DetectionPluginWrapper,
+                    )
+
+                    wrapped = DetectionPluginWrapper(
+                        plugin=instance,
+                        plugin_id=metadata.id,
+                        weight_override=metadata.weight,
+                    )
+                    instances.append(wrapped)
+                else:
+                    instances.append(instance)
+
+            return instances
+
     def enable(self, plugin_id: str) -> bool:
         with self._lock:
             plugin = self._plugins.get(plugin_id)
@@ -145,6 +238,59 @@ class PluginManager:
                 return False
             plugin.enabled = False
             return True
+
+    def set_weight(self, plugin_id: str, weight: float) -> bool:
+        """
+        Set custom weight for detection plugin.
+
+        Args:
+            plugin_id: ID of plugin to set weight for
+            weight: Weight value (0.0-1.0)
+
+        Returns:
+            True if weight set successfully, False if plugin not found
+
+        Raises:
+            ValueError: If weight is not in valid range
+
+        Example:
+            >>> manager = PluginManager()
+            >>> manager.set_weight('plugin-detection-price', 0.8)
+        """
+        if not 0.0 <= weight <= 1.0:
+            raise ValueError(f"Weight must be between 0.0 and 1.0, got {weight}")
+
+        with self._lock:
+            plugin = self._plugins.get(plugin_id)
+            if not plugin:
+                return False
+            plugin.weight = weight
+            logger.info(f"Set weight {weight} for plugin {plugin_id}")
+            return True
+
+    def get_weight(self, plugin_id: str) -> Optional[float]:
+        """
+        Get configured weight for detection plugin.
+
+        If weight not set in metadata, returns None (will use plugin's get_weight() method).
+
+        Args:
+            plugin_id: ID of plugin to get weight for
+
+        Returns:
+            Configured weight or None
+
+        Example:
+            >>> manager = PluginManager()
+            >>> weight = manager.get_weight('plugin-detection-price')
+            >>> if weight is None:
+            ...     # Will use plugin's default weight
+        """
+        with self._lock:
+            plugin = self._plugins.get(plugin_id)
+            if not plugin:
+                return None
+            return plugin.weight
 
     def remove(self, plugin_id: str) -> bool:
         with self._lock:
