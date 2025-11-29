@@ -24,6 +24,10 @@ class PluginMetadata(BaseModel):
         default_factory=dict,
         description="Plugin dependencies with version constraints (plugin_id -> constraint)",
     )
+    weight: Optional[float] = Field(
+        default=None,
+        description="Plugin weight for detection scoring (0.0-1.0). If None, uses plugin's get_weight() method",
+    )
 
 
 class PluginRegistrationRequest(BaseModel):
