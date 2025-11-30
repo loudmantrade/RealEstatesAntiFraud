@@ -3,6 +3,7 @@ Pytest configuration file.
 
 Automatically loads fixtures from tests/fixtures/ directory.
 """
+
 import sys
 from pathlib import Path
 

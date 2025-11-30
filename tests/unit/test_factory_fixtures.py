@@ -139,9 +139,7 @@ class TestSeededFixtures:
 class TestFixtureCombinations:
     """Test using multiple fixtures together."""
 
-    def test_combine_portugal_ukraine_data(
-        self, lisboa_apartments, kyiv_apartments
-    ):
+    def test_combine_portugal_ukraine_data(self, lisboa_apartments, kyiv_apartments):
         """Test combining Portugal and Ukraine fixtures."""
         all_listings = lisboa_apartments + kyiv_apartments
         assert len(all_listings) == 10
@@ -160,9 +158,7 @@ class TestFixtureCombinations:
         assert len(all_listings) == 6
         assert any(l.price.amount == 800_000 for l in all_listings)
 
-    def test_combine_builder_and_factory(
-        self, listing_builder, listing_factory
-    ):
+    def test_combine_builder_and_factory(self, listing_builder, listing_factory):
         """Test using builder and factory together."""
         built_listing = listing_builder.with_price(600_000).build()
         factory_listing = listing_factory.create_listing(
@@ -178,9 +174,7 @@ class TestFixtureUsagePatterns:
 
     def test_filter_by_city(self, test_listings):
         """Test filtering preset data."""
-        lisboa_listings = [
-            l for l in test_listings if l.location.city == "Lisboa"
-        ]
+        lisboa_listings = [l for l in test_listings if l.location.city == "Lisboa"]
         assert isinstance(lisboa_listings, list)
 
     def test_calculate_statistics(self, lisboa_apartments):
