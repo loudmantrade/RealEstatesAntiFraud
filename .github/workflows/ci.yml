@@ -114,7 +114,7 @@ jobs:
         REDIS_PORT: 6379
         REDIS_DB: 0
       run: |
-        pytest tests/integration/ -n auto --dist loadgroup --cov=core --cov-report=xml --cov-report=term-missing -v
+        pytest tests/integration/ --cov=core --cov-report=xml --cov-report=term-missing -v
 
     - name: Upload integration test coverage
       uses: codecov/codecov-action@v4

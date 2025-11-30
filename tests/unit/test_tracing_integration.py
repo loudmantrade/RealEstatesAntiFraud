@@ -11,9 +11,19 @@ Tests cover:
 
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 from core.api.main import app
+from core.utils.context import clear_trace_context
+
+
+@pytest.fixture(autouse=True)
+def clear_context():
+    """Clear trace context before each test to ensure isolation."""
+    clear_trace_context()
+    yield
+    clear_trace_context()
 
 
 class TestTraceMiddleware:
