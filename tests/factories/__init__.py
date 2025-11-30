@@ -5,6 +5,7 @@ This module provides factories for creating test instances of domain models
 using the Faker library with Russian locale support.
 """
 
+from tests.factories.event_factory import EventFactory
 from tests.factories.listing_factory import ListingFactory
 
-__all__ = ["ListingFactory"]
+__all__ = ["EventFactory", "ListingFactory"]
