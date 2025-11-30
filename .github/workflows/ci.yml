@@ -9,7 +9,7 @@ on:
 jobs:
   changes:
     name: Detect changed files
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       pull-requests: read
     outputs:
@@ -47,7 +47,7 @@ jobs:
 
   test:
     name: Unit tests on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.tests == 'true' || needs.changes.outputs.ci == 'true'
     strategy:
@@ -97,7 +97,7 @@ jobs:
 
   integration-test:
     name: Integration tests - ${{ matrix.group }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.tests == 'true' || needs.changes.outputs.ci == 'true'
     strategy:
@@ -105,30 +105,9 @@ jobs:
       matrix:
         group: ['database', 'messaging', 'plugins', 'api']
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: realestate_test
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # Note: PostgreSQL and Redis are already running on self-hosted runner
+    # via docker-compose (runner-postgres on port 5432, runner-redis on port 6379)
+    # No need for service containers - tests connect to localhost
 
     steps:
     - name: Checkout code
@@ -157,11 +136,17 @@ jobs:
 
     - name: Wait for PostgreSQL
       run: |
-        until pg_isready -h localhost -p 5432 -U test_user; do
-          echo "Waiting for PostgreSQL..."
+        echo "Checking PostgreSQL connection..."
+        for i in {1..30}; do
+          if python -c "import psycopg2; psycopg2.connect(host='localhost', port=5432, dbname='realestate_test', user='test_user', password='test_pass')" 2>/dev/null; then
+            echo "PostgreSQL is ready!"
+            exit 0
+          fi
+          echo "Waiting for PostgreSQL... ($i/30)"
           sleep 2
         done
-        echo "PostgreSQL is ready!"
+        echo "PostgreSQL connection timeout"
+        exit 1
 
     - name: Run ${{ matrix.group }} integration tests with coverage
       env:
@@ -188,7 +173,7 @@ jobs:
 
   lint:
     name: Lint and format checks
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.tests == 'true' || needs.changes.outputs.ci == 'true'
 
@@ -223,7 +208,7 @@ jobs:
 
   type-check:
     name: Type checking with mypy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.ci == 'true'
 
@@ -249,7 +234,7 @@ jobs:
 
   security:
     name: Security checks
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.ci == 'true'
 
@@ -282,7 +267,7 @@ jobs:
 
   docker-build:
     name: Docker image build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: changes
     if: needs.changes.outputs.core == 'true' || needs.changes.outputs.docker == 'true' || needs.changes.outputs.ci == 'true'
 
