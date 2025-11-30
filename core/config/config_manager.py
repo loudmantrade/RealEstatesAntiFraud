@@ -387,7 +387,7 @@ class ConfigManager:
                 continue
 
             # Remove prefix and convert to lowercase
-            config_key = env_key[len(prefix) + 1:].lower()
+            config_key = env_key[len(prefix) + 1 :].lower()
 
             # Handle nested keys (double underscore)
             if "__" in config_key:

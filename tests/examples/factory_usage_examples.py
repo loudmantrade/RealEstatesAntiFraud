@@ -29,7 +29,9 @@ def test_example_01_single_listing(listing_factory):
     assert listing.description is not None
     assert listing.price.amount > 0
     assert listing.location.city is not None
-    print(f"Created listing in {listing.location.city}: {listing.price.amount} {listing.price.currency}")
+    print(
+        f"Created listing in {listing.location.city}: {listing.price.amount} {listing.price.currency}"
+    )
 
 
 def test_example_02_batch_creation(listing_factory):
@@ -141,14 +143,20 @@ def test_example_11_unrealistic_price(listing_factory):
     for listing in fraud_listings:
         assert listing.fraud_score > 50  # High fraud score
         if listing.price.price_per_sqm:
-            print(f"Suspicious: {listing.price.price_per_sqm:.2f} {listing.price.currency}/sqm - Fraud score: {listing.fraud_score:.1f}")
+            print(
+                f"Suspicious: {listing.price.price_per_sqm:.2f} {listing.price.currency}/sqm - Fraud score: {listing.fraud_score:.1f}"
+            )
         else:
-            print(f"Suspicious price: {listing.price.amount:.2f} {listing.price.currency} - Fraud score: {listing.fraud_score:.1f}")
+            print(
+                f"Suspicious price: {listing.price.amount:.2f} {listing.price.currency} - Fraud score: {listing.fraud_score:.1f}"
+            )
 
 
 def test_example_12_no_photos(listing_factory):
     """Example 12: Create listings with suspicious characteristics."""
-    fraud_listings = listing_factory.create_fraud_candidates(count=3, fraud_type="missing_contact")
+    fraud_listings = listing_factory.create_fraud_candidates(
+        count=3, fraud_type="missing_contact"
+    )
 
     # All fraud candidates should have fraud_score set
     assert all(l.fraud_score is not None for l in fraud_listings)
@@ -158,7 +166,9 @@ def test_example_12_no_photos(listing_factory):
 
 def test_example_13_duplicates(listing_factory):
     """Example 13: Create listings with duplicate photos."""
-    fraud_listings = listing_factory.create_fraud_candidates(count=5, fraud_type="duplicate_photos")
+    fraud_listings = listing_factory.create_fraud_candidates(
+        count=5, fraud_type="duplicate_photos"
+    )
 
     # All should have high fraud scores indicating duplicates
     assert all(l.fraud_score > 50 for l in fraud_listings)
@@ -211,7 +221,7 @@ def test_example_16_price_analysis(listing_factory):
 
     # Calculate statistics from price_per_sqm when available
     prices_per_sqm = [l.price.price_per_sqm for l in listings if l.price.price_per_sqm]
-    
+
     if prices_per_sqm:
         avg = sum(prices_per_sqm) / len(prices_per_sqm)
         min_price = min(prices_per_sqm)
@@ -324,7 +334,10 @@ def test_example_23_different_seeds():
     listing2 = factory2.create_listing()
 
     # Different seeds = different data
-    assert listing1.listing_id != listing2.listing_id or listing1.price.amount != listing2.price.amount
+    assert (
+        listing1.listing_id != listing2.listing_id
+        or listing1.price.amount != listing2.price.amount
+    )
     print("Different seeds produce different data")
 
 
@@ -356,7 +369,7 @@ def sample_database(db_session, listing_factory):
     """Example 25: Populate database for testing."""
     # NOTE: This example requires database infrastructure that's not yet implemented
     pytest.skip("Database integration not yet available")
-    
+
     # Create diverse dataset
     listings = listing_factory.create_batch(50)
 
@@ -409,7 +422,9 @@ def test_example_26_clear_test_intent(listing_factory):
 
     # Luxury apartments should be expensive per sqm
     if luxury_apartment.price.price_per_sqm:
-        assert luxury_apartment.price.price_per_sqm > 8_000, "Luxury apartments should exceed 8K EUR/sqm"
+        assert (
+            luxury_apartment.price.price_per_sqm > 8_000
+        ), "Luxury apartments should exceed 8K EUR/sqm"
         print(f"Luxury apartment: {luxury_apartment.price.price_per_sqm:.2f} EUR/sqm")
     else:
         assert luxury_apartment.price.amount >= 2_000_000
@@ -423,7 +438,9 @@ def test_example_27_minimal_overrides(listing_factory):
     Good practice: Let factory handle defaults, override only test-specific values.
     """
     # Only specify the price we're testing
-    listing = listing_factory.create_listing(price={"amount": 750_000, "currency": "EUR"})
+    listing = listing_factory.create_listing(
+        price={"amount": 750_000, "currency": "EUR"}
+    )
 
     # Factory handles all other fields realistically
     assert listing.price.amount == 750_000
@@ -504,7 +521,9 @@ if __name__ == "__main__":
     # Example 1: Basic listing
     print("\n1. Basic Listing:")
     listing = factory.create_listing()
-    print(f"   Created: {listing.property_type} in {listing.location.city} - {listing.price.amount:,.0f} {listing.price.currency}")
+    print(
+        f"   Created: {listing.property_type} in {listing.location.city} - {listing.price.amount:,.0f} {listing.price.currency}"
+    )
 
     # Example 2: Batch creation
     print("\n2. Batch Creation:")
@@ -516,7 +535,7 @@ if __name__ == "__main__":
     lisboa = factory.create_lisboa_apartments(3)
     print(f"   Created {len(lisboa)} Lisboa apartments")
     for l in lisboa:
-        address = l.location.address.split(',')[0] if l.location.address else 'Unknown'
+        address = l.location.address.split(",")[0] if l.location.address else "Unknown"
         print(f"   - {address}: {l.price.amount:,.0f} EUR")
 
     # Example 4: Fraud candidates
@@ -526,5 +545,7 @@ if __name__ == "__main__":
         print(f"   - Fraud score: {l.fraud_score:.2f}")
 
     print("\n" + "=" * 70)
-    print("Run full test suite with: pytest tests/examples/factory_usage_examples.py -v")
+    print(
+        "Run full test suite with: pytest tests/examples/factory_usage_examples.py -v"
+    )
     print("=" * 70)
