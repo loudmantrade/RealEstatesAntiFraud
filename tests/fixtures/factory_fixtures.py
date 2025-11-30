@@ -24,7 +24,6 @@ from tests.builders.listing_builder import ListingBuilder
 from tests.factories.event_factory import EventFactory
 from tests.factories.listing_factory import ListingFactory
 
-
 # ============================================================================
 # Factory Fixtures
 # ============================================================================
