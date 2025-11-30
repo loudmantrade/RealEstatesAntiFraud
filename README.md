@@ -27,6 +27,8 @@
 
 Проект построен на микросервисной архитектуре с plugin-based extensibility. Подробное описание см. в [ARCHITECTURE.md](./ARCHITECTURE.md)
 
+> **CI Optimization Note**: This project uses intelligent changed files detection. Documentation-only changes skip test execution, reducing CI time from ~2m30s to ~20s (~85% faster).
+
 ### 🔌 Plugin System
 
 Система поддерживает пять типов плагинов:
