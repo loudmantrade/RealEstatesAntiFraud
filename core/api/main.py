@@ -1,6 +1,6 @@
 import time
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Awaitable, Callable
+from typing import AsyncGenerator, Awaitable, Callable
 
 from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware

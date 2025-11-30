@@ -15,13 +15,11 @@ from core.models.events import (
     EventMetadata,
     EventStatus,
     EventType,
-    NormalizedListingEvent,
     ProcessedListingEvent,
     ProcessingFailedEvent,
     RawListingEvent,
     Topics,
 )
-from core.models.udm import Listing
 from core.plugin_manager import PluginManager
 
 logger = logging.getLogger(__name__)

@@ -5,13 +5,12 @@ Simple in-memory queue implementation for development and testing.
 Not suitable for production use - messages are not persisted.
 """
 
-import json
 import logging
 import threading
 import time
 import uuid
 from collections import defaultdict, deque
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from core.interfaces.queue_plugin import QueuePlugin
 
