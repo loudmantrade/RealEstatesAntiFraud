@@ -65,6 +65,15 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
+    - name: Cache pytest results
+      uses: actions/cache@v4
+      with:
+        path: .pytest_cache
+        key: pytest-unit-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('tests/unit/**') }}
+        restore-keys: |
+          pytest-unit-${{ runner.os }}-py${{ matrix.python-version }}-
+          pytest-unit-${{ runner.os }}-
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -73,7 +82,7 @@ jobs:
 
     - name: Run unit tests with coverage
       run: |
-        pytest tests/unit/ -n auto --dist loadgroup --cov=core --cov-report=xml --cov-report=term-missing -v
+        pytest tests/unit/ -n auto --dist loadgroup --ff --cov=core --cov-report=xml --cov-report=term-missing -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -131,6 +140,15 @@ jobs:
         python-version: '3.13'
         cache: 'pip'
 
+    - name: Cache pytest results
+      uses: actions/cache@v4
+      with:
+        path: .pytest_cache
+        key: pytest-integration-${{ runner.os }}-${{ matrix.group }}-${{ hashFiles('tests/integration/**') }}
+        restore-keys: |
+          pytest-integration-${{ runner.os }}-${{ matrix.group }}-
+          pytest-integration-${{ runner.os }}-
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -156,7 +174,7 @@ jobs:
         REDIS_PORT: 6379
         REDIS_DB: 0
       run: |
-        pytest tests/integration/ -m ${{ matrix.group }} --cov=core --cov-report=xml --cov-report=term-missing -v
+        pytest tests/integration/ -m ${{ matrix.group }} --ff --cov=core --cov-report=xml --cov-report=term-missing -v
 
     - name: Upload ${{ matrix.group }} test coverage
       uses: codecov/codecov-action@v4
