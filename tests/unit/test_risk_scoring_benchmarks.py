@@ -14,6 +14,8 @@ from core.interfaces.detection_plugin import (
     RiskSignal,
 )
 
+pytestmark = [pytest.mark.unit, pytest.mark.benchmark, pytest.mark.slow]
+
 
 class BenchmarkPlugin(DetectionPlugin):
     """Plugin for benchmarking with configurable processing time."""

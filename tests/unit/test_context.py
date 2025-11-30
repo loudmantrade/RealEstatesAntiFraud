@@ -24,6 +24,8 @@ from core.utils.context import (
     set_trace_id,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestIDGeneration:
     """Tests for ID generation functions."""

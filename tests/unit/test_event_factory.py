@@ -18,6 +18,8 @@ from core.models.events import (
 )
 from tests.factories import EventFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestEventFactory:
     """Test basic EventFactory functionality."""

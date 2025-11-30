@@ -11,6 +11,12 @@ known_first_party = ["core", "tests"]
 markers = [
     "integration: marks tests as integration tests (require database)",
     "unit: marks tests as unit tests (no external dependencies)",
+    "database: marks tests that require PostgreSQL database",
+    "redis: marks tests that require Redis",
+    "slow: marks slow tests (execution time > 1 second)",
+    "api: marks API endpoint tests",
+    "messaging: marks queue and messaging tests",
+    "plugins: marks plugin system tests",
     "asyncio: marks tests as async tests",
     "benchmark: marks tests as performance benchmarks",
 ]

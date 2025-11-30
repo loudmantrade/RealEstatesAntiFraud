@@ -20,6 +20,8 @@ from core.dependency_graph import (
     VersionIncompatibilityError,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestPluginNode:
     """Test PluginNode dataclass."""

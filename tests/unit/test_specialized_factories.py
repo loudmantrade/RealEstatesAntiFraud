@@ -15,6 +15,8 @@ import pytest
 
 from tests.factories.listing_factory import ListingFactory
 
+pytestmark = pytest.mark.unit
+
 
 class TestLisboaApartments:
     """Tests for Lisboa apartment generation."""

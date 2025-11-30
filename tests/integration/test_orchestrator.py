@@ -26,6 +26,8 @@ from core.pipeline.orchestrator import ProcessingOrchestrator
 from core.plugin_manager import PluginManager
 from core.queue.in_memory_queue import InMemoryQueuePlugin
 
+pytestmark = [pytest.mark.integration, pytest.mark.messaging, pytest.mark.plugins]
+
 
 @pytest.fixture
 def queue():

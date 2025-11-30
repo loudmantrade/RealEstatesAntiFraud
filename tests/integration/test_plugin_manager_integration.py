@@ -7,6 +7,8 @@ import pytest
 from core.plugin_manager import manager
 from tests.factories.listing_factory import ListingFactory
 
+pytestmark = [pytest.mark.integration, pytest.mark.plugins]
+
 
 @pytest.fixture(autouse=True)
 def cleanup_manager():

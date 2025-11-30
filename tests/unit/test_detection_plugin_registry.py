@@ -9,6 +9,8 @@ from core.interfaces.detection_plugin import DetectionPlugin
 from core.models.plugin import PluginMetadata
 from core.plugin_manager import PluginManager
 
+pytestmark = [pytest.mark.unit, pytest.mark.plugins]
+
 
 class MockDetectionPlugin(DetectionPlugin):
     """Mock detection plugin for testing."""

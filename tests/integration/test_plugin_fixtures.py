@@ -6,6 +6,8 @@ from tests.fixtures.plugins.test_dependent_plugin import TestDependentPlugin
 from tests.fixtures.plugins.test_detection_plugin import TestDetectionPlugin
 from tests.fixtures.plugins.test_processing_plugin import TestProcessingPlugin
 
+pytestmark = [pytest.mark.integration, pytest.mark.plugins]
+
 
 class TestPluginFixtures:
     """Test suite for plugin test fixtures."""

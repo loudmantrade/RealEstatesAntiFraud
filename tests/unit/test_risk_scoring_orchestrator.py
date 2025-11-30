@@ -14,6 +14,8 @@ from core.interfaces.detection_plugin import (
     RiskSignal,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class MockDetectionPlugin(DetectionPlugin):
     """Mock detection plugin for testing."""

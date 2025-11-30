@@ -10,6 +10,8 @@ from core.api.main import app
 from core.database import Base, get_db
 from core.models.udm import Listing
 
+pytestmark = [pytest.mark.unit, pytest.mark.api]
+
 # Test database setup - use unique in-memory DB per test module
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 

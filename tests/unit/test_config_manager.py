@@ -21,6 +21,8 @@ from core.config import (
 )
 from core.config.config_manager import CoreConfig, PluginConfig
 
+pytestmark = pytest.mark.unit
+
 
 class TestCoreConfigSchema:
     """Test CoreConfig Pydantic schema validation."""

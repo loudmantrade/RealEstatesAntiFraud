@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from tests.factories.listing_factory import ListingFactory
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.database, pytest.mark.api]
 
 
 def test_full_crud_lifecycle(client: TestClient):

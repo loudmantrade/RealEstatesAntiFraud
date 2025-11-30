@@ -13,6 +13,8 @@ from core.validators.manifest import (
     validate_manifest_strict,
 )
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def valid_manifest_path():

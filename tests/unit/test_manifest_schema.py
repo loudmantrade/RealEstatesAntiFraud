@@ -9,6 +9,8 @@ import pytest
 import yaml
 from jsonschema import ValidationError, validate
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def schema():

@@ -10,6 +10,8 @@ import pytest
 
 from core.database.base import Base, get_db
 
+pytestmark = pytest.mark.unit
+
 
 class TestBase:
     """Test SQLAlchemy Base."""

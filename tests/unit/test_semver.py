@@ -16,6 +16,8 @@ from core.utils.semver import (
     check_compatibility,
 )
 
+pytestmark = pytest.mark.unit
+
 
 class TestVersionParsing:
     """Test version string parsing."""

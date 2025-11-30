@@ -4,11 +4,14 @@ Tests for database session fixtures.
 Validates that database fixtures work correctly and provide proper isolation.
 """
 
+import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from core.database.models import ListingModel
 from core.models.udm import Listing
+
+pytestmark = pytest.mark.unit
 
 
 def listing_to_model(listing: Listing) -> ListingModel:

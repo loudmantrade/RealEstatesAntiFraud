@@ -9,7 +9,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.database, pytest.mark.api, pytest.mark.slow]
 
 
 def test_concurrent_read_operations(client: TestClient):

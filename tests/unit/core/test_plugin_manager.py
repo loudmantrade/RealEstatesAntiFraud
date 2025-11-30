@@ -1,5 +1,9 @@
+import pytest
+
 from core.models.plugin import PluginAuthor, PluginMetadata
 from core.plugin_manager import PluginManager
+
+pytestmark = [pytest.mark.unit, pytest.mark.plugins]
 
 
 def test_register_and_enable_plugin():
