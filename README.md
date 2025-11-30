@@ -449,3 +449,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 ⭐ Если проект полезен, поставьте звезду!
+
+<!-- Test docs change for CI optimization -->
