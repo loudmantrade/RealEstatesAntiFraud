@@ -75,7 +75,9 @@ def test_create_duplicate_listing(client: TestClient):
     - Attempting to create the same listing again fails with 400
     """
     factory = ListingFactory()
-    listing = factory.create_listing(listing_id="test_duplicate_001", listing_type="rent")
+    listing = factory.create_listing(
+        listing_id="test_duplicate_001", listing_type="rent"
+    )
     listing_data = {"listing": listing.model_dump()}
 
     # First creation should succeed
