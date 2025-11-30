@@ -55,10 +55,7 @@ def _model_to_udm(model: ListingModel) -> Listing:
 
     media = None
     if model.media:
-        images = [
-            MediaImage(url=img["url"], caption=img.get("caption"))
-            for img in model.media.get("images", [])
-        ]
+        images = [MediaImage(url=img["url"], caption=img.get("caption")) for img in model.media.get("images", [])]
         media = Media(images=images)
 
     return Listing(
@@ -97,12 +94,7 @@ class ListingRepository:
         # Convert media to dict if present
         media_dict = None
         if listing.media:
-            media_dict = {
-                "images": [
-                    {"url": img.url, "caption": img.caption}
-                    for img in listing.media.images
-                ]
-            }
+            media_dict = {"images": [{"url": img.url, "caption": img.caption} for img in listing.media.images]}
 
         db_listing = ListingModel(
             listing_id=listing.listing_id,
@@ -115,16 +107,8 @@ class ListingRepository:
             location_country=listing.location.country,
             location_city=listing.location.city,
             location_address=listing.location.address,
-            location_lat=(
-                listing.location.coordinates.lat
-                if listing.location.coordinates
-                else None
-            ),
-            location_lng=(
-                listing.location.coordinates.lng
-                if listing.location.coordinates
-                else None
-            ),
+            location_lat=(listing.location.coordinates.lat if listing.location.coordinates else None),
+            location_lng=(listing.location.coordinates.lng if listing.location.coordinates else None),
             price_amount=listing.price.amount,
             price_currency=listing.price.currency,
             price_per_sqm=listing.price.price_per_sqm,
@@ -148,11 +132,7 @@ class ListingRepository:
         Returns:
             Listing UDM instance or None if not found
         """
-        model = (
-            self.db.query(ListingModel)
-            .filter(ListingModel.listing_id == listing_id)
-            .first()
-        )
+        model = self.db.query(ListingModel).filter(ListingModel.listing_id == listing_id).first()
         return _model_to_udm(model) if model else None
 
     def get_by_db_id(self, id: int) -> Optional[Listing]:
@@ -167,9 +147,7 @@ class ListingRepository:
         model = self.db.query(ListingModel).filter(ListingModel.id == id).first()
         return _model_to_udm(model) if model else None
 
-    def get_all(
-        self, skip: int = 0, limit: int = 100, city: Optional[str] = None
-    ) -> List[Listing]:
+    def get_all(self, skip: int = 0, limit: int = 100, city: Optional[str] = None) -> List[Listing]:
         """Get all listings with pagination and optional filtering.
 
         Args:
@@ -260,11 +238,7 @@ class ListingRepository:
         Returns:
             Updated Listing UDM instance or None if not found
         """
-        model = (
-            self.db.query(ListingModel)
-            .filter(ListingModel.listing_id == listing_id)
-            .first()
-        )
+        model = self.db.query(ListingModel).filter(ListingModel.listing_id == listing_id).first()
         if not model:
             return None
 
@@ -286,11 +260,7 @@ class ListingRepository:
         Returns:
             True if deleted, False if not found
         """
-        model = (
-            self.db.query(ListingModel)
-            .filter(ListingModel.listing_id == listing_id)
-            .first()
-        )
+        model = self.db.query(ListingModel).filter(ListingModel.listing_id == listing_id).first()
         if not model:
             return False
 

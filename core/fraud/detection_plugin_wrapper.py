@@ -53,10 +53,7 @@ class DetectionPluginWrapper(DetectionPlugin):
             Weight value between 0.0 and 1.0
         """
         if self._weight_override is not None:
-            logger.debug(
-                f"Using configured weight {self._weight_override} "
-                f"for plugin {self._plugin_id}"
-            )
+            logger.debug(f"Using configured weight {self._weight_override} " f"for plugin {self._plugin_id}")
             return self._weight_override
 
         # Use plugin's default weight

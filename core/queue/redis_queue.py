@@ -146,9 +146,7 @@ class RedisQueuePlugin(QueuePlugin):
             self._stats["errors"] += 1
             raise
 
-    def subscribe(
-        self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any
-    ) -> str:
+    def subscribe(self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any) -> str:
         """Subscribe to Redis Stream with consumer group"""
         if not self._client:
             raise ConnectionError("Not connected to Redis")
@@ -158,12 +156,8 @@ class RedisQueuePlugin(QueuePlugin):
         try:
             # Create consumer group if it doesn't exist
             try:
-                self._client.xgroup_create(
-                    topic, self.consumer_group, id="0", mkstream=True
-                )
-                logger.info(
-                    f"Created consumer group {self.consumer_group} for topic {topic}"
-                )
+                self._client.xgroup_create(topic, self.consumer_group, id="0", mkstream=True)
+                logger.info(f"Created consumer group {self.consumer_group} for topic {topic}")
             except RedisError as e:
                 # Group might already exist
                 if "BUSYGROUP" not in str(e):
@@ -279,9 +273,7 @@ class RedisQueuePlugin(QueuePlugin):
 
                 if pending:
                     # Move to DLQ and acknowledge original
-                    self._client.xadd(
-                        dlq_topic, {"message_id": message_id, "reason": "rejected"}
-                    )
+                    self._client.xadd(dlq_topic, {"message_id": message_id, "reason": "rejected"})
                     self._client.xack(topic, self.consumer_group, message_id)
 
             self._stats["messages_rejected"] += 1

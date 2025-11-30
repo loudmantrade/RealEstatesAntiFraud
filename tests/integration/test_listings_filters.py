@@ -136,9 +136,7 @@ def test_filter_by_price_range(client: TestClient, diverse_dataset):
     """
     price_min = 1000000.0
     price_max = 3000000.0
-    response = client.get(
-        f"/api/v1/listings/?price_min={price_min}&price_max={price_max}&page_size=50"
-    )
+    response = client.get(f"/api/v1/listings/?price_min={price_min}&price_max={price_max}&page_size=50")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
@@ -157,9 +155,7 @@ def test_filter_by_fraud_score_min(client: TestClient, diverse_dataset):
     - Only listings >= fraud_score_min are returned
     """
     fraud_score_min = 0.5
-    response = client.get(
-        f"/api/v1/listings/?fraud_score_min={fraud_score_min}&page_size=50"
-    )
+    response = client.get(f"/api/v1/listings/?fraud_score_min={fraud_score_min}&page_size=50")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
@@ -178,9 +174,7 @@ def test_filter_by_fraud_score_max(client: TestClient, diverse_dataset):
     - Only listings <= fraud_score_max are returned
     """
     fraud_score_max = 0.3
-    response = client.get(
-        f"/api/v1/listings/?fraud_score_max={fraud_score_max}&page_size=50"
-    )
+    response = client.get(f"/api/v1/listings/?fraud_score_max={fraud_score_max}&page_size=50")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
@@ -224,9 +218,7 @@ def test_filter_combination_city_and_price(client: TestClient, diverse_dataset):
     price_min = 1000000.0
     price_max = 3000000.0
 
-    response = client.get(
-        f"/api/v1/listings/?city={city}&price_min={price_min}&price_max={price_max}&page_size=50"
-    )
+    response = client.get(f"/api/v1/listings/?city={city}&price_min={price_min}&price_max={price_max}&page_size=50")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
@@ -280,9 +272,7 @@ def test_filter_no_results(client: TestClient, diverse_dataset):
 
     data = response.json()
     # Should return empty or only listings not matching our test data
-    test_items = [
-        item for item in data["items"] if item["listing_id"].startswith("test_filter_")
-    ]
+    test_items = [item for item in data["items"] if item["listing_id"].startswith("test_filter_")]
     assert len(test_items) == 0
 
 
@@ -321,16 +311,12 @@ def test_filter_price_min_greater_than_max(client: TestClient, diverse_dataset):
 
     Should return empty results (no error).
     """
-    response = client.get(
-        "/api/v1/listings/?price_min=5000000&price_max=1000000&page_size=50"
-    )
+    response = client.get("/api/v1/listings/?price_min=5000000&price_max=1000000&page_size=50")
     assert response.status_code == status.HTTP_200_OK
 
     data = response.json()
     # Should return no test items (logically impossible filter)
-    test_items = [
-        item for item in data["items"] if item["listing_id"].startswith("test_filter_")
-    ]
+    test_items = [item for item in data["items"] if item["listing_id"].startswith("test_filter_")]
     assert len(test_items) == 0
 
 
@@ -356,17 +342,13 @@ def test_filter_fraud_score_exact_boundaries(client: TestClient, diverse_dataset
     # Test inclusive lower boundary
     response = client.get("/api/v1/listings/?fraud_score_min=0.5&page_size=50")
     data = response.json()
-    boundary_items = [
-        item for item in data["items"] if item["listing_id"] == "test_boundary_001"
-    ]
+    boundary_items = [item for item in data["items"] if item["listing_id"] == "test_boundary_001"]
     assert len(boundary_items) == 1
 
     # Test inclusive upper boundary
     response = client.get("/api/v1/listings/?fraud_score_max=0.5&page_size=50")
     data = response.json()
-    boundary_items = [
-        item for item in data["items"] if item["listing_id"] == "test_boundary_001"
-    ]
+    boundary_items = [item for item in data["items"] if item["listing_id"] == "test_boundary_001"]
     assert len(boundary_items) == 1
 
     # Cleanup

@@ -51,12 +51,8 @@ def listing_to_model(listing: Listing) -> ListingModel:
         location_country=listing.location.country,
         location_city=listing.location.city,
         location_address=listing.location.address,
-        location_lat=(
-            listing.location.coordinates.lat if listing.location.coordinates else None
-        ),
-        location_lng=(
-            listing.location.coordinates.lng if listing.location.coordinates else None
-        ),
+        location_lat=(listing.location.coordinates.lat if listing.location.coordinates else None),
+        location_lng=(listing.location.coordinates.lng if listing.location.coordinates else None),
         price_amount=listing.price.amount,
         price_currency=listing.price.currency,
         price_per_sqm=listing.price.price_per_sqm,
@@ -124,9 +120,7 @@ class DatabaseSeeder:
         models = []
         for i in range(0, count, batch_size):
             batch_count = min(batch_size, count - i)
-            batch_listings = [
-                self.factory.create_listing(**kwargs) for _ in range(batch_count)
-            ]
+            batch_listings = [self.factory.create_listing(**kwargs) for _ in range(batch_count)]
             batch_models = [listing_to_model(listing) for listing in batch_listings]
 
             self.session.bulk_save_objects(batch_models)
@@ -247,10 +241,7 @@ class DatabaseSeeder:
 
         # Missing data - no description
         logger.info("Seeding missing data patterns (5)")
-        result["missing_data"] = [
-            listing_to_model(self.factory.create_listing(description=None))
-            for _ in range(5)
-        ]
+        result["missing_data"] = [listing_to_model(self.factory.create_listing(description=None)) for _ in range(5)]
         self.session.bulk_save_objects(result["missing_data"])
         self.created_ids.extend([m.listing_id for m in result["missing_data"]])
 

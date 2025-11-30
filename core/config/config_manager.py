@@ -46,9 +46,7 @@ class CoreConfig(BaseModel):
 
     app_name: str = Field(default="RealEstatesAntiFraud")
     app_version: str = Field(default="0.1.0")
-    environment: str = Field(
-        default="development", pattern="^(development|staging|production)$"
-    )
+    environment: str = Field(default="development", pattern="^(development|staging|production)$")
     debug: bool = Field(default=False)
 
     # API settings
@@ -85,9 +83,7 @@ class CoreConfig(BaseModel):
     plugins_hot_reload: bool = Field(default=False)
 
     # Logging settings
-    log_level: str = Field(
-        default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$"
-    )
+    log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
     log_format: str = Field(default="json", pattern="^(json|text)$")
     log_file: Optional[str] = Field(default=None)
 
@@ -129,9 +125,7 @@ class ConfigManager:
     _instance = None
     _lock = RLock()
 
-    def __new__(
-        cls, config_dir: Optional[Union[str, Path]] = None, force_new: bool = False
-    ):
+    def __new__(cls, config_dir: Optional[Union[str, Path]] = None, force_new: bool = False):
         """
         Singleton pattern implementation.
 
@@ -148,9 +142,7 @@ class ConfigManager:
                     cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(
-        self, config_dir: Optional[Union[str, Path]] = None, force_new: bool = False
-    ):
+    def __init__(self, config_dir: Optional[Union[str, Path]] = None, force_new: bool = False):
         """
         Initialize ConfigManager.
 
@@ -204,8 +196,7 @@ class ConfigManager:
                 self._initialized = True
 
                 logger.info(
-                    f"Core configuration loaded successfully "
-                    f"(environment: {self._core_config.environment})"
+                    f"Core configuration loaded successfully " f"(environment: {self._core_config.environment})"
                 )
 
             except yaml.YAMLError as e:
@@ -215,9 +206,7 @@ class ConfigManager:
             except Exception as e:
                 raise ConfigError(f"Failed to load config: {e}")
 
-    def load_plugin_config(
-        self, plugin_id: str, config_file: Optional[str] = None
-    ) -> PluginConfig:
+    def load_plugin_config(self, plugin_id: str, config_file: Optional[str] = None) -> PluginConfig:
         """
         Load plugin-specific configuration.
 
@@ -240,9 +229,7 @@ class ConfigManager:
                         with open(config_path, "r") as f:
                             raw_config = yaml.safe_load(f) or {}
                     except yaml.YAMLError as e:
-                        raise ConfigValidationError(
-                            f"Invalid YAML in {config_file}: {e}"
-                        )
+                        raise ConfigValidationError(f"Invalid YAML in {config_file}: {e}")
                 else:
                     raw_config = {}
             else:
@@ -250,9 +237,7 @@ class ConfigManager:
 
             # Apply environment overrides for this plugin
             env_prefix = f"PLUGIN_{plugin_id.upper().replace('-', '_')}"
-            config_with_env = self._apply_env_overrides(
-                raw_config.get("config", {}), env_prefix
-            )
+            config_with_env = self._apply_env_overrides(raw_config.get("config", {}), env_prefix)
 
             # Create plugin config
             try:
@@ -268,9 +253,7 @@ class ConfigManager:
                 return plugin_config
 
             except ValidationError as e:
-                raise ConfigValidationError(
-                    f"Plugin config validation failed for {plugin_id}: {e}"
-                )
+                raise ConfigValidationError(f"Plugin config validation failed for {plugin_id}: {e}")
 
     def get_core_config(self) -> CoreConfig:
         """
@@ -366,9 +349,7 @@ class ConfigManager:
             except Exception as e:
                 logger.warning(f"Failed to reload config for {plugin_id}: {e}")
 
-    def _apply_env_overrides(
-        self, config: Dict[str, Any], prefix: str
-    ) -> Dict[str, Any]:
+    def _apply_env_overrides(self, config: Dict[str, Any], prefix: str) -> Dict[str, Any]:
         """
         Apply environment variable overrides to configuration.
 

@@ -13,11 +13,7 @@ from jsonschema import ValidationError, validate
 @pytest.fixture
 def schema():
     """Load JSON Schema."""
-    schema_path = (
-        Path(__file__).parent.parent.parent
-        / "schemas"
-        / "plugin-manifest-v1.schema.json"
-    )
+    schema_path = Path(__file__).parent.parent.parent / "schemas" / "plugin-manifest-v1.schema.json"
     with open(schema_path) as f:
         return json.load(f)
 
@@ -69,17 +65,13 @@ class TestRequiredFields:
     def test_missing_api_version(self, schema, valid_minimal_manifest):
         """Missing api_version should fail validation."""
         del valid_minimal_manifest["api_version"]
-        with pytest.raises(
-            ValidationError, match="'api_version' is a required property"
-        ):
+        with pytest.raises(ValidationError, match="'api_version' is a required property"):
             validate(instance=valid_minimal_manifest, schema=schema)
 
     def test_missing_description(self, schema, valid_minimal_manifest):
         """Missing description should fail validation."""
         del valid_minimal_manifest["description"]
-        with pytest.raises(
-            ValidationError, match="'description' is a required property"
-        ):
+        with pytest.raises(ValidationError, match="'description' is a required property"):
             validate(instance=valid_minimal_manifest, schema=schema)
 
 
@@ -273,9 +265,7 @@ class TestOptionalFields:
 
     def test_resources_exceed_limits(self, schema, valid_minimal_manifest):
         """Resources exceeding limits should fail."""
-        valid_minimal_manifest["resources"] = {
-            "memory_mb": 20000
-        }  # Exceeds 16384 limit
+        valid_minimal_manifest["resources"] = {"memory_mb": 20000}  # Exceeds 16384 limit
         with pytest.raises(ValidationError):
             validate(instance=valid_minimal_manifest, schema=schema)
 
@@ -364,12 +354,7 @@ class TestFixtureFiles:
 
     def test_valid_fixture(self, schema):
         """Valid fixture file should pass."""
-        fixture_path = (
-            Path(__file__).parent.parent
-            / "fixtures"
-            / "plugins"
-            / "valid_source_plugin.yaml"
-        )
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "plugins" / "valid_source_plugin.yaml"
         with open(fixture_path) as f:
             manifest = yaml.safe_load(f)
         validate(instance=manifest, schema=schema)

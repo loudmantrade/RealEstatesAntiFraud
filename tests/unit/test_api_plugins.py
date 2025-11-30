@@ -300,9 +300,7 @@ def test_delete_plugin_not_idempotent(client, mock_plugin_manager):
 
 def test_reload_plugin_success(client, mock_plugin_manager):
     """Test successfully reloading a plugin."""
-    updated_metadata = make_plugin_metadata(
-        "test-plugin", name="Test Plugin", version="1.1.0", enabled=True
-    )
+    updated_metadata = make_plugin_metadata("test-plugin", name="Test Plugin", version="1.1.0", enabled=True)
     mock_plugin_manager.reload_plugin.return_value = updated_metadata
 
     response = client.post("/api/v1/plugins/test-plugin/reload")
@@ -316,9 +314,7 @@ def test_reload_plugin_success(client, mock_plugin_manager):
 
 def test_reload_plugin_not_found(client, mock_plugin_manager):
     """Test reloading a non-existent plugin returns 404."""
-    mock_plugin_manager.reload_plugin.side_effect = ValueError(
-        "Plugin not found or not loaded"
-    )
+    mock_plugin_manager.reload_plugin.side_effect = ValueError("Plugin not found or not loaded")
 
     response = client.post("/api/v1/plugins/nonexistent-plugin/reload")
     assert response.status_code == 404
@@ -328,9 +324,7 @@ def test_reload_plugin_not_found(client, mock_plugin_manager):
 
 def test_reload_plugin_runtime_error(client, mock_plugin_manager):
     """Test reload operation failure returns 500."""
-    mock_plugin_manager.reload_plugin.side_effect = RuntimeError(
-        "Failed to reload plugin module"
-    )
+    mock_plugin_manager.reload_plugin.side_effect = RuntimeError("Failed to reload plugin module")
 
     response = client.post("/api/v1/plugins/test-plugin/reload")
     assert response.status_code == 500

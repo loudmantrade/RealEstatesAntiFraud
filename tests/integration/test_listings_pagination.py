@@ -247,6 +247,4 @@ def test_pagination_metadata_calculation(client: TestClient, large_dataset):
     for page_size, expected_pages in test_cases:
         response = client.get(f"/api/v1/listings/?page=1&page_size={page_size}")
         data = response.json()
-        assert (
-            data["total_pages"] == expected_pages
-        ), f"Expected {expected_pages} pages for page_size={page_size}"
+        assert data["total_pages"] == expected_pages, f"Expected {expected_pages} pages for page_size={page_size}"

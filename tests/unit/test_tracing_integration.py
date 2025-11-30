@@ -63,9 +63,7 @@ class TestTraceMiddleware:
         trace_id = "trace123"
         request_id = "req456"
 
-        response = client.get(
-            "/health", headers={"x-trace-id": trace_id, "x-request-id": request_id}
-        )
+        response = client.get("/health", headers={"x-trace-id": trace_id, "x-request-id": request_id})
 
         assert response.status_code == 200
         assert response.headers["X-Trace-ID"] == trace_id

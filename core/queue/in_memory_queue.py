@@ -97,9 +97,7 @@ class InMemoryQueuePlugin(QueuePlugin):
         logger.debug(f"Published message {message_id} to topic {topic}")
         return message_id
 
-    def subscribe(
-        self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any
-    ) -> str:
+    def subscribe(self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any) -> str:
         """Subscribe to a topic with a callback"""
         if not self._connected:
             raise ConnectionError("Not connected to queue")
@@ -188,9 +186,7 @@ class InMemoryQueuePlugin(QueuePlugin):
         # Remove from subscribers
         with self._lock:
             for topic, subs in self._subscribers.items():
-                self._subscribers[topic] = [
-                    (sid, cb, kw) for sid, cb, kw in subs if sid != subscription_id
-                ]
+                self._subscribers[topic] = [(sid, cb, kw) for sid, cb, kw in subs if sid != subscription_id]
             self._stats["active_subscriptions"] -= 1
 
         logger.info(f"Unsubscribed {subscription_id}")

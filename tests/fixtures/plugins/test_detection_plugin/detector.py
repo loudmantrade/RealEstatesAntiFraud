@@ -28,9 +28,7 @@ class TestDetectionPlugin(DetectionPlugin):
                 - enable_duplicate_check: Boolean to enable duplicate detection (default: True)
         """
         self.config = config or {}
-        self.price_threshold_multiplier = self.config.get(
-            "price_threshold_multiplier", 2.0
-        )
+        self.price_threshold_multiplier = self.config.get("price_threshold_multiplier", 2.0)
         self.enable_duplicate_check = self.config.get("enable_duplicate_check", True)
 
         # Track seen listings for duplicate detection

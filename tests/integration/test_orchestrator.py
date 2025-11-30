@@ -48,9 +48,7 @@ def plugin_manager():
 @pytest.fixture
 def orchestrator(plugin_manager, queue):
     """Create an orchestrator instance"""
-    orch = ProcessingOrchestrator(
-        plugin_manager=plugin_manager, queue=queue, max_retries=3
-    )
+    orch = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue, max_retries=3)
     yield orch
     if orch.is_running():
         orch.stop()
@@ -224,9 +222,7 @@ class TestStatistics:
         assert stats["events_processed"] == 3
         assert stats["total_processing_time_ms"] > 0
         assert stats["avg_processing_time_ms"] > 0
-        assert stats["avg_processing_time_ms"] == (
-            stats["total_processing_time_ms"] / stats["events_processed"]
-        )
+        assert stats["avg_processing_time_ms"] == (stats["total_processing_time_ms"] / stats["events_processed"])
 
 
 class TestQueueIntegration:
@@ -240,9 +236,7 @@ class TestQueueIntegration:
         queue.create_topic(Topics.PROCESSED_LISTINGS)
         queue.create_topic(Topics.PROCESSING_FAILED)
 
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         try:
             orchestrator.start()
@@ -297,18 +291,14 @@ class TestRetryLogic:
     def test_retry_on_processing_error(self, plugin_manager, queue):
         """Test that failed events are retried"""
         # Create orchestrator with max_retries=2
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue, max_retries=2
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue, max_retries=2)
 
         try:
             orchestrator.start()
 
             # Monitor failed events
             failed_events = []
-            queue.subscribe(
-                Topics.PROCESSING_FAILED, lambda msg: failed_events.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSING_FAILED, lambda msg: failed_events.append(msg))
 
             # Create valid event structure that will fail during processing
             # (event is valid but will fail in pipeline execution)
@@ -323,9 +313,7 @@ class TestRetryLogic:
             )
 
             # Manually trigger failure to simulate processing error
-            orchestrator._handle_processing_failure(
-                event.to_dict(), "Simulated processing error"
-            )
+            orchestrator._handle_processing_failure(event.to_dict(), "Simulated processing error")
 
             # Wait for retry attempts
             time.sleep(0.5)
@@ -338,9 +326,7 @@ class TestRetryLogic:
 
     def test_retry_count_increments(self, plugin_manager, queue):
         """Test that retry_count increments on each retry"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue, max_retries=3
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue, max_retries=3)
 
         try:
             orchestrator.start()
@@ -371,17 +357,13 @@ class TestRetryLogic:
 
     def test_max_retries_sends_to_dlq(self, plugin_manager, queue):
         """Test that events exceeding max_retries go to DLQ"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue, max_retries=1
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue, max_retries=1)
 
         try:
             orchestrator.start()
 
             failed_events = []
-            queue.subscribe(
-                Topics.PROCESSING_FAILED, lambda msg: failed_events.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSING_FAILED, lambda msg: failed_events.append(msg))
 
             # Create event that already exceeded retries
             event = RawListingEvent(
@@ -418,17 +400,13 @@ class TestPluginExecution:
         """Test that plugins execute in correct priority order"""
         # This test requires actual processing plugins
         # For now, test the empty plugin scenario
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         try:
             orchestrator.start()
 
             processed = []
-            queue.subscribe(
-                Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg))
 
             event = RawListingEvent(
                 metadata=EventMetadata(
@@ -453,17 +431,13 @@ class TestPluginExecution:
 
     def test_plugin_failure_continues_pipeline(self, plugin_manager, queue):
         """Test that plugin failure doesn't stop entire pipeline"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         try:
             orchestrator.start()
 
             processed = []
-            queue.subscribe(
-                Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg))
 
             event = RawListingEvent(
                 metadata=EventMetadata(
@@ -487,9 +461,7 @@ class TestPluginExecution:
 
     def test_get_processing_plugins_filters_enabled(self, plugin_manager, queue):
         """Test that only enabled processing plugins are retrieved"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         # Get processing plugins (should be empty for default plugin manager)
         plugins = orchestrator._get_processing_plugins()
@@ -515,9 +487,7 @@ class TestErrorHandling:
 
         # Should handle gracefully and track failure
         stats = orchestrator.get_statistics()
-        assert (
-            stats["events_failed"] >= 0
-        )  # May or may not increment depending on parsing
+        assert stats["events_failed"] >= 0  # May or may not increment depending on parsing
 
     def test_missing_required_fields(self, orchestrator, queue):
         """Test handling of events with missing required fields"""
@@ -544,9 +514,7 @@ class TestErrorHandling:
 
     def test_exception_in_process_raw_listing(self, plugin_manager, queue):
         """Test exception handling in _process_raw_listing"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         try:
             orchestrator.start()
@@ -636,9 +604,7 @@ class TestPipelineExecution:
 
     def test_get_processing_plugins_returns_empty_list(self, plugin_manager, queue):
         """Test _get_processing_plugins returns empty list when no plugins"""
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=plugin_manager, queue=queue
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=plugin_manager, queue=queue)
 
         plugins = orchestrator._get_processing_plugins()
 
@@ -658,9 +624,7 @@ class TestPluginPipelineExecution:
     - Plugin statistics tracking
     """
 
-    async def test_plugin_modifies_listing_data(
-        self, orchestrator_with_real_plugins: ProcessingOrchestrator
-    ):
+    async def test_plugin_modifies_listing_data(self, orchestrator_with_real_plugins: ProcessingOrchestrator):
         """Test that real plugin modifies listing data correctly.
 
         Verifies that the test processing plugin:
@@ -690,15 +654,10 @@ class TestPluginPipelineExecution:
         result = orchestrator._execute_pipeline(event)
 
         # Verify plugin modified the data
-        assert (
-            result["listing_data"]["price_normalized"] == 1000000.0
-        )  # multiplier=1.0 default
+        assert result["listing_data"]["price_normalized"] == 1000000.0  # multiplier=1.0 default
         assert result["listing_data"]["processed"] is True
         assert "metadata" in result["listing_data"]
-        assert (
-            result["listing_data"]["metadata"]["processed_by"]
-            == "plugin-processing-test"
-        )
+        assert result["listing_data"]["metadata"]["processed_by"] == "plugin-processing-test"
 
         # Verify plugin was recorded
         assert len(result["plugins"]) == 1
@@ -739,9 +698,7 @@ class TestPluginPipelineExecution:
         plugin_names = result["plugins"]
         assert "test" in plugin_names[0].lower()
 
-    async def test_plugin_execution_timing_recorded(
-        self, orchestrator_with_real_plugins: ProcessingOrchestrator
-    ):
+    async def test_plugin_execution_timing_recorded(self, orchestrator_with_real_plugins: ProcessingOrchestrator):
         """Test that plugin execution timing is measured and recorded.
 
         Verifies the timing logic in the execution loop:
@@ -772,9 +729,7 @@ class TestPluginPipelineExecution:
         # Stages are plugin names from the execution loop
         assert isinstance(result["stages"][0], str)
 
-    async def test_plugin_statistics_accuracy(
-        self, orchestrator_with_real_plugins: ProcessingOrchestrator
-    ):
+    async def test_plugin_statistics_accuracy(self, orchestrator_with_real_plugins: ProcessingOrchestrator):
         """Test that plugin execution statistics are tracked accurately.
 
         Verifies the statistics tracking logic:
@@ -810,9 +765,7 @@ class TestPluginPipelineExecution:
         expected_plugins_executed = initial_plugins_executed + num_events
         assert updated_plugins_executed == expected_plugins_executed
 
-    async def test_plugin_loading_from_manager(
-        self, orchestrator_with_real_plugins: ProcessingOrchestrator
-    ):
+    async def test_plugin_loading_from_manager(self, orchestrator_with_real_plugins: ProcessingOrchestrator):
         """Test that plugins are loaded correctly from plugin manager.
 
         Verifies the _get_processing_plugins method:

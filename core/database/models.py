@@ -51,9 +51,7 @@ class ListingModel(Base):
 
     # Listing type and property type
     type = Column(String(50), nullable=False, index=True)  # sale | rent
-    property_type = Column(
-        String(50), nullable=False, index=True
-    )  # apartment | house | commercial | land
+    property_type = Column(String(50), nullable=False, index=True)  # apartment | house | commercial | land
 
     # Location
     location_country = Column(String(100), nullable=True)
@@ -79,9 +77,7 @@ class ListingModel(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Indexes for common queries
     __table_args__ = (

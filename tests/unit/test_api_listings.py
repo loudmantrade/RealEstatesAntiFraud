@@ -304,9 +304,7 @@ def test_combined_filters(client):
         client.post("/api/v1/listings/", json=listing_data)
 
     # Filter by city and price
-    response = client.get(
-        "/api/v1/listings/?city=CityA&price_min=100000&price_max=150000"
-    )
+    response = client.get("/api/v1/listings/?city=CityA&price_min=100000&price_max=150000")
     assert response.status_code == 200
     data = response.json()
     # CityA listings: 0, 2, 4, 6, 8

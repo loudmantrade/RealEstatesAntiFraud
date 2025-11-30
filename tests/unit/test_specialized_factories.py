@@ -346,10 +346,7 @@ class TestFraudCandidates:
         assert len(listings) == 2
         for listing in listings:
             assert listing.fraud_score >= 75
-            assert (
-                "URGENT" in listing.description
-                or "cheap" in listing.description.lower()
-            )
+            assert "URGENT" in listing.description or "cheap" in listing.description.lower()
             # Price should be suspiciously low (30% of normal)
             assert listing.price.amount < 200_000
 

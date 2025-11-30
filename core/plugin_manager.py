@@ -130,9 +130,7 @@ class PluginManager:
         with self._lock:
             return self._plugins.get(plugin_id)
 
-    def get_by_type(
-        self, plugin_type: str, enabled_only: bool = True
-    ) -> List[PluginMetadata]:
+    def get_by_type(self, plugin_type: str, enabled_only: bool = True) -> List[PluginMetadata]:
         """
         Get all plugins of specific type.
 
@@ -173,9 +171,7 @@ class PluginManager:
         with self._lock:
             return self._instances.get(plugin_id)
 
-    def get_detection_plugins(
-        self, enabled_only: bool = True, wrap_with_config: bool = True
-    ) -> List[Any]:
+    def get_detection_plugins(self, enabled_only: bool = True, wrap_with_config: bool = True) -> List[Any]:
         """
         Get all loaded detection plugin instances.
 
@@ -193,17 +189,13 @@ class PluginManager:
             >>> orchestrator = RiskScoringOrchestrator(detection_plugins=plugins)
         """
         with self._lock:
-            detection_metadata = self.get_by_type(
-                "detection", enabled_only=enabled_only
-            )
+            detection_metadata = self.get_by_type("detection", enabled_only=enabled_only)
             instances = []
 
             for metadata in detection_metadata:
                 instance = self._instances.get(metadata.id)
                 if not instance:
-                    logger.warning(
-                        f"Detection plugin {metadata.id} registered but not loaded"
-                    )
+                    logger.warning(f"Detection plugin {metadata.id} registered but not loaded")
                     continue
 
                 if wrap_with_config:
@@ -333,20 +325,13 @@ class PluginManager:
                 if isinstance(deps, list):
                     deps = {dep_id: "*" for dep_id in deps}
 
-                self._dependency_graph.add_plugin(
-                    plugin_id=plugin_id, version=metadata.version, dependencies=deps
-                )
-                logger.debug(
-                    f"Added {plugin_id} to graph with {len(deps)} dependencies"
-                )
+                self._dependency_graph.add_plugin(plugin_id=plugin_id, version=metadata.version, dependencies=deps)
+                logger.debug(f"Added {plugin_id} to graph with {len(deps)} dependencies")
 
             # Build and validate graph
             try:
                 self._dependency_graph.build()
-                logger.info(
-                    f"Dependency graph built successfully with "
-                    f"{len(self._dependency_graph)} plugins"
-                )
+                logger.info(f"Dependency graph built successfully with " f"{len(self._dependency_graph)} plugins")
             except MissingDependencyError as e:
                 logger.error(f"Missing dependencies: {e}")
                 raise
@@ -410,17 +395,12 @@ class PluginManager:
             # Check plugin has instance (was loaded)
             old_instance = self._instances.get(plugin_id)
             if not old_instance:
-                raise ValueError(
-                    f"Plugin '{plugin_id}' not loaded, cannot reload. "
-                    "Use load_plugins() first."
-                )
+                raise ValueError(f"Plugin '{plugin_id}' not loaded, cannot reload. " "Use load_plugins() first.")
 
             # Get stored module reference
             old_module = self._modules.get(plugin_id)
             if not old_module:
-                raise RuntimeError(
-                    f"Plugin '{plugin_id}' has no module reference. " "Cannot reload."
-                )
+                raise RuntimeError(f"Plugin '{plugin_id}' has no module reference. " "Cannot reload.")
 
             logger.info(f"Starting hot reload for plugin: {plugin_id}")
 
@@ -433,8 +413,7 @@ class PluginManager:
                         logger.info(f"Graceful shutdown completed for {plugin_id}")
                     except Exception as e:
                         logger.warning(
-                            f"Error during shutdown of {plugin_id}: {e}. "
-                            "Continuing with reload...",
+                            f"Error during shutdown of {plugin_id}: {e}. " "Continuing with reload...",
                             exc_info=True,
                         )
 
@@ -448,18 +427,14 @@ class PluginManager:
 
                     # Ensure module is in sys.modules for reload
                     if module_name not in sys.modules:
-                        logger.debug(
-                            f"Module {module_name} not in sys.modules, re-adding it"
-                        )
+                        logger.debug(f"Module {module_name} not in sys.modules, re-adding it")
                         sys.modules[module_name] = old_module
 
                     # Use standard reload
                     reloaded_module = importlib.reload(old_module)
                     logger.debug("Module reloaded successfully")
                 except Exception as e:
-                    raise RuntimeError(
-                        f"Failed to reload module for {plugin_id}: {e}"
-                    ) from e
+                    raise RuntimeError(f"Failed to reload module for {plugin_id}: {e}") from e
 
                 # Step 3: Find manifest to re-validate and get entrypoint
                 # For now, we need to find the manifest path
@@ -469,9 +444,7 @@ class PluginManager:
                 # Get updated class from reloaded module
                 plugin_class_name = type(old_instance).__name__
                 if not hasattr(reloaded_module, plugin_class_name):
-                    raise RuntimeError(
-                        f"Class '{plugin_class_name}' not found in reloaded module"
-                    )
+                    raise RuntimeError(f"Class '{plugin_class_name}' not found in reloaded module")
 
                 updated_plugin_class = getattr(reloaded_module, plugin_class_name)
 
@@ -480,9 +453,7 @@ class PluginManager:
                     new_instance = updated_plugin_class()
                     logger.info(f"New instance created for {plugin_id}")
                 except Exception as e:
-                    raise RuntimeError(
-                        f"Failed to instantiate new plugin instance: {e}"
-                    ) from e
+                    raise RuntimeError(f"Failed to instantiate new plugin instance: {e}") from e
 
                 # Step 5: Replace old instance with new one
                 self._instances[plugin_id] = new_instance
@@ -497,8 +468,7 @@ class PluginManager:
             except Exception as e:
                 # On any error, try to restore old instance if possible
                 logger.error(
-                    f"Hot reload failed for {plugin_id}: {e}. "
-                    "Old instance may still be functional.",
+                    f"Hot reload failed for {plugin_id}: {e}. " "Old instance may still be functional.",
                     exc_info=True,
                 )
                 raise RuntimeError(f"Hot reload failed for {plugin_id}: {e}") from e
@@ -538,10 +508,7 @@ class PluginManager:
             # Validate manifest
             is_valid, errors = validate_manifest(manifest_path)
             if not is_valid:
-                logger.error(
-                    f"Invalid manifest at {manifest_path}:\n"
-                    + "\n".join(f"  - {err}" for err in errors)
-                )
+                logger.error(f"Invalid manifest at {manifest_path}:\n" + "\n".join(f"  - {err}" for err in errors))
                 continue
 
             discovered.append(manifest_path)
@@ -589,9 +556,7 @@ class PluginManager:
         # Determine which manifests to load
         if manifest_paths is None:
             if plugins_dir is None:
-                raise ValueError(
-                    "Either manifest_paths or plugins_dir must be provided"
-                )
+                raise ValueError("Either manifest_paths or plugins_dir must be provided")
             manifest_paths = self.discover_plugins(plugins_dir)
 
         loaded: List[PluginMetadata] = []
@@ -607,9 +572,7 @@ class PluginManager:
                 logger.info(f"Registered plugin: {metadata.id} v{metadata.version}")
                 manifest_map[metadata.id] = manifest_path
 
-                logger.debug(
-                    f"Plugin {metadata.id} has dependencies: {list(metadata.dependencies.keys())}"
-                )
+                logger.debug(f"Plugin {metadata.id} has dependencies: {list(metadata.dependencies.keys())}")
 
                 # Phase 1 complete for this plugin - just registration
 
@@ -657,26 +620,21 @@ class PluginManager:
                 # Check if entrypoint is specified
                 entrypoint = manifest_data.get("entrypoint")
                 if not entrypoint:
-                    logger.warning(
-                        f"Plugin {metadata.id} has no entrypoint, skipping instantiation"
-                    )
+                    logger.warning(f"Plugin {metadata.id} has no entrypoint, skipping instantiation")
                     loaded.append(metadata)
                     continue
 
                 # Parse entrypoint object: {"module": "...", "class": "..."}
                 if not isinstance(entrypoint, dict):
                     raise ValueError(
-                        f"Invalid entrypoint format '{entrypoint}', "
-                        "expected object with 'module' and 'class' fields"
+                        f"Invalid entrypoint format '{entrypoint}', " "expected object with 'module' and 'class' fields"
                     )
 
                 module_path = entrypoint.get("module")
                 class_name = entrypoint.get("class")
 
                 if not module_path or not class_name:
-                    raise ValueError(
-                        "Entrypoint must have both 'module' and 'class' fields"
-                    )
+                    raise ValueError("Entrypoint must have both 'module' and 'class' fields")
 
                 # Add plugin directory to sys.path for imports
                 plugin_dir = manifest_path.parent
@@ -696,9 +654,7 @@ class PluginManager:
 
                     # Get plugin class
                     if not hasattr(module, class_name):
-                        raise AttributeError(
-                            f"Module '{module_path}' has no class '{class_name}'"
-                        )
+                        raise AttributeError(f"Module '{module_path}' has no class '{class_name}'")
 
                     plugin_class = getattr(module, class_name)
                     logger.debug(f"Found class: {class_name}")
@@ -725,15 +681,11 @@ class PluginManager:
                     self.remove(metadata.id)
 
             except Exception as e:
-                logger.error(
-                    f"Error instantiating plugin {plugin_id}: {e}", exc_info=True
-                )
+                logger.error(f"Error instantiating plugin {plugin_id}: {e}", exc_info=True)
                 failed.append((manifest_path, e))
                 self.remove(plugin_id)
 
-        logger.info(
-            f"Plugin loading complete: {len(loaded)} successful, {len(failed)} failed"
-        )
+        logger.info(f"Plugin loading complete: {len(loaded)} successful, {len(failed)} failed")
         return loaded, failed
 
 

@@ -135,9 +135,7 @@ class TestRiskScoringOrchestrator:
                 metadata={"expected": 2000000, "actual": 1000000},
             )
         ]
-        plugin = MockDetectionPlugin(
-            "price-detector", weight=1.0, score=0.8, signals=signals
-        )
+        plugin = MockDetectionPlugin("price-detector", weight=1.0, score=0.8, signals=signals)
         orchestrator.register_plugin(plugin)
 
         result = await orchestrator.run(sample_listing)
@@ -220,9 +218,7 @@ class TestRiskScoringOrchestrator:
         )
 
         # Orchestrator with 0.5 threshold
-        orchestrator = RiskScoringOrchestrator(
-            detection_plugins=[plugin], min_confidence_threshold=0.5
-        )
+        orchestrator = RiskScoringOrchestrator(detection_plugins=[plugin], min_confidence_threshold=0.5)
 
         result = await orchestrator.run(sample_listing)
 
@@ -278,21 +274,13 @@ class TestRiskScoringOrchestrator:
         results = [
             DetectionResult(
                 plugin_id="p1",
-                signals=[
-                    RiskSignal(
-                        signal_type="test", score=0.8, confidence=0.9, reason="test"
-                    )
-                ],
+                signals=[RiskSignal(signal_type="test", score=0.8, confidence=0.9, reason="test")],
                 overall_score=0.8,
                 processing_time_ms=10.0,
             ),
             DetectionResult(
                 plugin_id="p2",
-                signals=[
-                    RiskSignal(
-                        signal_type="test", score=0.4, confidence=0.7, reason="test"
-                    )
-                ],
+                signals=[RiskSignal(signal_type="test", score=0.4, confidence=0.7, reason="test")],
                 overall_score=0.4,
                 processing_time_ms=10.0,
             ),
@@ -327,12 +315,8 @@ class TestRiskScoringOrchestrator:
             weight=1.0,
             score=0.7,
             signals=[
-                RiskSignal(
-                    signal_type="test1", score=0.7, confidence=0.85, reason="test"
-                ),
-                RiskSignal(
-                    signal_type="test2", score=0.6, confidence=0.90, reason="test"
-                ),
+                RiskSignal(signal_type="test1", score=0.7, confidence=0.85, reason="test"),
+                RiskSignal(signal_type="test2", score=0.6, confidence=0.90, reason="test"),
             ],
         )
         orchestrator.register_plugin(plugin)
