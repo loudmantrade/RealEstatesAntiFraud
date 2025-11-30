@@ -7,10 +7,10 @@ request lifecycle.
 
 Usage:
     from core.utils.context import get_trace_id, get_request_id, set_trace_context
-    
+
     # Set context (typically in middleware)
     set_trace_context(trace_id="abc123", request_id="req456")
-    
+
     # Get IDs anywhere in the request chain
     trace_id = get_trace_id()
     request_id = get_request_id()

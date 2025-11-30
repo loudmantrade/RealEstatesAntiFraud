@@ -6,7 +6,7 @@ making them easy to parse and analyze in log aggregation systems.
 
 Usage:
     from core.utils.logging import get_logger
-    
+
     logger = get_logger(__name__)
     logger.info("User logged in", extra={"user_id": 123, "ip": "192.168.1.1"})
 """

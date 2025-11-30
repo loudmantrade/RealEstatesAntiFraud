@@ -6,7 +6,7 @@ Supports multiple backends: Redis, RabbitMQ, Kafka, AWS SQS, etc.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 
 class QueuePlugin(ABC):
