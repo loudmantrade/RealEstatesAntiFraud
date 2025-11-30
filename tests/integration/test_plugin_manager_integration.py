@@ -4,8 +4,8 @@ import shutil
 
 import pytest
 
-from core.models.udm import Listing
 from core.plugin_manager import manager
+from tests.factories.listing_factory import ListingFactory
 
 
 @pytest.fixture(autouse=True)
@@ -179,13 +179,8 @@ class TestPluginExecution:
         manager.enable(plugin_id)
         plugin = manager.get_instance(plugin_id)
 
-        listing = Listing(
-            listing_id="test-001",
-            title="Test Property",
-            price=1000000,
-            area=100.0,
-            city="Moscow",
-        )
+        factory = ListingFactory()
+        listing = factory.create_listing(listing_id="test-001")
 
         result = await plugin.process(listing)
 
@@ -202,13 +197,10 @@ class TestPluginExecution:
             manager.enable(plugin_id)
             plugin = manager.get_instance(plugin_id)
 
-            listing = Listing(
-                listing_id="test-002",
-                title="Cheap Property",
-                price=100,  # Suspiciously low
-                area=200.0,
-                city="Moscow",
-            )
+            factory = ListingFactory()
+            listing = factory.create_fraud_candidates(
+                count=1, fraud_type="unrealistic_price"
+            )[0]
 
             issues = await plugin.detect(listing)
 
