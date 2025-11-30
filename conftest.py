@@ -14,4 +14,5 @@ sys.path.insert(0, str(project_root))
 # Auto-import fixtures from fixtures directory
 pytest_plugins = [
     "tests.fixtures.factory_fixtures",
+    "tests.fixtures.database_fixtures",
 ]
