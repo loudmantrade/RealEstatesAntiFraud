@@ -14,7 +14,6 @@ from core.models.udm import Listing
 from tests.factories.event_factory import EventFactory
 from tests.factories.listing_factory import ListingFactory
 
-
 # =============================================================================
 # BASIC USAGE EXAMPLES
 # =============================================================================
