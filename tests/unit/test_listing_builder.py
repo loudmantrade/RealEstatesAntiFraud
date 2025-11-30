@@ -23,9 +23,9 @@ class TestListingBuilder:
         assert listing.source.plugin_id == "test_plugin"
         assert listing.type == "sale"
         assert listing.property_type == "apartment"
-        assert listing.location.city == "Москва"
-        assert listing.price.amount == 5_000_000.0
-        assert listing.price.currency == "RUB"
+        assert listing.location.city == "Lisboa"
+        assert listing.price.amount == 250_000.0
+        assert listing.price.currency == "EUR"
 
     def test_method_chaining(self):
         """Test fluent interface with method chaining."""
@@ -33,13 +33,13 @@ class TestListingBuilder:
         listing = (
             builder.with_price(3_000_000)
             .with_property_type("house")
-            .with_location("Санкт-Петербург")
+            .with_location("Porto")
             .build()
         )
 
         assert listing.price.amount == 3_000_000.0
         assert listing.property_type == "house"
-        assert listing.location.city == "Санкт-Петербург"
+        assert listing.location.city == "Porto"
 
     def test_build_returns_new_instance(self):
         """Test that build() returns independent instances."""
@@ -57,33 +57,33 @@ class TestLocationConfiguration:
     def test_with_location_city_only(self):
         """Test setting location with city only."""
         builder = ListingBuilder()
-        listing = builder.with_location("Москва").build()
+        listing = builder.with_location("Lisboa").build()
 
-        assert listing.location.city == "Москва"
-        assert listing.location.coordinates.lat == 55.7558
-        assert listing.location.coordinates.lng == 37.6173
+        assert listing.location.city == "Lisboa"
+        assert listing.location.coordinates.lat == 38.7223
+        assert listing.location.coordinates.lng == -9.1393
 
     def test_with_location_full(self):
         """Test setting location with all parameters."""
         builder = ListingBuilder()
         listing = builder.with_location(
-            city="Москва",
-            address="ул. Арбат, 1",
-            lat=55.7500,
-            lng=37.6000,
+            city="Porto",
+            address="Rua de Santa Catarina, 1",
+            lat=41.1500,
+            lng=-8.6100,
         ).build()
 
-        assert listing.location.city == "Москва"
-        assert listing.location.address == "ул. Арбат, 1"
-        assert listing.location.coordinates.lat == 55.7500
-        assert listing.location.coordinates.lng == 37.6000
+        assert listing.location.city == "Porto"
+        assert listing.location.address == "Rua de Santa Catarina, 1"
+        assert listing.location.coordinates.lat == 41.1500
+        assert listing.location.coordinates.lng == -8.6100
 
     def test_with_location_default_coordinates(self):
         """Test default coordinates for major cities."""
         cities_coords = {
-            "Москва": (55.7558, 37.6173),
-            "Санкт-Петербург": (59.9311, 30.3609),
-            "Екатеринбург": (56.8389, 60.6057),
+            "Lisboa": (38.7223, -9.1393),
+            "Porto": (41.1579, -8.6291),
+            "Київ": (50.4501, 30.5234),
         }
 
         for city, (expected_lat, expected_lng) in cities_coords.items():
@@ -100,10 +100,10 @@ class TestPriceConfiguration:
     def test_with_price_basic(self):
         """Test setting price with amount only."""
         builder = ListingBuilder()
-        listing = builder.with_price(7_500_000).build()
+        listing = builder.with_price(300_000, currency="EUR").build()
 
-        assert listing.price.amount == 7_500_000.0
-        assert listing.price.currency == "RUB"
+        assert listing.price.amount == 300_000.0
+        assert listing.price.currency == "EUR"
         assert listing.price.price_per_sqm is None
 
     def test_with_price_custom_currency(self):
@@ -117,16 +117,16 @@ class TestPriceConfiguration:
     def test_with_price_and_area_calculates_per_sqm(self):
         """Test price_per_sqm calculation when area is set."""
         builder = ListingBuilder()
-        listing = builder.with_price(5_000_000).with_area(100.0).build()
+        listing = builder.with_price(250_000).with_area(100.0).build()
 
-        assert listing.price.price_per_sqm == 50_000.0
+        assert listing.price.price_per_sqm == 2_500.0
 
     def test_with_price_per_sqm_explicit(self):
         """Test setting price_per_sqm explicitly."""
         builder = ListingBuilder()
-        listing = builder.with_price(5_000_000, price_per_sqm=60_000.0).build()
+        listing = builder.with_price(250_000, price_per_sqm=2_500.0).build()
 
-        assert listing.price.price_per_sqm == 60_000.0
+        assert listing.price.price_per_sqm == 2_500.0
 
 
 class TestPropertyConfiguration:
@@ -253,7 +253,7 @@ class TestFraudPresets:
         builder = ListingBuilder()
         listing = builder.as_fraud_candidate("unrealistic_price").build()
 
-        assert listing.price.amount == 1_000_000.0
+        assert listing.price.amount == 50_000.0
         assert listing.fraud_score == 85.0
         assert "unrealistic_price" in listing.description
 
@@ -329,7 +329,7 @@ class TestEdgeCasePresets:
         builder = ListingBuilder()
         listing = builder.as_edge_case("huge_price").build()
 
-        assert listing.price.amount == 1_000_000_000.0
+        assert listing.price.amount == 100_000_000.0
         assert listing.fraud_score == 80.0
 
     def test_as_edge_case_negative_area(self):
@@ -338,7 +338,7 @@ class TestEdgeCasePresets:
         listing = builder.as_edge_case("negative_area").build()
 
         # Note: This creates invalid data for testing validation
-        assert listing.price.amount == 5_000_000.0
+        assert listing.price.amount == 250_000.0
 
     def test_as_edge_case_invalid_type(self):
         """Test invalid edge case type raises error."""
@@ -394,8 +394,10 @@ class TestComplexScenarios:
         listing = (
             builder.with_listing_id("complete-listing-001")
             .with_source("cian_plugin", "cian.ru")
-            .with_location("Москва", address="ул. Арбат, 1", lat=55.7500, lng=37.6000)
-            .with_price(8_000_000, currency="RUB")
+            .with_location(
+                "Lisboa", address="Rua Augusta, 100", lat=38.7100, lng=-9.1400
+            )
+            .with_price(350_000, currency="EUR")
             .with_property_type("apartment")
             .with_listing_type("sale")
             .with_area(95.0, rooms=3)
@@ -412,9 +414,9 @@ class TestComplexScenarios:
 
         assert listing.listing_id == "complete-listing-001"
         assert listing.source.plugin_id == "cian_plugin"
-        assert listing.location.city == "Москва"
-        assert listing.location.address == "ул. Арбат, 1"
-        assert listing.price.amount == 8_000_000.0
+        assert listing.location.city == "Lisboa"
+        assert listing.location.address == "Rua Augusta, 100"
+        assert listing.price.amount == 350_000.0
         assert listing.price.price_per_sqm is not None
         assert listing.property_type == "apartment"
         assert listing.type == "sale"
@@ -427,16 +429,16 @@ class TestComplexScenarios:
         """Test building fraud scenario with custom overrides."""
         builder = ListingBuilder()
         listing = (
-            builder.with_location("Москва")
+            builder.with_location("Lisboa")
             .with_property_type("apartment")
             .as_fraud_candidate("unrealistic_price")
-            .with_description("Срочно! Очень дешево!")
+            .with_description("Urgent! Very cheap!")
             .build()
         )
 
-        assert listing.price.amount == 1_000_000.0
+        assert listing.price.amount == 50_000.0
         assert listing.fraud_score == 85.0
-        assert "Срочно" in listing.description
+        assert "Urgent" in listing.description
 
     def test_reproducible_with_seed(self):
         """Test reproducible builds with seed."""
@@ -500,16 +502,16 @@ class TestBuilderReusability:
     def test_builder_state_persists(self):
         """Test builder state persists across builds."""
         builder = ListingBuilder()
-        builder.with_location("Санкт-Петербург")
+        builder.with_location("Київ")
         builder.with_property_type("house")
 
         listing1 = builder.build()
-        listing2 = builder.with_price(10_000_000).build()
+        listing2 = builder.with_price(150_000, currency="EUR").build()
 
         # Both should have the same location and property_type
-        assert listing1.location.city == "Санкт-Петербург"
-        assert listing2.location.city == "Санкт-Петербург"
+        assert listing1.location.city == "Київ"
+        assert listing2.location.city == "Київ"
         assert listing1.property_type == "house"
         assert listing2.property_type == "house"
         # But different prices
-        assert listing2.price.amount == 10_000_000.0
+        assert listing2.price.amount == 150_000.0

@@ -54,7 +54,7 @@ class ListingBuilder:
         Args:
             seed: Optional seed for reproducible test data
         """
-        self.faker = Faker("ru_RU")
+        self.faker = Faker("pt_PT")  # Portugal as primary market
         if seed is not None:
             Faker.seed(seed)
             self.faker.seed_instance(seed)
@@ -74,13 +74,13 @@ class ListingBuilder:
         self._type = "sale"
         self._property_type = "apartment"
         self._location = {
-            "city": "Москва",
+            "city": "Lisboa",
             "address": None,
-            "coordinates": {"lat": 55.7558, "lng": 37.6173},
+            "coordinates": {"lat": 38.7223, "lng": -9.1393},
         }
         self._price = {
-            "amount": 5_000_000.0,
-            "currency": "RUB",
+            "amount": 250_000.0,
+            "currency": "EUR",
             "price_per_sqm": None,
         }
         self._area = None
@@ -152,17 +152,24 @@ class ListingBuilder:
             >>> builder.with_location('Москва', address='ул. Арбат, 1',
             ...                       lat=55.7558, lng=37.6173)
         """
-        # Default coordinates for major cities
+        # Default coordinates for major cities in Portugal and Ukraine
         default_coords = {
-            "Москва": (55.7558, 37.6173),
-            "Санкт-Петербург": (59.9311, 30.3609),
-            "Екатеринбург": (56.8389, 60.6057),
-            "Новосибирск": (55.0084, 82.9357),
-            "Казань": (55.8304, 49.0661),
+            # Portugal
+            "Lisboa": (38.7223, -9.1393),
+            "Porto": (41.1579, -8.6291),
+            "Faro": (37.0194, -7.9322),
+            "Coimbra": (40.2033, -8.4103),
+            "Braga": (41.5454, -8.4265),
+            # Ukraine
+            "Київ": (50.4501, 30.5234),
+            "Львів": (49.8397, 24.0297),
+            "Одеса": (46.4825, 30.7233),
+            "Харків": (49.9935, 36.2304),
+            "Дніпро": (48.4647, 35.0462),
         }
 
         if lat is None or lng is None:
-            default_lat, default_lng = default_coords.get(city, (55.7558, 37.6173))
+            default_lat, default_lng = default_coords.get(city, (38.7223, -9.1393))
             lat = lat or default_lat
             lng = lng or default_lng
 
@@ -184,7 +191,7 @@ class ListingBuilder:
 
         Args:
             amount: Total price
-            currency: Currency code (default: RUB)
+            currency: Currency code (default: EUR)
             price_per_sqm: Price per square meter
 
         Returns:
@@ -353,7 +360,7 @@ class ListingBuilder:
         """
         if fraud_type == "unrealistic_price":
             # Set price 80% below market
-            self._price["amount"] = 1_000_000.0
+            self._price["amount"] = 50_000.0  # Unrealistically low for EUR market
             self._fraud_score = 85.0
             self.with_fraud_indicators(["unrealistic_price"])
 
@@ -437,7 +444,7 @@ class ListingBuilder:
             self._fraud_score = 95.0
 
         elif case_type == "huge_price":
-            self._price["amount"] = 1_000_000_000.0
+            self._price["amount"] = 100_000_000.0  # 100M EUR - unrealistically high
             self._fraud_score = 80.0
 
         elif case_type == "negative_area":
