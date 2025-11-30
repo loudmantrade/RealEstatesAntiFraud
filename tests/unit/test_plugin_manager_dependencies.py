@@ -14,6 +14,8 @@ import yaml
 
 from core.dependency_graph import CyclicDependencyError, MissingDependencyError
 from core.interfaces.source_plugin import SourcePlugin
+
+pytestmark = [pytest.mark.unit, pytest.mark.plugins]
 from core.plugin_manager import PluginManager
 
 

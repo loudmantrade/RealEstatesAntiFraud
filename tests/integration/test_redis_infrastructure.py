@@ -7,6 +7,8 @@ in both local and CI environments.
 import pytest
 import redis.asyncio as redis
 
+pytestmark = [pytest.mark.integration, pytest.mark.redis]
+
 
 @pytest.mark.asyncio
 class TestRedisInfrastructure:

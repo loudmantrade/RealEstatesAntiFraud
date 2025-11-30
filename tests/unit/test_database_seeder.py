@@ -9,6 +9,8 @@ import pytest
 from core.database.models import ListingModel
 from tests.seeders.database_seeder import DatabaseSeeder
 
+pytestmark = pytest.mark.unit
+
 
 class TestDatabaseSeederBasics:
     """Test basic DatabaseSeeder functionality."""

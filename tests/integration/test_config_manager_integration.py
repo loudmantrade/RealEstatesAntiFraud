@@ -20,6 +20,8 @@ from core.config import (
     ConfigValidationError,
 )
 
+pytestmark = [pytest.mark.integration]
+
 
 @pytest.fixture
 def temp_config_dir(tmp_path):

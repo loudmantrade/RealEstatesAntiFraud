@@ -17,6 +17,8 @@ from core.models.udm import (
     SourceInfo,
 )
 
+pytestmark = pytest.mark.unit
+
 # Use in-memory SQLite for tests
 TEST_DATABASE_URL = "sqlite:///:memory:"
 

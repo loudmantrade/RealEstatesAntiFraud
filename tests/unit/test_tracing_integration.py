@@ -14,6 +14,8 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
+pytestmark = pytest.mark.unit
+
 from core.api.main import app
 from core.utils.context import clear_trace_context
 

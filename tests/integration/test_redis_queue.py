@@ -16,6 +16,8 @@ import pytest
 
 from core.queue.redis_queue import RedisQueuePlugin
 
+pytestmark = [pytest.mark.integration, pytest.mark.redis, pytest.mark.messaging]
+
 
 @pytest.fixture
 def redis_queue(test_config):

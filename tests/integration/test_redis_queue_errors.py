@@ -19,6 +19,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from redis.exceptions import ConnectionError as RedisConnectionError
+
+pytestmark = [pytest.mark.integration, pytest.mark.redis, pytest.mark.messaging]
 from redis.exceptions import RedisError
 
 from core.queue.redis_queue import REDIS_AVAILABLE, RedisQueuePlugin

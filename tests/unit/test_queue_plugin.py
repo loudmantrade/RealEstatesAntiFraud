@@ -8,6 +8,8 @@ import pytest
 
 from core.queue import InMemoryQueuePlugin
 
+pytestmark = [pytest.mark.unit, pytest.mark.messaging]
+
 
 class TestInMemoryQueuePlugin:
     """Tests for InMemoryQueuePlugin"""

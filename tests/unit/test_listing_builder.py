@@ -9,6 +9,8 @@ import pytest
 from core.models.udm import Listing
 from tests.builders import ListingBuilder
 
+pytestmark = pytest.mark.unit
+
 
 class TestListingBuilder:
     """Test basic ListingBuilder functionality."""

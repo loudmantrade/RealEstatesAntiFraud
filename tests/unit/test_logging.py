@@ -17,6 +17,10 @@ from typing import Any, Dict
 
 import pytest
 
+pytestmark = pytest.mark.unit
+
+import pytest
+
 from core.utils.logging import (
     JSONFormatter,
     StructuredLogger,

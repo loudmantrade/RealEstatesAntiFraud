@@ -8,6 +8,8 @@ from fastapi.testclient import TestClient
 from core.api.main import app
 from core.models.plugin import PluginAuthor, PluginMetadata
 
+pytestmark = [pytest.mark.unit, pytest.mark.api, pytest.mark.plugins]
+
 
 # Use TestClient without database (plugins API doesn't need DB)
 @pytest.fixture

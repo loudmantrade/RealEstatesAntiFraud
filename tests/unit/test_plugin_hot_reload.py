@@ -16,6 +16,10 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+pytestmark = [pytest.mark.unit, pytest.mark.plugins]
+
+import pytest
+
 from core.models.plugin import PluginMetadata
 from core.plugin_manager import PluginManager
 

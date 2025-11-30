@@ -10,6 +10,8 @@ import pytest
 from core.plugin_manager import PluginManager
 from core.validators.manifest import ManifestValidationError
 
+pytestmark = [pytest.mark.unit, pytest.mark.plugins]
+
 
 @pytest.fixture
 def plugins_dir():
