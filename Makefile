@@ -170,7 +170,7 @@ test-coverage: ## Generate test coverage report
 # Code Quality
 lint: ## Run linters
 	@echo "${GREEN}Running linters...${RESET}"
-	flake8 core/ plugins/ --max-line-length=120
+	flake8 core/ plugins/ --max-line-length=120 --extend-ignore=E203
 	pylint core/ plugins/
 	mypy core/ plugins/
 
