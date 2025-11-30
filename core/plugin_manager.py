@@ -7,7 +7,11 @@ from pathlib import Path
 from threading import RLock
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.dependency_graph import CyclicDependencyError, DependencyGraph, MissingDependencyError
+from core.dependency_graph import (
+    CyclicDependencyError,
+    DependencyGraph,
+    MissingDependencyError,
+)
 from core.models.plugin import PluginMetadata
 from core.validators.manifest import ManifestValidationError, validate_manifest
 
@@ -196,7 +200,9 @@ class PluginManager:
 
                 if wrap_with_config:
                     # Wrap plugin with configured weight override
-                    from core.fraud.detection_plugin_wrapper import DetectionPluginWrapper
+                    from core.fraud.detection_plugin_wrapper import (
+                        DetectionPluginWrapper,
+                    )
 
                     wrapped = DetectionPluginWrapper(
                         plugin=instance,

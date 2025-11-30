@@ -8,7 +8,11 @@ from typing import Any, Dict, List
 import pytest
 
 from core.fraud.risk_scoring_orchestrator import RiskScoringOrchestrator
-from core.interfaces.detection_plugin import DetectionPlugin, DetectionResult, RiskSignal
+from core.interfaces.detection_plugin import (
+    DetectionPlugin,
+    DetectionResult,
+    RiskSignal,
+)
 
 
 class BenchmarkPlugin(DetectionPlugin):

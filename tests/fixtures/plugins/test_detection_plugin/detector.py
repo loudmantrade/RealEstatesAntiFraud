@@ -3,7 +3,11 @@
 import time
 from typing import Any, Dict
 
-from core.interfaces.detection_plugin import DetectionPlugin, DetectionResult, RiskSignal
+from core.interfaces.detection_plugin import (
+    DetectionPlugin,
+    DetectionResult,
+    RiskSignal,
+)
 
 
 class TestDetectionPlugin(DetectionPlugin):

@@ -6,7 +6,11 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from core.interfaces.detection_plugin import DetectionPlugin, DetectionResult, RiskSignal
+from core.interfaces.detection_plugin import (
+    DetectionPlugin,
+    DetectionResult,
+    RiskSignal,
+)
 
 logger = logging.getLogger(__name__)
 

@@ -15,7 +15,12 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 
-from core.utils.semver import InvalidConstraintError, InvalidVersionError, Version, VersionConstraint
+from core.utils.semver import (
+    InvalidConstraintError,
+    InvalidVersionError,
+    Version,
+    VersionConstraint,
+)
 
 logger = logging.getLogger(__name__)
 

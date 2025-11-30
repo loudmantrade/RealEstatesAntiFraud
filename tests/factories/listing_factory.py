@@ -10,7 +10,14 @@ from typing import Any, Dict, List, Optional
 
 from faker import Faker
 
-from core.models.udm import Coordinates, Listing, Location, Media, Price, SourceInfo
+from core.models.udm import (
+    Coordinates,
+    Listing,
+    Location,
+    Media,
+    Price,
+    SourceInfo,
+)
 
 
 class ListingFactory:

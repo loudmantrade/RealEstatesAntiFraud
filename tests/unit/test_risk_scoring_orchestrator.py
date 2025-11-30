@@ -4,8 +4,15 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from core.fraud.risk_scoring_orchestrator import FraudScore, RiskScoringOrchestrator
-from core.interfaces.detection_plugin import DetectionPlugin, DetectionResult, RiskSignal
+from core.fraud.risk_scoring_orchestrator import (
+    FraudScore,
+    RiskScoringOrchestrator,
+)
+from core.interfaces.detection_plugin import (
+    DetectionPlugin,
+    DetectionResult,
+    RiskSignal,
+)
 
 
 class MockDetectionPlugin(DetectionPlugin):

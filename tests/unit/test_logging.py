@@ -17,7 +17,12 @@ from typing import Any, Dict
 
 import pytest
 
-from core.utils.logging import JSONFormatter, StructuredLogger, configure_logging, get_logger
+from core.utils.logging import (
+    JSONFormatter,
+    StructuredLogger,
+    configure_logging,
+    get_logger,
+)
 
 
 class TestJSONFormatter:

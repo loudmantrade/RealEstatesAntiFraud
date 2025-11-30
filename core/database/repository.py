@@ -6,7 +6,15 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from core.database.models import ListingModel
-from core.models.udm import Coordinates, Listing, Location, Media, MediaImage, Price, SourceInfo
+from core.models.udm import (
+    Coordinates,
+    Listing,
+    Location,
+    Media,
+    MediaImage,
+    Price,
+    SourceInfo,
+)
 
 
 def _model_to_udm(model: ListingModel) -> Listing:

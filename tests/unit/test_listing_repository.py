@@ -7,7 +7,15 @@ from sqlalchemy.orm import sessionmaker
 from core.database.base import Base
 from core.database.models import ListingModel
 from core.database.repository import ListingRepository
-from core.models.udm import Coordinates, Listing, Location, Media, MediaImage, Price, SourceInfo
+from core.models.udm import (
+    Coordinates,
+    Listing,
+    Location,
+    Media,
+    MediaImage,
+    Price,
+    SourceInfo,
+)
 
 # Use in-memory SQLite for tests
 TEST_DATABASE_URL = "sqlite:///:memory:"

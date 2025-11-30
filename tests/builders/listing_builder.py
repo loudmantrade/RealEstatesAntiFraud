@@ -18,7 +18,15 @@ from typing import Dict, List, Optional
 
 from faker import Faker
 
-from core.models.udm import Coordinates, Listing, Location, Media, MediaImage, Price, SourceInfo
+from core.models.udm import (
+    Coordinates,
+    Listing,
+    Location,
+    Media,
+    MediaImage,
+    Price,
+    SourceInfo,
+)
 
 
 class ListingBuilder:

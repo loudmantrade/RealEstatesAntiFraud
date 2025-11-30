@@ -17,7 +17,14 @@ from typing import Any, Dict, List
 
 import pytest
 
-from core.models.events import EventMetadata, EventStatus, EventType, ProcessedListingEvent, RawListingEvent, Topics
+from core.models.events import (
+    EventMetadata,
+    EventStatus,
+    EventType,
+    ProcessedListingEvent,
+    RawListingEvent,
+    Topics,
+)
 from core.pipeline.orchestrator import ProcessingOrchestrator
 from core.plugin_manager import PluginManager
 from core.queue.in_memory_queue import InMemoryQueuePlugin

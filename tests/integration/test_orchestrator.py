@@ -14,7 +14,13 @@ from datetime import datetime, timezone
 import pytest
 
 from core.interfaces.processing_plugin import ProcessingPlugin
-from core.models.events import EventMetadata, EventStatus, EventType, RawListingEvent, Topics
+from core.models.events import (
+    EventMetadata,
+    EventStatus,
+    EventType,
+    RawListingEvent,
+    Topics,
+)
 from core.models.plugin import PluginMetadata
 from core.pipeline.orchestrator import ProcessingOrchestrator
 from core.plugin_manager import PluginManager
