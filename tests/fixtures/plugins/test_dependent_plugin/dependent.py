@@ -64,7 +64,9 @@ class TestDependentPlugin(ProcessingPlugin):
 
         processed["metadata"]["enriched_by"] = "plugin-dependent-test"
         processed["metadata"]["enrichment_version"] = "1.0.0"
-        processed["metadata"]["used_normalization"] = self.use_normalization and "price_normalized" in listing
+        processed["metadata"]["used_normalization"] = (
+            self.use_normalization and "price_normalized" in listing
+        )
 
         # Mark as enriched
         processed["enriched"] = True

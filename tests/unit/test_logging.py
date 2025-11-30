@@ -240,7 +240,9 @@ class TestStructuredLogger:
         """Test that kwargs are merged with context."""
         logger, string_io = logger_with_handler
 
-        logger.info("Message", context={"field1": "value1"}, field2="value2", field3=123)
+        logger.info(
+            "Message", context={"field1": "value1"}, field2="value2", field3=123
+        )
 
         output = string_io.getvalue()
         log_data = json.loads(output)

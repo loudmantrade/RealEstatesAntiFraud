@@ -63,7 +63,9 @@ class RiskScoringOrchestrator:
         """
         self.detection_plugins = detection_plugins or []
         self.min_confidence_threshold = min_confidence_threshold
-        logger.info(f"Initialized RiskScoringOrchestrator with {len(self.detection_plugins)} plugins")
+        logger.info(
+            f"Initialized RiskScoringOrchestrator with {len(self.detection_plugins)} plugins"
+        )
 
     def register_plugin(self, plugin: DetectionPlugin) -> None:
         """Register a detection plugin.
@@ -132,7 +134,9 @@ class RiskScoringOrchestrator:
 
             except Exception as e:
                 plugin_id = plugin.get_metadata().get("id", "unknown")
-                logger.error(f"Error running detection plugin {plugin_id}: {e}", exc_info=True)
+                logger.error(
+                    f"Error running detection plugin {plugin_id}: {e}", exc_info=True
+                )
                 return None
 
         # Execute all plugins concurrently
@@ -166,8 +170,13 @@ class RiskScoringOrchestrator:
         metadata = {
             "plugins_executed": len(plugin_results),
             "total_signals": len(all_signals),
-            "high_confidence_signals": sum(1 for s in all_signals if s.confidence > 0.8),
-            "plugin_scores": [{"plugin_id": r.plugin_id, "score": r.overall_score} for r in plugin_results],
+            "high_confidence_signals": sum(
+                1 for s in all_signals if s.confidence > 0.8
+            ),
+            "plugin_scores": [
+                {"plugin_id": r.plugin_id, "score": r.overall_score}
+                for r in plugin_results
+            ],
         }
 
         fraud_score = FraudScore(
@@ -189,7 +198,9 @@ class RiskScoringOrchestrator:
 
         return fraud_score
 
-    def _compute_weighted_score(self, plugin_results: List[DetectionResult]) -> tuple[float, float]:
+    def _compute_weighted_score(
+        self, plugin_results: List[DetectionResult]
+    ) -> tuple[float, float]:
         """Compute weighted average fraud score from plugin results.
 
         Args:
@@ -209,7 +220,11 @@ class RiskScoringOrchestrator:
         for result in plugin_results:
             # Find corresponding plugin to get weight
             plugin = next(
-                (p for p in self.detection_plugins if p.get_metadata().get("id") == result.plugin_id),
+                (
+                    p
+                    for p in self.detection_plugins
+                    if p.get_metadata().get("id") == result.plugin_id
+                ),
                 None,
             )
 
@@ -220,7 +235,9 @@ class RiskScoringOrchestrator:
 
                 # Calculate average confidence from signals
                 if result.signals:
-                    avg_confidence = sum(s.confidence for s in result.signals) / len(result.signals)
+                    avg_confidence = sum(s.confidence for s in result.signals) / len(
+                        result.signals
+                    )
                     confidences.append(avg_confidence)
                 else:
                     confidences.append(0.0)
@@ -236,10 +253,14 @@ class RiskScoringOrchestrator:
         normalized_weights = [w / total_weight for w in weights]
 
         # Compute weighted average score (0-1 scale)
-        weighted_score = sum(score * weight for score, weight in zip(scores, normalized_weights))
+        weighted_score = sum(
+            score * weight for score, weight in zip(scores, normalized_weights)
+        )
 
         # Compute weighted average confidence
-        weighted_confidence = sum(conf * weight for conf, weight in zip(confidences, normalized_weights))
+        weighted_confidence = sum(
+            conf * weight for conf, weight in zip(confidences, normalized_weights)
+        )
 
         # Convert to 0-100 scale
         overall_score = weighted_score * 100.0

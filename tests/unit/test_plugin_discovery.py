@@ -83,7 +83,9 @@ class TestDiscoverPlugins:
 
         # Should log errors for invalid manifests
         # Check that invalid manifests in fixtures/ are detected
-        invalid_logged = any("Invalid manifest" in record.message for record in caplog.records)
+        invalid_logged = any(
+            "Invalid manifest" in record.message for record in caplog.records
+        )
 
         # If we have invalid YAML files in fixtures, they should be logged
         # (we have invalid_*.yaml files in fixtures/plugins/)
@@ -108,7 +110,9 @@ class TestLoadPlugins:
         # Load only the test source plugin
         test_plugin_manifest = plugins_dir / "test_source_plugin" / "plugin.yaml"
 
-        loaded, failed = plugin_manager.load_plugins(manifest_paths=[test_plugin_manifest])
+        loaded, failed = plugin_manager.load_plugins(
+            manifest_paths=[test_plugin_manifest]
+        )
 
         assert len(loaded) == 1
         assert len(failed) == 0
@@ -131,7 +135,9 @@ class TestLoadPlugins:
         assert len(failed) == 0
 
         # Should log warning about missing entrypoint
-        assert any("no entrypoint" in record.message.lower() for record in caplog.records)
+        assert any(
+            "no entrypoint" in record.message.lower() for record in caplog.records
+        )
 
     def test_load_plugin_with_import_error(self, plugin_manager, plugins_dir):
         """Test loading plugin with non-existent module."""
@@ -232,7 +238,9 @@ class TestLoadPlugins:
 class TestHotDropIntegration:
     """Test hot-drop plugin loading (adding plugin after initialization)."""
 
-    def test_discover_new_plugin_after_init(self, plugin_manager, temp_plugins_dir, plugins_dir):
+    def test_discover_new_plugin_after_init(
+        self, plugin_manager, temp_plugins_dir, plugins_dir
+    ):
         """Test discovering new plugin added after initialization."""
         # Initial discovery - should be empty
         manifests = plugin_manager.discover_plugins(temp_plugins_dir)
@@ -248,7 +256,9 @@ class TestHotDropIntegration:
         assert len(manifests) == 1
         assert manifests[0] == dest_plugin / "plugin.yaml"
 
-    def test_load_new_plugin_hot_drop(self, plugin_manager, temp_plugins_dir, plugins_dir):
+    def test_load_new_plugin_hot_drop(
+        self, plugin_manager, temp_plugins_dir, plugins_dir
+    ):
         """Test loading new plugin added after initialization."""
         # Load from empty directory
         loaded, _ = plugin_manager.load_plugins(plugins_dir=temp_plugins_dir)

@@ -198,7 +198,9 @@ class TestPluginExecution:
             plugin = manager.get_instance(plugin_id)
 
             factory = ListingFactory()
-            listing = factory.create_fraud_candidates(count=1, fraud_type="unrealistic_price")[0]
+            listing = factory.create_fraud_candidates(
+                count=1, fraud_type="unrealistic_price"
+            )[0]
 
             issues = await plugin.detect(listing)
 

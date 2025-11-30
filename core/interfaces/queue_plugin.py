@@ -55,7 +55,9 @@ class QueuePlugin(ABC):
         pass
 
     @abstractmethod
-    def subscribe(self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any) -> str:
+    def subscribe(
+        self, topic: str, callback: Callable[[Dict[str, Any]], None], **kwargs: Any
+    ) -> str:
         """
         Subscribe to a topic/queue and process messages.
 

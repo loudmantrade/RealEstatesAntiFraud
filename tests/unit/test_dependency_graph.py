@@ -502,7 +502,9 @@ class TestVersionCompatibility:
         graph = DependencyGraph()
         graph.add_plugin("plugin-a", "1.5.0", {})
         graph.add_plugin("plugin-b", "2.1.0", {})
-        graph.add_plugin("plugin-c", "1.0.0", {"plugin-a": "^1.0.0", "plugin-b": "~2.1.0"})
+        graph.add_plugin(
+            "plugin-c", "1.0.0", {"plugin-a": "^1.0.0", "plugin-b": "~2.1.0"}
+        )
 
         # Should not raise
         graph.validate_dependencies()

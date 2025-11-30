@@ -40,7 +40,9 @@ class TestPluginFixtures:
         listing = {"id": "123", "price": 1000000}
         result = plugin.process(listing)
 
-        assert "metadata" not in result or "processed_by" not in result.get("metadata", {})
+        assert "metadata" not in result or "processed_by" not in result.get(
+            "metadata", {}
+        )
 
     @pytest.mark.asyncio
     async def test_detection_plugin_price_anomaly(self):
@@ -65,12 +67,16 @@ class TestPluginFixtures:
 
         # First occurrence - no duplicate signal
         result1 = await plugin.analyze(listing1)
-        duplicate_signals = [s for s in result1.signals if s.signal_type == "duplicate_listing"]
+        duplicate_signals = [
+            s for s in result1.signals if s.signal_type == "duplicate_listing"
+        ]
         assert len(duplicate_signals) == 0
 
         # Second occurrence - duplicate signal
         result2 = await plugin.analyze(listing2)
-        duplicate_signals = [s for s in result2.signals if s.signal_type == "duplicate_listing"]
+        duplicate_signals = [
+            s for s in result2.signals if s.signal_type == "duplicate_listing"
+        ]
         assert len(duplicate_signals) == 1
         assert result2.overall_score > 0.0
 

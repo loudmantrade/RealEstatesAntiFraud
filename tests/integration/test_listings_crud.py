@@ -75,7 +75,9 @@ def test_create_duplicate_listing(client: TestClient):
     - Attempting to create the same listing again fails with 400
     """
     factory = ListingFactory()
-    listing = factory.create_listing(listing_id="test_duplicate_001", listing_type="rent")
+    listing = factory.create_listing(
+        listing_id="test_duplicate_001", listing_type="rent"
+    )
     listing_data = {"listing": listing.model_dump()}
 
     # First creation should succeed
@@ -131,7 +133,9 @@ def test_create_multiple_listings(client: TestClient):
     # Verify all created listings appear in the list
     list_response = client.get("/api/v1/listings/?page_size=100")
     assert list_response.status_code == status.HTTP_200_OK
-    all_listing_ids = [listing["listing_id"] for listing in list_response.json()["items"]]
+    all_listing_ids = [
+        listing["listing_id"] for listing in list_response.json()["items"]
+    ]
 
     for listing_id in listing_ids:
         assert listing_id in all_listing_ids

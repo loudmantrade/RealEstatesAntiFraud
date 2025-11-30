@@ -54,7 +54,9 @@ class TestReloadPlugin:
         with pytest.raises(ValueError, match="not loaded"):
             plugin_manager.reload_plugin(sample_plugin_metadata.id)
 
-    def test_reload_plugin_no_module_reference(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_no_module_reference(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test reload when module reference is missing."""
         # Register and fake an instance without module
         plugin_manager.register(sample_plugin_metadata)
@@ -87,7 +89,9 @@ class TestReloadPlugin:
         # Verify shutdown was called
         mock_instance.shutdown.assert_called_once()
 
-    def test_reload_plugin_without_shutdown_method(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_without_shutdown_method(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test reload works even if plugin doesn't implement shutdown()."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -110,7 +114,9 @@ class TestReloadPlugin:
 
         assert result == sample_plugin_metadata
 
-    def test_reload_plugin_shutdown_error_continues(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_shutdown_error_continues(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test that errors in shutdown() don't prevent reload."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -131,7 +137,9 @@ class TestReloadPlugin:
 
         assert result == sample_plugin_metadata
 
-    def test_reload_plugin_module_reload_failure(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_module_reload_failure(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test reload fails when module reload raises error."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -145,7 +153,9 @@ class TestReloadPlugin:
             with pytest.raises(RuntimeError, match="Failed to reload module"):
                 plugin_manager.reload_plugin(sample_plugin_metadata.id)
 
-    def test_reload_plugin_class_not_found_after_reload(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_class_not_found_after_reload(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test reload fails if class is removed in new version."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -160,7 +170,9 @@ class TestReloadPlugin:
             with pytest.raises(RuntimeError, match="Class .* not found"):
                 plugin_manager.reload_plugin(sample_plugin_metadata.id)
 
-    def test_reload_plugin_instantiation_failure(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_instantiation_failure(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test reload fails if new instance can't be created."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -178,7 +190,9 @@ class TestReloadPlugin:
                 with pytest.raises(RuntimeError, match="Failed to instantiate"):
                     plugin_manager.reload_plugin(sample_plugin_metadata.id)
 
-    def test_reload_plugin_replaces_instance(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_replaces_instance(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test that reload replaces old instance with new one."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -201,7 +215,9 @@ class TestReloadPlugin:
         assert plugin_manager._instances[sample_plugin_metadata.id] == new_instance
         assert plugin_manager._instances[sample_plugin_metadata.id] != old_instance
 
-    def test_reload_plugin_replaces_module_reference(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_replaces_module_reference(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test that reload updates module reference."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -225,7 +241,9 @@ class TestReloadPlugin:
         # Verify module reference was updated
         assert plugin_manager._modules[sample_plugin_metadata.id] == new_module
 
-    def test_reload_plugin_returns_metadata(self, plugin_manager, sample_plugin_metadata):
+    def test_reload_plugin_returns_metadata(
+        self, plugin_manager, sample_plugin_metadata
+    ):
         """Test that reload returns updated plugin metadata."""
         plugin_manager.register(sample_plugin_metadata)
 
@@ -343,7 +361,9 @@ class TestPlugin(SourcePlugin):
 
         # Modify plugin code
         plugin_module.write_text(
-            plugin_module.read_text().replace('self.value = "original"', 'self.value = "reloaded"')
+            plugin_module.read_text().replace(
+                'self.value = "original"', 'self.value = "reloaded"'
+            )
         )
 
         # Clear Python bytecode cache to force reload from source
@@ -394,7 +414,9 @@ class TestReloadLogging:
         messages = [r.message for r in caplog.records]
         assert any("Starting hot reload" in msg for msg in messages)
 
-    def test_reload_logs_completion(self, plugin_manager, sample_plugin_metadata, caplog):
+    def test_reload_logs_completion(
+        self, plugin_manager, sample_plugin_metadata, caplog
+    ):
         """Test that reload logs completion message."""
         import logging
 

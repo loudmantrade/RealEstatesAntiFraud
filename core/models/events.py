@@ -75,7 +75,9 @@ class RawListingEvent(BaseModel):
     metadata: EventMetadata
 
     # Raw data from source
-    raw_data: Dict[str, Any] = Field(..., description="Unparsed data from source (HTML, JSON, XML, etc.)")
+    raw_data: Dict[str, Any] = Field(
+        ..., description="Unparsed data from source (HTML, JSON, XML, etc.)"
+    )
 
     # Source information
     source_url: Optional[str] = None
@@ -110,7 +112,9 @@ class NormalizedListingEvent(BaseModel):
     metadata: EventMetadata
 
     # Normalized data in UDM format
-    listing_data: Dict[str, Any] = Field(..., description="Listing data in Unified Data Model format")
+    listing_data: Dict[str, Any] = Field(
+        ..., description="Listing data in Unified Data Model format"
+    )
 
     # Validation results
     validation_errors: List[str] = Field(default_factory=list)
@@ -140,7 +144,9 @@ class ProcessedListingEvent(BaseModel):
     metadata: EventMetadata
 
     # Final processed data
-    listing_data: Dict[str, Any] = Field(..., description="Fully processed listing in UDM format")
+    listing_data: Dict[str, Any] = Field(
+        ..., description="Fully processed listing in UDM format"
+    )
 
     # Fraud detection results
     fraud_score: float = Field(ge=0.0, le=100.0)
@@ -185,7 +191,9 @@ class ProcessingFailedEvent(BaseModel):
     failed_plugin: Optional[str] = None
 
     # Original event
-    original_event: Dict[str, Any] = Field(..., description="Original event that failed processing")
+    original_event: Dict[str, Any] = Field(
+        ..., description="Original event that failed processing"
+    )
 
     # Recovery information
     is_recoverable: bool = True

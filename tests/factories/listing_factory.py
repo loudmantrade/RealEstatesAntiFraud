@@ -283,7 +283,9 @@ class ListingFactory:
         """
         return [self.create_listing(**kwargs) for _ in range(count)]
 
-    def create_lisboa_apartments(self, count: int = 1, district: Optional[str] = None) -> List[Listing]:
+    def create_lisboa_apartments(
+        self, count: int = 1, district: Optional[str] = None
+    ) -> List[Listing]:
         """
         Create Lisboa apartment listings with realistic district prices.
 
@@ -301,14 +303,18 @@ class ListingFactory:
         listings = []
         for _ in range(count):
             # Choose district
-            selected_district = district or random.choice(list(self.LISBOA_DISTRICTS.keys()))
+            selected_district = district or random.choice(
+                list(self.LISBOA_DISTRICTS.keys())
+            )
             district_data = self.LISBOA_DISTRICTS[selected_district]
 
             # Generate area (typical Lisboa apartment: 40-120 sqm)
             area = random.uniform(40, 120)
 
             # Calculate price based on district
-            price_per_sqm = random.uniform(district_data["min_price"], district_data["max_price"])
+            price_per_sqm = random.uniform(
+                district_data["min_price"], district_data["max_price"]
+            )
             total_price = area * price_per_sqm
 
             # Generate Lisboa location with district coordinates
@@ -340,7 +346,9 @@ class ListingFactory:
 
         return listings
 
-    def create_porto_apartments(self, count: int = 1, district: Optional[str] = None) -> List[Listing]:
+    def create_porto_apartments(
+        self, count: int = 1, district: Optional[str] = None
+    ) -> List[Listing]:
         """
         Create Porto apartment listings with realistic district prices.
 
@@ -358,14 +366,18 @@ class ListingFactory:
         listings = []
         for _ in range(count):
             # Choose district
-            selected_district = district or random.choice(list(self.PORTO_DISTRICTS.keys()))
+            selected_district = district or random.choice(
+                list(self.PORTO_DISTRICTS.keys())
+            )
             district_data = self.PORTO_DISTRICTS[selected_district]
 
             # Generate area (typical Porto apartment: 35-110 sqm)
             area = random.uniform(35, 110)
 
             # Calculate price based on district
-            price_per_sqm = random.uniform(district_data["min_price"], district_data["max_price"])
+            price_per_sqm = random.uniform(
+                district_data["min_price"], district_data["max_price"]
+            )
             total_price = area * price_per_sqm
 
             # Generate Porto location with district coordinates
@@ -397,7 +409,9 @@ class ListingFactory:
 
         return listings
 
-    def create_kyiv_apartments(self, count: int = 1, district: Optional[str] = None) -> List[Listing]:
+    def create_kyiv_apartments(
+        self, count: int = 1, district: Optional[str] = None
+    ) -> List[Listing]:
         """
         Create Kyiv apartment listings with realistic district prices.
 
@@ -415,14 +429,18 @@ class ListingFactory:
         listings = []
         for _ in range(count):
             # Choose district
-            selected_district = district or random.choice(list(self.KYIV_DISTRICTS.keys()))
+            selected_district = district or random.choice(
+                list(self.KYIV_DISTRICTS.keys())
+            )
             district_data = self.KYIV_DISTRICTS[selected_district]
 
             # Generate area (typical Kyiv apartment: 40-130 sqm)
             area = random.uniform(40, 130)
 
             # Calculate price based on district
-            price_per_sqm = random.uniform(district_data["min_price"], district_data["max_price"])
+            price_per_sqm = random.uniform(
+                district_data["min_price"], district_data["max_price"]
+            )
             total_price = area * price_per_sqm
 
             # Generate Kyiv location with district coordinates
@@ -454,7 +472,9 @@ class ListingFactory:
 
         return listings
 
-    def create_lviv_apartments(self, count: int = 1, district: Optional[str] = None) -> List[Listing]:
+    def create_lviv_apartments(
+        self, count: int = 1, district: Optional[str] = None
+    ) -> List[Listing]:
         """
         Create Lviv apartment listings with realistic district prices.
 
@@ -472,14 +492,18 @@ class ListingFactory:
         listings = []
         for _ in range(count):
             # Choose district
-            selected_district = district or random.choice(list(self.LVIV_DISTRICTS.keys()))
+            selected_district = district or random.choice(
+                list(self.LVIV_DISTRICTS.keys())
+            )
             district_data = self.LVIV_DISTRICTS[selected_district]
 
             # Generate area (typical Lviv apartment: 35-100 sqm)
             area = random.uniform(35, 100)
 
             # Calculate price based on district
-            price_per_sqm = random.uniform(district_data["min_price"], district_data["max_price"])
+            price_per_sqm = random.uniform(
+                district_data["min_price"], district_data["max_price"]
+            )
             total_price = area * price_per_sqm
 
             # Generate Lviv location with district coordinates
@@ -578,7 +602,9 @@ class ListingFactory:
 
         return listings
 
-    def create_fraud_candidates(self, count: int = 3, fraud_type: Optional[str] = None) -> List[Listing]:
+    def create_fraud_candidates(
+        self, count: int = 3, fraud_type: Optional[str] = None
+    ) -> List[Listing]:
         """
         Generate listings with specific fraud indicators for testing fraud detection.
 
@@ -605,7 +631,10 @@ class ListingFactory:
         }
 
         if fraud_type and fraud_type not in fraud_scenarios:
-            raise ValueError(f"Invalid fraud_type: {fraud_type}. " f"Options: {list(fraud_scenarios.keys())}")
+            raise ValueError(
+                f"Invalid fraud_type: {fraud_type}. "
+                f"Options: {list(fraud_scenarios.keys())}"
+            )
 
         listings = []
         for _ in range(count):
@@ -713,7 +742,9 @@ class ListingFactory:
             "coordinates": {"lat": lat, "lng": lng},
         }
 
-    def _generate_price(self, property_type: str, listing_type: str, location: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_price(
+        self, property_type: str, listing_type: str, location: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Generate realistic price based on property type and location."""
         city = location.get("city", "Lisboa")
         country = location.get("country", "Portugal")
@@ -756,11 +787,15 @@ class ListingFactory:
             "amount": round(base_price, 2),
             "currency": "EUR",
             "price_per_sqm": (
-                round(base_price / random.uniform(50, 150), 2) if property_type in ["apartment", "house"] else None
+                round(base_price / random.uniform(50, 150), 2)
+                if property_type in ["apartment", "house"]
+                else None
             ),
         }
 
-    def _generate_description(self, property_type: str, location: Dict[str, Any]) -> str:
+    def _generate_description(
+        self, property_type: str, location: Dict[str, Any]
+    ) -> str:
         """Generate realistic property description for Portugal/Ukraine markets."""
         city = location.get("city", "Lisboa")
         country = location.get("country", "Portugal")
@@ -811,7 +846,9 @@ class ListingFactory:
 
     def _create_no_photos_listing(self) -> Listing:
         """Create listing without any photos."""
-        return self.create_listing(media={"images": []}, fraud_score=random.uniform(50, 70))
+        return self.create_listing(
+            media={"images": []}, fraud_score=random.uniform(50, 70)
+        )
 
     def _create_fake_location_listing(self) -> Listing:
         """Create listing with mismatched coordinates."""
@@ -824,12 +861,16 @@ class ListingFactory:
     def _create_duplicate_description_listing(self) -> Listing:
         """Create listing with generic/duplicated description."""
         generic_desc = "Excelente apartamento. Ótimo estado. Contacte-nos."
-        return self.create_listing(description=generic_desc, fraud_score=random.uniform(40, 60))
+        return self.create_listing(
+            description=generic_desc, fraud_score=random.uniform(40, 60)
+        )
 
     def _create_too_good_listing(self) -> Listing:
         """Create listing with 'too good to be true' description."""
         too_good_desc = "URGENT! Very cheap! Perfect condition! Must sell today!"
-        listing = self.create_listing(property_type="apartment", description=too_good_desc)
+        listing = self.create_listing(
+            property_type="apartment", description=too_good_desc
+        )
         # Make price suspiciously low
         listing.price.amount = listing.price.amount * 0.3
         listing.fraud_score = random.uniform(75, 95)
@@ -846,7 +887,11 @@ class ListingFactory:
             type=random.choice(self.LISTING_TYPES),
             property_type=random.choice(self.PROPERTY_TYPES),
             location=Location(**self._generate_location()),
-            price=Price(**self._generate_price("apartment", "sale", {"city": "Lisboa", "country": "Portugal"})),
+            price=Price(
+                **self._generate_price(
+                    "apartment", "sale", {"city": "Lisboa", "country": "Portugal"}
+                )
+            ),
             description=None,
             media=None,
             fraud_score=None,

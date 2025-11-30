@@ -45,7 +45,9 @@ def test_config() -> dict:
 
     # If individual components are provided, use them (CI mode)
     if db_host and db_port and db_name and db_user and db_password:
-        database_url = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        database_url = (
+            f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        )
     else:
         # Otherwise load from .env.test (local development)
         load_dotenv(".env.test", override=False)
@@ -191,7 +193,9 @@ async def redis_client(test_config: dict) -> AsyncGenerator[redis.Redis, None]:
         await client.ping()
     except Exception as e:
         await client.aclose()
-        raise RuntimeError(f"Failed to connect to Redis at {test_config['redis_url']}: {e}")
+        raise RuntimeError(
+            f"Failed to connect to Redis at {test_config['redis_url']}: {e}"
+        )
 
     yield client
 
@@ -335,7 +339,9 @@ async def orchestrator_with_real_plugins(
     manager = PluginManager()
 
     # Load processing plugin for testing
-    processing_plugin_manifest = plugin_fixtures_dir / "test_processing_plugin" / "plugin.yaml"
+    processing_plugin_manifest = (
+        plugin_fixtures_dir / "test_processing_plugin" / "plugin.yaml"
+    )
     loaded, _ = manager.load_plugins(manifest_paths=[processing_plugin_manifest])
 
     # Enable the loaded plugin (synchronous method)

@@ -219,7 +219,10 @@ class ListingBuilder:
         """
         valid_types = ["apartment", "house", "commercial", "land"]
         if property_type not in valid_types:
-            raise ValueError(f"Invalid property_type: {property_type}. " f"Must be one of {valid_types}")
+            raise ValueError(
+                f"Invalid property_type: {property_type}. "
+                f"Must be one of {valid_types}"
+            )
         self._property_type = property_type
         return self
 
@@ -235,7 +238,10 @@ class ListingBuilder:
         """
         valid_types = ["sale", "rent"]
         if listing_type not in valid_types:
-            raise ValueError(f"Invalid listing_type: {listing_type}. " f"Must be one of {valid_types}")
+            raise ValueError(
+                f"Invalid listing_type: {listing_type}. "
+                f"Must be one of {valid_types}"
+            )
         self._type = listing_type
         return self
 
@@ -333,7 +339,9 @@ class ListingBuilder:
             self._description = f"[Fraud indicators: {', '.join(indicators)}]"
         return self
 
-    def as_fraud_candidate(self, fraud_type: str = "unrealistic_price") -> "ListingBuilder":
+    def as_fraud_candidate(
+        self, fraud_type: str = "unrealistic_price"
+    ) -> "ListingBuilder":
         """
         Apply fraud scenario preset.
 
@@ -372,14 +380,18 @@ class ListingBuilder:
 
         elif fraud_type == "duplicate":
             self._description = (
-                "Отличная квартира в центре города. " "Отличная квартира в центре города. " "Срочно продам."
+                "Отличная квартира в центре города. "
+                "Отличная квартира в центре города. "
+                "Срочно продам."
             )
             self._fraud_score = 65.0
             self.with_fraud_indicators(["duplicate_description"])
 
         else:
             raise ValueError(
-                f"Unknown fraud_type: {fraud_type}. " "Use: unrealistic_price, no_photos, " "fake_location, duplicate"
+                f"Unknown fraud_type: {fraud_type}. "
+                "Use: unrealistic_price, no_photos, "
+                "fake_location, duplicate"
             )
 
         return self
@@ -440,7 +452,9 @@ class ListingBuilder:
 
         else:
             raise ValueError(
-                f"Unknown case_type: {case_type}. " "Use: minimal, maximal, zero_price, " "huge_price, negative_area"
+                f"Unknown case_type: {case_type}. "
+                "Use: minimal, maximal, zero_price, "
+                "huge_price, negative_area"
             )
 
         return self

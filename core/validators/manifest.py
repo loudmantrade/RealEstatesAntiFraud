@@ -19,7 +19,9 @@ class ManifestValidationError(Exception):
         self.errors = errors
 
 
-def validate_manifest(manifest_path: Path, schema_path: Optional[Path] = None) -> tuple[bool, list[str]]:
+def validate_manifest(
+    manifest_path: Path, schema_path: Optional[Path] = None
+) -> tuple[bool, list[str]]:
     """
     Validate plugin manifest against JSON Schema.
 
@@ -45,7 +47,11 @@ def validate_manifest(manifest_path: Path, schema_path: Optional[Path] = None) -
     try:
         if schema_path is None:
             # Default schema location relative to this file
-            schema_path = Path(__file__).parent.parent.parent / "schemas" / "plugin-manifest-v1.schema.json"
+            schema_path = (
+                Path(__file__).parent.parent.parent
+                / "schemas"
+                / "plugin-manifest-v1.schema.json"
+            )
 
         with open(schema_path) as f:
             schema = json.load(f)

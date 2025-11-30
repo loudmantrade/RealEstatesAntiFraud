@@ -85,7 +85,9 @@ class Version:
             InvalidVersionError: If version string is invalid
         """
         if not isinstance(version_str, str):
-            raise InvalidVersionError(f"Version must be string, got {type(version_str)}")
+            raise InvalidVersionError(
+                f"Version must be string, got {type(version_str)}"
+            )
 
         version_str = version_str.strip()
 
@@ -273,7 +275,9 @@ class VersionConstraint:
                         self._parse_single(pair)
                         i += 2
                     else:
-                        raise InvalidConstraintError(f"Operator without version: {clean_parts[i]}")
+                        raise InvalidConstraintError(
+                            f"Operator without version: {clean_parts[i]}"
+                        )
                 else:
                     # Just a version (exact match)
                     self._parse_single(clean_parts[i])
@@ -409,7 +413,9 @@ class VersionConstraint:
         return f"VersionConstraint('{self.original}')"
 
 
-def check_compatibility(version: str, constraint: str, context: Optional[str] = None) -> bool:
+def check_compatibility(
+    version: str, constraint: str, context: Optional[str] = None
+) -> bool:
     """
     Check if version satisfies constraint.
 
@@ -432,7 +438,9 @@ def check_compatibility(version: str, constraint: str, context: Optional[str] = 
 
         if not cons.satisfies(ver):
             ctx = f" ({context})" if context else ""
-            raise IncompatibleVersionError(f"Version {version} does not satisfy constraint {constraint}{ctx}")
+            raise IncompatibleVersionError(
+                f"Version {version} does not satisfy constraint {constraint}{ctx}"
+            )
 
         logger.debug(f"Version {version} satisfies {constraint}")
         return True

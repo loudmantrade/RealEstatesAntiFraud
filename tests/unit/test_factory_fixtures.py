@@ -148,7 +148,9 @@ class TestFixtureCombinations:
 
     def test_combine_factory_and_preset(self, listing_factory, porto_apartments):
         """Test using factory alongside preset data."""
-        custom_listing = listing_factory.create_listing(price={"amount": 800_000, "currency": "EUR"})
+        custom_listing = listing_factory.create_listing(
+            price={"amount": 800_000, "currency": "EUR"}
+        )
         all_listings = porto_apartments + [custom_listing]
 
         assert len(all_listings) == 6
@@ -157,7 +159,9 @@ class TestFixtureCombinations:
     def test_combine_builder_and_factory(self, listing_builder, listing_factory):
         """Test using builder and factory together."""
         built_listing = listing_builder.with_price(600_000).build()
-        factory_listing = listing_factory.create_listing(price={"amount": 700_000, "currency": "EUR"})
+        factory_listing = listing_factory.create_listing(
+            price={"amount": 700_000, "currency": "EUR"}
+        )
 
         assert built_listing.price.amount == 600_000
         assert factory_listing.price.amount == 700_000
@@ -168,7 +172,9 @@ class TestFixtureUsagePatterns:
 
     def test_filter_by_city(self, test_listings):
         """Test filtering preset data."""
-        lisboa_listings = [listing for listing in test_listings if listing.location.city == "Lisboa"]
+        lisboa_listings = [
+            listing for listing in test_listings if listing.location.city == "Lisboa"
+        ]
         assert isinstance(lisboa_listings, list)
 
     def test_calculate_statistics(self, lisboa_apartments):

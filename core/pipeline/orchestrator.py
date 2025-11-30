@@ -81,7 +81,9 @@ class ProcessingOrchestrator:
         self._running = True
 
         # Subscribe to raw listings topic
-        self._subscription_id = self.queue.subscribe(Topics.RAW_LISTINGS, self._process_raw_listing)
+        self._subscription_id = self.queue.subscribe(
+            Topics.RAW_LISTINGS, self._process_raw_listing
+        )
 
         logger.info("Processing orchestrator started")
 
@@ -111,7 +113,10 @@ class ProcessingOrchestrator:
             # Parse event
             event = RawListingEvent.from_dict(message)
 
-            logger.info(f"Processing event {event.metadata.event_id} " f"from {event.metadata.source_platform}")
+            logger.info(
+                f"Processing event {event.metadata.event_id} "
+                f"from {event.metadata.source_platform}"
+            )
 
             # Update status
             event.metadata.status = EventStatus.PROCESSING
@@ -149,7 +154,10 @@ class ProcessingOrchestrator:
             self._stats["events_processed"] += 1
             self._stats["total_processing_time_ms"] += processing_time
 
-            logger.info(f"Completed processing event {event.metadata.event_id} " f"in {processing_time:.2f}ms")
+            logger.info(
+                f"Completed processing event {event.metadata.event_id} "
+                f"in {processing_time:.2f}ms"
+            )
 
         except Exception as e:
             logger.error(f"Failed to process event: {e}", exc_info=True)
@@ -199,7 +207,9 @@ class ProcessingOrchestrator:
                 stages.append(plugin_name)
                 plugins_applied.append(plugin_name)
 
-                self._stats["plugins_executed"] = int(self._stats["plugins_executed"]) + 1
+                self._stats["plugins_executed"] = (
+                    int(self._stats["plugins_executed"]) + 1
+                )
 
                 logger.debug(f"Plugin {plugin_name} completed in {duration:.2f}ms")
 
@@ -274,7 +284,10 @@ class ProcessingOrchestrator:
 
                 self.queue.publish(Topics.PROCESSING_FAILED, failed_event.to_dict())
 
-                logger.error(f"Event {event.metadata.event_id} failed permanently " f"after {self.max_retries} retries")
+                logger.error(
+                    f"Event {event.metadata.event_id} failed permanently "
+                    f"after {self.max_retries} retries"
+                )
 
             self._stats["events_failed"] += 1
 
@@ -286,7 +299,9 @@ class ProcessingOrchestrator:
         stats = dict(self._stats)
 
         if stats["events_processed"] > 0:
-            stats["avg_processing_time_ms"] = stats["total_processing_time_ms"] / stats["events_processed"]
+            stats["avg_processing_time_ms"] = (
+                stats["total_processing_time_ms"] / stats["events_processed"]
+            )
         else:
             stats["avg_processing_time_ms"] = 0.0
 
@@ -300,7 +315,11 @@ class ProcessingOrchestrator:
         """Perform health check"""
         queue_health = self.queue.health_check()
 
-        status = "healthy" if self._running and queue_health["status"] == "healthy" else "unhealthy"
+        status = (
+            "healthy"
+            if self._running and queue_health["status"] == "healthy"
+            else "unhealthy"
+        )
 
         return {
             "status": status,

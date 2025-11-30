@@ -139,7 +139,10 @@ class DependencyGraph:
             try:
                 VersionConstraint(constraint_str)
             except InvalidConstraintError as e:
-                raise ValueError(f"Invalid constraint for dependency '{dep_id}' " f"in plugin '{plugin_id}': {e}")
+                raise ValueError(
+                    f"Invalid constraint for dependency '{dep_id}' "
+                    f"in plugin '{plugin_id}': {e}"
+                )
 
         node = PluginNode(plugin_id=plugin_id, version=version, dependencies=deps)
 
@@ -154,7 +157,9 @@ class DependencyGraph:
         self._load_order = None
         self._is_built = False
 
-        logger.debug(f"Added plugin '{plugin_id}' v{version} with {len(deps)} dependencies")
+        logger.debug(
+            f"Added plugin '{plugin_id}' v{version} with {len(deps)} dependencies"
+        )
 
     def remove_plugin(self, plugin_id: str) -> None:
         """
@@ -240,7 +245,11 @@ class DependencyGraph:
         """
         for plugin_id, node in self._nodes.items():
             # Check for missing dependencies
-            missing = [dep_id for dep_id in node.dependencies.keys() if dep_id not in self._nodes]
+            missing = [
+                dep_id
+                for dep_id in node.dependencies.keys()
+                if dep_id not in self._nodes
+            ]
             if missing:
                 raise MissingDependencyError(plugin_id, missing)
 
@@ -344,7 +353,9 @@ class DependencyGraph:
             return self._load_order.copy()
 
         # Kahn's algorithm for topological sort
-        in_degree: Dict[str, int] = {node: len(deps) for node, deps in self._adjacency.items()}
+        in_degree: Dict[str, int] = {
+            node: len(deps) for node, deps in self._adjacency.items()
+        }
 
         # Add nodes with no dependencies
         for node in self._nodes:
@@ -352,7 +363,9 @@ class DependencyGraph:
                 in_degree[node] = 0
 
         # Queue of nodes with no dependencies
-        queue: deque = deque([node for node, degree in in_degree.items() if degree == 0])
+        queue: deque = deque(
+            [node for node, degree in in_degree.items() if degree == 0]
+        )
 
         result: List[str] = []
 
@@ -417,4 +430,6 @@ class DependencyGraph:
 
     def __repr__(self) -> str:
         """String representation of graph."""
-        return f"DependencyGraph(plugins={len(self._nodes)}, " f"built={self._is_built})"
+        return (
+            f"DependencyGraph(plugins={len(self._nodes)}, " f"built={self._is_built})"
+        )

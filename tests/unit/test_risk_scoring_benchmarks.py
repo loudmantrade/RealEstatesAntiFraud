@@ -51,7 +51,9 @@ class BenchmarkPlugin(DetectionPlugin):
         return 1.0
 
 
-async def run_benchmark(num_plugins: int, plugin_delay_ms: float, num_iterations: int = 100) -> Dict[str, Any]:
+async def run_benchmark(
+    num_plugins: int, plugin_delay_ms: float, num_iterations: int = 100
+) -> Dict[str, Any]:
     """Run benchmark with specified configuration.
 
     Args:
@@ -63,7 +65,9 @@ async def run_benchmark(num_plugins: int, plugin_delay_ms: float, num_iterations
         Dictionary with benchmark results
     """
     # Create orchestrator with plugins
-    plugins: List[DetectionPlugin] = [BenchmarkPlugin(f"plugin-{i}", plugin_delay_ms) for i in range(num_plugins)]
+    plugins: List[DetectionPlugin] = [
+        BenchmarkPlugin(f"plugin-{i}", plugin_delay_ms) for i in range(num_plugins)
+    ]
     orchestrator = RiskScoringOrchestrator(detection_plugins=plugins)
 
     # Sample listing
@@ -105,7 +109,9 @@ class TestPerformanceBenchmarks:
 
     async def test_benchmark_single_plugin_fast(self) -> None:
         """Benchmark with single fast plugin."""
-        result = await run_benchmark(num_plugins=1, plugin_delay_ms=1.0, num_iterations=100)
+        result = await run_benchmark(
+            num_plugins=1, plugin_delay_ms=1.0, num_iterations=100
+        )
 
         print(f"\n=== Single Plugin (1ms delay) ===")
         print(f"Mean: {result['mean_ms']:.2f}ms")
@@ -119,7 +125,9 @@ class TestPerformanceBenchmarks:
 
     async def test_benchmark_multiple_plugins_concurrent(self) -> None:
         """Benchmark with multiple plugins running concurrently."""
-        result = await run_benchmark(num_plugins=5, plugin_delay_ms=10.0, num_iterations=50)
+        result = await run_benchmark(
+            num_plugins=5, plugin_delay_ms=10.0, num_iterations=50
+        )
 
         print(f"\n=== 5 Plugins Concurrent (10ms delay each) ===")
         print(f"Mean: {result['mean_ms']:.2f}ms")
@@ -129,11 +137,15 @@ class TestPerformanceBenchmarks:
 
         # With concurrent execution, should be ~10ms + overhead, not 50ms
         # Allow some variance for system scheduling
-        assert result["mean_ms"] < 25.0, f"Concurrent execution too slow: {result['mean_ms']:.2f}ms"
+        assert (
+            result["mean_ms"] < 25.0
+        ), f"Concurrent execution too slow: {result['mean_ms']:.2f}ms"
 
     async def test_benchmark_many_plugins(self) -> None:
         """Benchmark with many plugins to test scalability."""
-        result = await run_benchmark(num_plugins=20, plugin_delay_ms=5.0, num_iterations=30)
+        result = await run_benchmark(
+            num_plugins=20, plugin_delay_ms=5.0, num_iterations=30
+        )
 
         print(f"\n=== 20 Plugins Concurrent (5ms delay each) ===")
         print(f"Mean: {result['mean_ms']:.2f}ms")
@@ -170,7 +182,9 @@ async def test_compare_sequential_vs_concurrent() -> None:
     plugin_delay_ms = 10.0
 
     # Concurrent (actual implementation)
-    concurrent_result = await run_benchmark(num_plugins=num_plugins, plugin_delay_ms=plugin_delay_ms, num_iterations=20)
+    concurrent_result = await run_benchmark(
+        num_plugins=num_plugins, plugin_delay_ms=plugin_delay_ms, num_iterations=20
+    )
 
     # Calculate expected sequential time
     expected_sequential_ms = num_plugins * plugin_delay_ms
@@ -218,6 +232,8 @@ if __name__ == "__main__":
         print(f"{'Scenario':<30} {'Mean':<10} {'P95':<10} {'P99':<10}")
         print("-" * 60)
         for name, result in results:
-            print(f"{name:<30} {result['mean_ms']:>8.2f}ms {result['p95_ms']:>8.2f}ms {result['p99_ms']:>8.2f}ms")
+            print(
+                f"{name:<30} {result['mean_ms']:>8.2f}ms {result['p95_ms']:>8.2f}ms {result['p99_ms']:>8.2f}ms"
+            )
 
     asyncio.run(run_all_benchmarks())

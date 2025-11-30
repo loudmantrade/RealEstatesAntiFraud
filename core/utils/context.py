@@ -86,7 +86,9 @@ def set_request_id(request_id: str) -> None:
     _request_id.set(request_id)
 
 
-def set_trace_context(trace_id: Optional[str] = None, request_id: Optional[str] = None) -> tuple[str, str]:
+def set_trace_context(
+    trace_id: Optional[str] = None, request_id: Optional[str] = None
+) -> tuple[str, str]:
     """
     Set both trace and request IDs in context.
 

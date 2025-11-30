@@ -148,7 +148,9 @@ class TestPluginManagerDetectionIntegration:
         manager.register(sample_detection_metadata)
 
         # Store mock instance
-        mock_instance = MockDetectionPlugin("plugin-detection-price", default_weight=0.3)
+        mock_instance = MockDetectionPlugin(
+            "plugin-detection-price", default_weight=0.3
+        )
         manager._instances["plugin-detection-price"] = mock_instance
 
         # Get plugins with wrapping
@@ -192,7 +194,9 @@ class TestPluginManagerDetectionIntegration:
         weight = manager.get_weight("plugin-detection-price")
         assert weight is None  # Not configured yet
 
-    def test_enable_disable_affects_detection_list(self, manager, sample_detection_metadata):
+    def test_enable_disable_affects_detection_list(
+        self, manager, sample_detection_metadata
+    ):
         """Test that enable/disable affects detection plugin list."""
         manager.register(sample_detection_metadata)
         mock_instance = MockDetectionPlugin("plugin-detection-price")
@@ -240,14 +244,18 @@ class TestDetectionPluginWrapper:
 
     def test_wrapper_uses_override_weight(self, mock_plugin):
         """Test wrapper uses override weight when configured."""
-        wrapper = DetectionPluginWrapper(mock_plugin, "test-plugin", weight_override=0.9)
+        wrapper = DetectionPluginWrapper(
+            mock_plugin, "test-plugin", weight_override=0.9
+        )
 
         # Should use override, not plugin's default (0.4)
         assert wrapper.get_weight() == 0.9
 
     def test_wrapper_uses_plugin_weight_when_no_override(self, mock_plugin):
         """Test wrapper uses plugin's weight when no override."""
-        wrapper = DetectionPluginWrapper(mock_plugin, "test-plugin", weight_override=None)
+        wrapper = DetectionPluginWrapper(
+            mock_plugin, "test-plugin", weight_override=None
+        )
 
         # Should use plugin's default weight
         assert wrapper.get_weight() == 0.4
@@ -285,7 +293,9 @@ class TestDetectionPluginIntegrationScenarios:
             weight=0.8,
         )
         manager.register(plugin1_meta)
-        manager._instances["plugin-detection-price"] = MockDetectionPlugin("plugin-detection-price", default_weight=0.5)
+        manager._instances["plugin-detection-price"] = MockDetectionPlugin(
+            "plugin-detection-price", default_weight=0.5
+        )
 
         # Plugin 2: Medium priority, no custom weight
         plugin2_meta = PluginMetadata(
@@ -309,7 +319,9 @@ class TestDetectionPluginIntegrationScenarios:
             enabled=False,
         )
         manager.register(plugin3_meta)
-        manager._instances["plugin-detection-disabled"] = MockDetectionPlugin("plugin-detection-disabled")
+        manager._instances["plugin-detection-disabled"] = MockDetectionPlugin(
+            "plugin-detection-disabled"
+        )
 
         return manager
 
@@ -325,8 +337,12 @@ class TestDetectionPluginIntegrationScenarios:
         assert all(isinstance(p, DetectionPluginWrapper) for p in plugins)
 
         # Check weights
-        price_plugin = next(p for p in plugins if p.plugin_id == "plugin-detection-price")
-        location_plugin = next(p for p in plugins if p.plugin_id == "plugin-detection-location")
+        price_plugin = next(
+            p for p in plugins if p.plugin_id == "plugin-detection-price"
+        )
+        location_plugin = next(
+            p for p in plugins if p.plugin_id == "plugin-detection-location"
+        )
 
         # Price plugin should use configured weight (0.8), not default (0.5)
         assert price_plugin.get_weight() == 0.8
@@ -338,7 +354,9 @@ class TestDetectionPluginIntegrationScenarios:
         """Test changing plugin weight at runtime."""
         # Initial state
         plugins = manager_with_plugins.get_detection_plugins()
-        location_plugin = next(p for p in plugins if p.plugin_id == "plugin-detection-location")
+        location_plugin = next(
+            p for p in plugins if p.plugin_id == "plugin-detection-location"
+        )
         assert location_plugin.get_weight() == 0.3  # Default
 
         # Change weight
@@ -346,7 +364,9 @@ class TestDetectionPluginIntegrationScenarios:
 
         # Get plugins again (new wrapper instances)
         plugins = manager_with_plugins.get_detection_plugins()
-        location_plugin = next(p for p in plugins if p.plugin_id == "plugin-detection-location")
+        location_plugin = next(
+            p for p in plugins if p.plugin_id == "plugin-detection-location"
+        )
 
         # Should use new weight
         assert location_plugin.get_weight() == 0.7

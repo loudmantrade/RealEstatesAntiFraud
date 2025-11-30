@@ -347,7 +347,9 @@ class TestPluginManagerDependencies:
                 "type": "source",
                 "api_version": "1.0",
                 "description": "Plugin B",
-                "dependencies": {"plugins": {"plugin-source-a": ">=1.0.0"}},  # Does not exist
+                "dependencies": {
+                    "plugins": {"plugin-source-a": ">=1.0.0"}
+                },  # Does not exist
                 "entrypoint": {"module": "plugin_b", "class": "PluginB"},
             },
         )

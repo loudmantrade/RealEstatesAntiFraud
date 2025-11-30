@@ -28,7 +28,9 @@ def test_example_01_single_listing(listing_factory):
     assert listing.description is not None
     assert listing.price.amount > 0
     assert listing.location.city is not None
-    print(f"Created listing in {listing.location.city}: {listing.price.amount} {listing.price.currency}")
+    print(
+        f"Created listing in {listing.location.city}: {listing.price.amount} {listing.price.currency}"
+    )
 
 
 def test_example_02_batch_creation(listing_factory):
@@ -42,7 +44,9 @@ def test_example_02_batch_creation(listing_factory):
 
 def test_example_03_custom_price(listing_factory):
     """Example 3: Override specific fields like price."""
-    listing = listing_factory.create_listing(price={"amount": 1_500_000, "currency": "EUR"})
+    listing = listing_factory.create_listing(
+        price={"amount": 1_500_000, "currency": "EUR"}
+    )
 
     assert listing.price.amount == 1_500_000
     assert listing.price.currency == "EUR"
@@ -51,7 +55,9 @@ def test_example_03_custom_price(listing_factory):
 
 def test_example_04_custom_location(listing_factory):
     """Example 4: Override location fields."""
-    listing = listing_factory.create_listing(location={"city": "Lisboa", "country": "Portugal", "address": "Chiado"})
+    listing = listing_factory.create_listing(
+        location={"city": "Lisboa", "country": "Portugal", "address": "Chiado"}
+    )
 
     assert listing.location.city == "Lisboa"
     assert listing.location.country == "Portugal"
@@ -128,7 +134,9 @@ def test_example_10_fraud_candidates(listing_factory):
 
 def test_example_11_unrealistic_price(listing_factory):
     """Example 11: Create listings with unrealistic prices."""
-    fraud_listings = listing_factory.create_fraud_candidates(count=3, fraud_type="unrealistic_price")
+    fraud_listings = listing_factory.create_fraud_candidates(
+        count=3, fraud_type="unrealistic_price"
+    )
 
     # Check that prices are flagged as fraudulent
     for listing in fraud_listings:
@@ -145,7 +153,9 @@ def test_example_11_unrealistic_price(listing_factory):
 
 def test_example_12_no_photos(listing_factory):
     """Example 12: Create listings with suspicious characteristics."""
-    fraud_listings = listing_factory.create_fraud_candidates(count=3, fraud_type="missing_contact")
+    fraud_listings = listing_factory.create_fraud_candidates(
+        count=3, fraud_type="missing_contact"
+    )
 
     # All fraud candidates should have fraud_score set
     assert all(l.fraud_score is not None for l in fraud_listings)
@@ -155,7 +165,9 @@ def test_example_12_no_photos(listing_factory):
 
 def test_example_13_duplicates(listing_factory):
     """Example 13: Create listings with duplicate photos."""
-    fraud_listings = listing_factory.create_fraud_candidates(count=5, fraud_type="duplicate_photos")
+    fraud_listings = listing_factory.create_fraud_candidates(
+        count=5, fraud_type="duplicate_photos"
+    )
 
     # All should have high fraud scores indicating duplicates
     assert all(l.fraud_score > 50 for l in fraud_listings)
@@ -321,7 +333,10 @@ def test_example_23_different_seeds():
     listing2 = factory2.create_listing()
 
     # Different seeds = different data
-    assert listing1.listing_id != listing2.listing_id or listing1.price.amount != listing2.price.amount
+    assert (
+        listing1.listing_id != listing2.listing_id
+        or listing1.price.amount != listing2.price.amount
+    )
     print("Different seeds produce different data")
 
 
@@ -377,7 +392,11 @@ def test_example_25_database_query(sample_database):
     assert count == 50
 
     # Query by price range
-    expensive = sample_database.query(ListingModel).filter(ListingModel.price_amount > 500_000).all()
+    expensive = (
+        sample_database.query(ListingModel)
+        .filter(ListingModel.price_amount > 500_000)
+        .all()
+    )
 
     print(f"Found {len(expensive)} expensive listings (>500K EUR)")
 
@@ -402,7 +421,9 @@ def test_example_26_clear_test_intent(listing_factory):
 
     # Luxury apartments should be expensive per sqm
     if luxury_apartment.price.price_per_sqm:
-        assert luxury_apartment.price.price_per_sqm > 8_000, "Luxury apartments should exceed 8K EUR/sqm"
+        assert (
+            luxury_apartment.price.price_per_sqm > 8_000
+        ), "Luxury apartments should exceed 8K EUR/sqm"
         print(f"Luxury apartment: {luxury_apartment.price.price_per_sqm:.2f} EUR/sqm")
     else:
         assert luxury_apartment.price.amount >= 2_000_000
@@ -416,7 +437,9 @@ def test_example_27_minimal_overrides(listing_factory):
     Good practice: Let factory handle defaults, override only test-specific values.
     """
     # Only specify the price we're testing
-    listing = listing_factory.create_listing(price={"amount": 750_000, "currency": "EUR"})
+    listing = listing_factory.create_listing(
+        price={"amount": 750_000, "currency": "EUR"}
+    )
 
     # Factory handles all other fields realistically
     assert listing.price.amount == 750_000
@@ -521,5 +544,7 @@ if __name__ == "__main__":
         print(f"   - Fraud score: {l.fraud_score:.2f}")
 
     print("\n" + "=" * 70)
-    print("Run full test suite with: pytest tests/examples/factory_usage_examples.py -v")
+    print(
+        "Run full test suite with: pytest tests/examples/factory_usage_examples.py -v"
+    )
     print("=" * 70)

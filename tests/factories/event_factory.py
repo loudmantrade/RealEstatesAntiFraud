@@ -199,7 +199,9 @@ class EventFactory:
                 "rooms": random.randint(1, 4),
                 "address": self.faker.address(),
                 "description": self.faker.text(max_nb_chars=200),
-                "images": [self.faker.image_url() for _ in range(random.randint(3, 10))],
+                "images": [
+                    self.faker.image_url() for _ in range(random.randint(3, 10))
+                ],
             },
         )
 
@@ -267,9 +269,13 @@ class EventFactory:
                     "url": f"https://{metadata.source_platform}/listing/{listing_id}",
                 },
                 "type": random.choice(["sale", "rent"]),
-                "property_type": random.choice(["apartment", "house", "commercial", "land"]),
+                "property_type": random.choice(
+                    ["apartment", "house", "commercial", "land"]
+                ),
                 "location": {
-                    "city": random.choice(["Москва", "Санкт-Петербург", "Екатеринбург"]),
+                    "city": random.choice(
+                        ["Москва", "Санкт-Петербург", "Екатеринбург"]
+                    ),
                     "coordinates": {
                         "latitude": random.uniform(55.0, 60.0),
                         "longitude": random.uniform(30.0, 40.0),
@@ -356,9 +362,13 @@ class EventFactory:
                     "url": f"https://{metadata.source_platform}/listing/{listing_id}",
                 },
                 "type": random.choice(["sale", "rent"]),
-                "property_type": random.choice(["apartment", "house", "commercial", "land"]),
+                "property_type": random.choice(
+                    ["apartment", "house", "commercial", "land"]
+                ),
                 "location": {
-                    "city": random.choice(["Москва", "Санкт-Петербург", "Екатеринбург"]),
+                    "city": random.choice(
+                        ["Москва", "Санкт-Петербург", "Екатеринбург"]
+                    ),
                     "coordinates": {
                         "latitude": random.uniform(55.0, 60.0),
                         "longitude": random.uniform(30.0, 40.0),
@@ -381,7 +391,9 @@ class EventFactory:
             "fraud_score": fraud_score,
             "fraud_signals": fraud_signals,
             "risk_level": risk_level,
-            "processing_stages": random.sample(self.PROCESSING_STAGES, random.randint(3, 5)),
+            "processing_stages": random.sample(
+                self.PROCESSING_STAGES, random.randint(3, 5)
+            ),
             "processing_duration_ms": random.uniform(50, 500),
             "plugins_applied": [f"plugin_{i}" for i in range(random.randint(2, 5))],
             "data_quality_score": random.uniform(0.7, 1.0),
@@ -459,7 +471,12 @@ class EventFactory:
 
     def create_event_chain(
         self, listing_id: Optional[str] = None, include_fraud: bool = True
-    ) -> List[RawListingEvent | NormalizedListingEvent | ProcessedListingEvent | FraudDetectedEvent]:
+    ) -> List[
+        RawListingEvent
+        | NormalizedListingEvent
+        | ProcessedListingEvent
+        | FraudDetectedEvent
+    ]:
         """
         Create a complete event chain simulating the processing pipeline.
 
@@ -506,7 +523,9 @@ class EventFactory:
         )
 
         # 3. Processed event (fraud detection)
-        fraud_score = random.uniform(70, 100) if include_fraud else random.uniform(0, 69)
+        fraud_score = (
+            random.uniform(70, 100) if include_fraud else random.uniform(0, 69)
+        )
         processed_event = self.create_processed_event(
             listing_id=listing_id,
             trace_id=trace_id,
@@ -555,4 +574,7 @@ class EventFactory:
         elif event_type == "processed":
             return [self.create_processed_event(**kwargs) for _ in range(count)]
         else:
-            raise ValueError(f"Unknown event_type: {event_type}. " "Use 'raw', 'normalized', or 'processed'")
+            raise ValueError(
+                f"Unknown event_type: {event_type}. "
+                "Use 'raw', 'normalized', or 'processed'"
+            )

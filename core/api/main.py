@@ -58,7 +58,9 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def trace_context_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+async def trace_context_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     """
     Middleware to manage trace and request IDs for distributed tracing.
 
@@ -90,7 +92,9 @@ async def trace_context_middleware(request: Request, call_next: Callable[[Reques
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+async def log_requests(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     """
     Middleware to log all HTTP requests with structured context.
 

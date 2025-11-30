@@ -84,7 +84,9 @@ class TestSeedListings:
 class TestSeedDiverseDataset:
     """Test seed_diverse_dataset method."""
 
-    def test_seed_diverse_dataset_creates_correct_count(self, clean_db, listing_factory):
+    def test_seed_diverse_dataset_creates_correct_count(
+        self, clean_db, listing_factory
+    ):
         """Test diverse dataset creates expected number of listings."""
         seeder = DatabaseSeeder(clean_db, listing_factory)
         result = seeder.seed_diverse_dataset()
@@ -117,8 +119,16 @@ class TestSeedDiverseDataset:
         seeder.seed_diverse_dataset()
 
         # Count by city
-        moscow_count = clean_db.query(ListingModel).filter(ListingModel.location_city == "Moscow").count()
-        spb_count = clean_db.query(ListingModel).filter(ListingModel.location_city == "Saint Petersburg").count()
+        moscow_count = (
+            clean_db.query(ListingModel)
+            .filter(ListingModel.location_city == "Moscow")
+            .count()
+        )
+        spb_count = (
+            clean_db.query(ListingModel)
+            .filter(ListingModel.location_city == "Saint Petersburg")
+            .count()
+        )
 
         assert moscow_count == 50
         assert spb_count == 30
@@ -164,7 +174,10 @@ class TestSeedFraudScenarios:
         result = seeder.seed_fraud_scenarios()
 
         price_anomalies = result["price_anomaly"]
-        assert all(model.fraud_score is not None and model.fraud_score >= 0.8 for model in price_anomalies)
+        assert all(
+            model.fraud_score is not None and model.fraud_score >= 0.8
+            for model in price_anomalies
+        )
 
     def test_fraud_duplicates_same_city(self, clean_db, listing_factory):
         """Test duplicate listings are in same city."""
@@ -224,7 +237,9 @@ class TestClearAll:
         assert deleted == 0
         assert len(seeder.created_ids) == 0
 
-    def test_clear_all_only_removes_seeded_data(self, clean_db, listing_factory, listing_to_model):
+    def test_clear_all_only_removes_seeded_data(
+        self, clean_db, listing_factory, listing_to_model
+    ):
         """Test clear_all only removes data created by seeder."""
         # Manually add listing outside seeder
         external_listing = listing_factory.create_listing()
@@ -313,7 +328,11 @@ class TestSeederIntegration:
             listings = clean_db.query(ListingModel).all()
             assert len(listings) >= 100
 
-            moscow = clean_db.query(ListingModel).filter(ListingModel.location_city == "Moscow").all()
+            moscow = (
+                clean_db.query(ListingModel)
+                .filter(ListingModel.location_city == "Moscow")
+                .all()
+            )
             assert len(moscow) == 50
 
         finally:

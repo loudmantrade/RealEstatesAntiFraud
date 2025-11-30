@@ -74,7 +74,9 @@ class JSONFormatter(logging.Formatter):
 
         # Build the standard log structure
         log_data: Dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat(),
             "level": record.levelname,
             "message": record.getMessage(),
             "logger": record.name,
@@ -150,15 +152,21 @@ class StructuredLogger:
         extra.update(kwargs)
         self._logger.log(level, msg, extra=extra, exc_info=exc_info)
 
-    def debug(self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+    def debug(
+        self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any
+    ) -> None:
         """Log a debug message."""
         self._log(logging.DEBUG, msg, context, **kwargs)
 
-    def info(self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+    def info(
+        self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any
+    ) -> None:
         """Log an info message."""
         self._log(logging.INFO, msg, context, **kwargs)
 
-    def warning(self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+    def warning(
+        self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any
+    ) -> None:
         """Log a warning message."""
         self._log(logging.WARNING, msg, context, **kwargs)
 
@@ -182,7 +190,9 @@ class StructuredLogger:
         """Log a critical message."""
         self._log(logging.CRITICAL, msg, context, exc_info=exc_info, **kwargs)
 
-    def exception(self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any) -> None:
+    def exception(
+        self, msg: str, context: Optional[Dict[str, Any]] = None, **kwargs: Any
+    ) -> None:
         """Log an exception with traceback."""
         self._log(logging.ERROR, msg, context, exc_info=True, **kwargs)
 
@@ -244,7 +254,9 @@ def configure_logging(
     if format_type.lower() == "json":
         formatter = JSONFormatter()
     else:
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
 
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)

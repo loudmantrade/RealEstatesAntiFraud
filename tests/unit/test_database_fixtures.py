@@ -31,8 +31,12 @@ def listing_to_model(listing: Listing) -> ListingModel:
         location_country=listing.location.country,
         location_city=listing.location.city,
         location_address=listing.location.address,
-        location_lat=(listing.location.coordinates.lat if listing.location.coordinates else None),
-        location_lng=(listing.location.coordinates.lng if listing.location.coordinates else None),
+        location_lat=(
+            listing.location.coordinates.lat if listing.location.coordinates else None
+        ),
+        location_lng=(
+            listing.location.coordinates.lng if listing.location.coordinates else None
+        ),
         price_amount=listing.price.amount,
         price_currency=listing.price.currency,
         price_per_sqm=listing.price.price_per_sqm,
@@ -176,7 +180,11 @@ class TestDatabaseOperations:
         db_session.commit()
 
         # READ
-        result = db_session.query(ListingModel).filter_by(listing_id=listing.listing_id).first()
+        result = (
+            db_session.query(ListingModel)
+            .filter_by(listing_id=listing.listing_id)
+            .first()
+        )
         assert result is not None
         assert result.location_city == listing.location.city
 
@@ -184,14 +192,22 @@ class TestDatabaseOperations:
         result.location_city = "Updated City"
         db_session.commit()
 
-        updated = db_session.query(ListingModel).filter_by(listing_id=listing.listing_id).first()
+        updated = (
+            db_session.query(ListingModel)
+            .filter_by(listing_id=listing.listing_id)
+            .first()
+        )
         assert updated.location_city == "Updated City"
 
         # DELETE
         db_session.delete(updated)
         db_session.commit()
 
-        deleted = db_session.query(ListingModel).filter_by(listing_id=listing.listing_id).first()
+        deleted = (
+            db_session.query(ListingModel)
+            .filter_by(listing_id=listing.listing_id)
+            .first()
+        )
         assert deleted is None
 
     def test_bulk_operations(self, clean_db, listing_factory):
@@ -216,7 +232,9 @@ class TestDatabaseOperations:
         """Test querying with filters."""
         # Add listings with different prices
         for i, price in enumerate([100_000, 200_000, 300_000]):
-            listing = listing_factory.create_listing(price={"amount": price, "currency": "EUR"})
+            listing = listing_factory.create_listing(
+                price={"amount": price, "currency": "EUR"}
+            )
             listing_model = listing_to_model(listing)
             listing_model.listing_id = f"filter-{i}"  # Override for uniqueness
             clean_db.add(listing_model)

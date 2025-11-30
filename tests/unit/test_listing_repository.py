@@ -114,7 +114,11 @@ def test_get_by_db_id(repository, sample_listing, db_session):
     # Get the database ID from the database directly
     from core.database.models import ListingModel
 
-    db_listing = db_session.query(ListingModel).filter(ListingModel.listing_id == "test-listing-1").first()
+    db_listing = (
+        db_session.query(ListingModel)
+        .filter(ListingModel.listing_id == "test-listing-1")
+        .first()
+    )
 
     result = repository.get_by_db_id(db_listing.id)
 
@@ -213,7 +217,9 @@ def test_update_listing(repository, sample_listing):
     """Test updating listing."""
     repository.create(sample_listing)
 
-    result = repository.update("test-listing-1", fraud_score=75.0, description="Updated")
+    result = repository.update(
+        "test-listing-1", fraud_score=75.0, description="Updated"
+    )
 
     assert result is not None
     assert result.fraud_score == 75.0
@@ -251,10 +257,14 @@ def test_get_by_fraud_score_range(repository, sample_listing):
     """Test getting listings by fraud score range."""
     repository.create(sample_listing)  # fraud_score = 25.5
 
-    listing2 = sample_listing.model_copy(update={"listing_id": "test-listing-2", "fraud_score": 50.0})
+    listing2 = sample_listing.model_copy(
+        update={"listing_id": "test-listing-2", "fraud_score": 50.0}
+    )
     repository.create(listing2)
 
-    listing3 = sample_listing.model_copy(update={"listing_id": "test-listing-3", "fraud_score": 75.0})
+    listing3 = sample_listing.model_copy(
+        update={"listing_id": "test-listing-3", "fraud_score": 75.0}
+    )
     repository.create(listing3)
 
     result = repository.get_by_fraud_score_range(20.0, 60.0)

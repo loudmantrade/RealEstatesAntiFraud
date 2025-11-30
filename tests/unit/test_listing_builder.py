@@ -30,7 +30,12 @@ class TestListingBuilder:
     def test_method_chaining(self):
         """Test fluent interface with method chaining."""
         builder = ListingBuilder()
-        listing = builder.with_price(3_000_000).with_property_type("house").with_location("Porto").build()
+        listing = (
+            builder.with_price(3_000_000)
+            .with_property_type("house")
+            .with_location("Porto")
+            .build()
+        )
 
         assert listing.price.amount == 3_000_000.0
         assert listing.property_type == "house"
@@ -232,7 +237,9 @@ class TestFraudConfiguration:
     def test_with_fraud_indicators(self):
         """Test adding fraud indicators to description."""
         builder = ListingBuilder()
-        listing = builder.with_fraud_indicators(["unrealistic_price", "duplicate_photos"]).build()
+        listing = builder.with_fraud_indicators(
+            ["unrealistic_price", "duplicate_photos"]
+        ).build()
 
         assert "Fraud indicators" in listing.description
         assert "unrealistic_price" in listing.description
@@ -387,7 +394,9 @@ class TestComplexScenarios:
         listing = (
             builder.with_listing_id("complete-listing-001")
             .with_source("cian_plugin", "cian.ru")
-            .with_location("Lisboa", address="Rua Augusta, 100", lat=38.7100, lng=-9.1400)
+            .with_location(
+                "Lisboa", address="Rua Augusta, 100", lat=38.7100, lng=-9.1400
+            )
             .with_price(350_000, currency="EUR")
             .with_property_type("apartment")
             .with_listing_type("sale")
