@@ -228,7 +228,7 @@ class TestDatabaseOperations:
         count = clean_db.query(ListingModel).count()
         assert count == 10
 
-    def test_query_filtering(self, db_session, listing_factory):
+    def test_query_filtering(self, clean_db, listing_factory):
         """Test querying with filters."""
         # Add listings with different prices
         for i, price in enumerate([100_000, 200_000, 300_000]):
@@ -237,13 +237,13 @@ class TestDatabaseOperations:
             )
             listing_model = listing_to_model(listing)
             listing_model.listing_id = f"filter-{i}"  # Override for uniqueness
-            db_session.add(listing_model)
+            clean_db.add(listing_model)
 
-        db_session.commit()
+        clean_db.commit()
 
         # Filter by price range
         results = (
-            db_session.query(ListingModel)
+            clean_db.query(ListingModel)
             .filter(
                 ListingModel.price_amount >= 150_000,
                 ListingModel.price_amount <= 250_000,
