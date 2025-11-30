@@ -5,27 +5,69 @@
 
 ## 📊 Текущий статус проекта
 
-**Версия:** 0.3 | **Дата обновления:** 26 декабря 2024  
-**Фаза:** Sprint 1 Phase A (4/10 задач, 40%)
+**Версия:** 0.5 | **Дата обновления:** 30 ноября 2025  
+**Фаза:** Phase A - Testing Infrastructure (высокий приоритет)
 
 ### ✅ Завершено
+
+**Core Infrastructure:**
 - 13 bootstrap задач выполнены (0.1-0.13)
 - Core структура и базовые модули реализованы
 - Plugin-based архитектура заложена (интерфейсы, manager)
 - FastAPI приложение с CRUD endpoints
-- Юнит тесты и dev окружение настроены
+- PostgreSQL + Redis + RabbitMQ integration
+- Configuration management system
+- Messaging layer (queue + orchestrator)
 - **42 GitHub Issues созданы** ([смотреть все](https://github.com/loudmantrade/RealEstatesAntiFraud/issues))
 - Milestone "Phase A - Technical Foundation" создан
+
+**Plugin System:**
 - **Issue #1:** Plugin manifest specification v1.0 (58 tests) ✅
 - **Issue #2:** Manifest validation with JSON Schema (31 tests) ✅
 - **Issue #3:** Dynamic plugin discovery and loading (23 tests) ✅
 - **Issue #4:** Hot reload for plugin updates (16 tests, 86% coverage) ✅
 
-### 🎯 Следующий спринт: S1 (продолжение)
-**Задачи:** Unified configuration system, PostgreSQL persistence, message queue  
-**Issues:** [#16-17](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/16), [#22-24](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/22), [#26-27](https://github.com/loudmantrade/RealEstatesAntiFraud/issues/26)  
-**Цель:** Завершить Phase A техническую основу - config system + persistence + message queue  
-**Прогресс S1:** 4/10 задач (40%)
+**Observability:**
+- **Issue #19:** Structured JSON logging (20 tests, 97% coverage) ✅
+- **Issue #20:** Request tracing with correlation IDs (29 tests, 100% coverage) ✅
+
+**Testing Infrastructure (20 issues закрыто за последние 2 дня):**
+- **Issue #83:** CI status badge and documentation ✅
+- **Issue #93:** Integration tests re-enabled in CI ✅
+- **Issue #103-109:** Messaging, config, plugin manager integration tests ✅
+- **Issue #112:** Unified local test environment ✅
+- **Issue #118-126:** Coverage improvements (plugins API, orchestrator, queue) ✅
+- **Issue #132:** Database base coverage increased ✅
+- **Issue #136:** ListingFactory with Faker (25 tests, 100%) ✅
+- **Issue #137:** EventFactory for messaging (33 tests, 100%) ✅
+
+**Current PR:**
+- **PR #146:** ListingBuilder with fluent API (44 tests, all passing) 🔄
+  - Configured for Portugal 🇵🇹 (priority #1) and Ukraine 🇺🇦 (priority #2) markets
+  - EUR currency, Lisboa default city, pt_PT locale
+  - All 20 CI checks passing
+
+### 🎯 Текущая работа: Issue #110 - Test Data Generators & Factories
+
+**Progress:** 2/6 задач завершено (33%)
+- ✅ **Issue #136:** ListingFactory - базовая фабрика с Faker
+- ✅ **Issue #137:** EventFactory - фабрика для messaging events
+- 🔄 **Issue #138:** ListingBuilder - fluent API builder (PR #146 готов к merge)
+- ⏳ **Issue #139:** Specialized factory methods (fraud scenarios, edge cases)
+- ⏳ **Issue #140:** Pytest fixtures для всех фабрик
+- ⏳ **Issue #141:** DatabaseSeeder для массовой генерации данных
+
+**Целевые рынки проекта:**
+- 🇵🇹 **Португалия** (приоритет #1): Idealista, Imovirtual, OLX Portugal
+- 🇺🇦 **Украина** (приоритет #2): OLX Ukraine, DOM.RIA, Lun
+- 📱 **Планируется:** Facebook Marketplace (source plugin)
+- 🏢 **Планируется:** Крупные риелторы (IAT и другие, через плагины)
+
+### 📈 Метрики качества
+- **Code Coverage:** 86%+ (core modules)
+- **Tests Passing:** 100% (все PR проходят CI)
+- **Integration Tests:** Re-enabled в CI, PostgreSQL + Redis + RabbitMQ
+- **Test Data Infrastructure:** Factories для Listing, Event; Builder pattern
 
 ---
 ## Легенда статусов
@@ -268,6 +310,7 @@ CI (tests) → Docker Build → Vulnerability Scan → Release Tagging → Stagi
 | 2025-11-25 | 0.2 | Расширено описание выполненных задач 0.1-0.13 с деталями реализации. Добавлены: 0.11 (документация плана), 0.12 (скрипты GitHub Issues), 0.13 (Makefile). Создано 42 GitHub Issues с labels и milestone |
 | 2024-12-26 | 0.3 | Завершён Sprint 1 (4/10 задач, 40%). Задачи 1.1-1.4 выполнены: Issue #1 (manifest spec, 58 тестов), Issue #2 (validation, 31 тест), Issue #3 (dynamic loading, 23 теста), Issue #4 (hot reload, 16 тестов). Итого 119/129 тестов проходят, покрытие 86%. Commit 315f07d. |
 | 2025-11-28 | 0.4 | Завершены observability issues: #19 (Structured JSON logging, 20 тестов, 97% покрытие), #20 (Request tracing, 29 тестов, 100% context coverage). Задачи 3.1-3.2 выполнены. Добавлен OpenTelemetry roadmap: 5 новых подзадач (3.4-3.8) для полной observability интеграции. Обновлена архитектурная диаграмма с OTel Collector. |
+| 2025-11-30 | 0.5 | **Массовое завершение testing infrastructure (20 issues за 2 дня).** Закрыты: #83, #93, #103-109, #112, #118-126, #132, #136-137. Integration tests re-enabled. ListingFactory (25 tests), EventFactory (33 tests) созданы. PR #146: ListingBuilder (44 tests) с fluent API готов к merge. **Обновлены целевые рынки:** 🇵🇹 Portugal (priority #1), 🇺🇦 Ukraine (priority #2). Планируется: Facebook Marketplace, IAT plugins. Issue #110 progress: 2/6 задач. Coverage: 86%+. |
 
 ---
 **Примечание:** Задачи помеченные ❌ (Deferred) не входят в ближайшие фазы и могут быть возвращены при появлении ресурсов.
