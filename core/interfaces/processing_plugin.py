@@ -3,6 +3,12 @@ from typing import Dict
 
 
 class ProcessingPlugin(ABC):
+    """Abstract base class for processing plugins.
+
+    Processing plugins transform and enrich listing data before storage
+    or further processing.
+    """
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         pass
