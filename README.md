@@ -133,12 +133,54 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
+# Установка pre-commit hooks (рекомендуется)
+pre-commit install
+
 # Запуск БД в Docker
 docker-compose up -d postgres redis
 
 # Запуск API
 uvicorn core.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+#### Pre-commit Hooks
+
+Проект использует pre-commit hooks для автоматической проверки кода перед коммитом:
+
+**Автоматические проверки:**
+- ✅ **Code Formatting** - Black (line-length=120)
+- ✅ **Import Sorting** - isort (black-compatible)
+- ✅ **Linting** - flake8 (E203 ignored)
+- ✅ **Type Checking** - mypy
+- ✅ **Security Scan** - bandit (high/medium severity)
+- ✅ **Critical Errors** - flake8 strict (E9, F63, F7, F82)
+- ✅ **File Checks** - trailing whitespace, end of files, YAML/JSON syntax
+
+**Установка:**
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+```
+
+**Использование:**
+```bash
+# Автоматически при git commit
+git commit -m "Your changes"
+
+# Ручной запуск на всех файлах
+pre-commit run --all-files
+
+# Пропустить hooks (только для срочных случаев!)
+git commit --no-verify -m "Urgent fix"
+```
+
+**Что происходит при коммите:**
+1. Black автоматически форматирует код
+2. Isort сортирует импорты
+3. Flake8 проверяет стиль кода
+4. Mypy проверяет типы
+5. Bandit сканирует на уязвимости
+6. Если есть ошибки - коммит блокируется
 
 **📚 Подробная документация:** См. [docs/DOCKER.md](docs/DOCKER.md)
 
