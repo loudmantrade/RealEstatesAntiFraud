@@ -193,6 +193,43 @@ jobs:
 
 ## Maintenance
 
+### Auto-Restart Configuration
+
+**All services are configured to restart automatically:**
+
+- **Docker service**: Enabled in systemd (`systemctl is-enabled docker` → `enabled`)
+- **All containers**: Set to `restart: unless-stopped` policy
+- **On server reboot**: Docker starts automatically, then all containers start
+- **On container crash**: Containers restart automatically
+
+**Verification commands:**
+
+```bash
+# Check Docker auto-start
+ssh mixfm2 "systemctl is-enabled docker"
+# Expected: enabled
+
+# Check container restart policies
+ssh mixfm2 "docker inspect github-runner runner-postgres runner-redis --format '{{.Name}}: {{.HostConfig.RestartPolicy.Name}}'"
+# Expected output:
+# /github-runner: RestartPolicy=unless-stopped
+# /runner-postgres: RestartPolicy=unless-stopped
+# /runner-redis: RestartPolicy=unless-stopped
+```
+
+**Test restart after reboot:**
+
+```bash
+# Stop all containers (simulates crash)
+ssh mixfm2 "cd ~/github-runner && docker-compose stop"
+
+# Start them back (simulates reboot)
+ssh mixfm2 "cd ~/github-runner && docker-compose start"
+
+# Verify all services are up
+ssh mixfm2 "cd ~/github-runner && docker-compose ps"
+```
+
 ### View Logs
 
 ```bash
