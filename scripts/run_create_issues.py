@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Interactive wrapper for create_github_issues.py"""
+import getpass
 import os
 import sys
-import getpass
+
 
 def main():
     token = os.getenv("GITHUB_TOKEN")
@@ -13,10 +14,12 @@ def main():
             print("Error: No token provided")
             sys.exit(1)
         os.environ["GITHUB_TOKEN"] = token
-    
+
     sys.path.insert(0, os.path.dirname(__file__))
     from create_github_issues import create_issues
+
     create_issues()
+
 
 if __name__ == "__main__":
     main()

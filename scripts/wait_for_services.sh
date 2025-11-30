@@ -15,9 +15,9 @@ wait_for_service() {
     local service_name=$1
     local check_command=$2
     local elapsed=0
-    
+
     echo -n "  Waiting for $service_name..."
-    
+
     while [ $elapsed -lt $MAX_WAIT ]; do
         if eval "$check_command" &> /dev/null; then
             echo -e " ${GREEN}✓${NC}"
@@ -27,7 +27,7 @@ wait_for_service() {
         elapsed=$((elapsed + INTERVAL))
         echo -n "."
     done
-    
+
     echo -e " ${RED}✗${NC}"
     echo -e "${RED}❌ $service_name failed to start within ${MAX_WAIT}s${NC}"
     return 1

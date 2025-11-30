@@ -3,8 +3,9 @@
 
 import os
 import sys
-from github import Github
 from datetime import datetime
+
+from github import Github
 
 REPO_OWNER = "loudmantrade"
 REPO_NAME = "RealEstatesAntiFroud"
@@ -524,6 +525,7 @@ File: `Makefile`
     },
 }
 
+
 def create_completed_issues():
     """Create closed issues for completed bootstrap tasks"""
     token = os.getenv("GITHUB_TOKEN")
@@ -547,18 +549,21 @@ def create_completed_issues():
                 )
                 # Close the issue since it's already completed
                 issue.edit(state="closed")
-                
+
                 created += 1
                 print(f"✓ Created & closed issue #{issue.number}: {task_data['title']}")
             except Exception as e:
                 print(f"❌ Error creating issue {task_id}: {e}")
 
         print(f"\n✅ Successfully created {created} completed bootstrap issues!")
-        print(f"\nView all issues at: https://github.com/{REPO_OWNER}/{REPO_NAME}/issues?q=is%3Aissue+label%3Acompleted")
+        print(
+            f"\nView all issues at: https://github.com/{REPO_OWNER}/{REPO_NAME}/issues?q=is%3Aissue+label%3Acompleted"
+        )
 
     except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     create_completed_issues()

@@ -3,7 +3,7 @@ Integration tests for Redis Queue error handling and edge cases.
 
 Covers:
 - Connection failure scenarios
-- Redis unavailable handling  
+- Redis unavailable handling
 - Stream operation errors
 - Consumer group conflicts
 - Acknowledgment failures
@@ -150,9 +150,7 @@ class TestConsumerGroupErrors:
 
         # Mock xgroup_create to fail
         original_method = redis_queue._client.xgroup_create
-        redis_queue._client.xgroup_create = Mock(
-            side_effect=RedisError("Group creation failed")
-        )
+        redis_queue._client.xgroup_create = Mock(side_effect=RedisError("Group creation failed"))
 
         with pytest.raises(RedisError):
             redis_queue.subscribe("test-topic", lambda msg: None)

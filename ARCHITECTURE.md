@@ -19,10 +19,10 @@
 
 ### Ключевые преимущества:
 
-✅ Добавление новых источников без изменения ядра  
-✅ Независимая разработка и тестирование модулей  
-✅ Версионирование плагинов  
-✅ Горячая замена и обновление модулей  
+✅ Добавление новых источников без изменения ядра
+✅ Независимая разработка и тестирование модулей
+✅ Версионирование плагинов
+✅ Горячая замена и обновление модулей
 ✅ Marketplace плагинов для сообщества
 
 ## Основные компоненты
@@ -171,17 +171,17 @@ from typing import Iterator, Dict
 
 class SourcePlugin(ABC):
     """Base class for all source plugins"""
-    
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """Returns plugin metadata"""
         pass
-    
+
     @abstractmethod
     def configure(self, config: Dict) -> None:
         """Configure plugin with settings"""
         pass
-    
+
     @abstractmethod
     def scrape(self, params: Dict) -> Iterator[Dict]:
         """
@@ -189,12 +189,12 @@ class SourcePlugin(ABC):
         Yields listings in Unified Data Model format
         """
         pass
-    
+
     @abstractmethod
     def validate(self, listing: Dict) -> bool:
         """Validate listing data"""
         pass
-    
+
     @abstractmethod
     def get_statistics(self) -> Dict:
         """Return scraping statistics"""
@@ -230,12 +230,12 @@ from typing import Dict, Any
 
 class ProcessingPlugin(ABC):
     """Base class for processing plugins"""
-    
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """Returns plugin metadata"""
         pass
-    
+
     @abstractmethod
     def process(self, listing: Dict) -> Dict:
         """
@@ -244,7 +244,7 @@ class ProcessingPlugin(ABC):
         Output: enriched listing in UDM format
         """
         pass
-    
+
     @abstractmethod
     def get_priority(self) -> int:
         """Return execution priority (lower = earlier)"""
@@ -310,24 +310,24 @@ pipeline:
     priority: 1
     config:
       strict_mode: true
-  
+
   - plugin: normalizer
     priority: 2
-    
+
   - plugin: geocoder
     priority: 3
     config:
       provider: yandex
       fallback: google
-  
+
   - plugin: nlp
     priority: 4
     parallel: true
-    
+
   - plugin: images
     priority: 5
     parallel: true
-    
+
   - plugin: dedup
     priority: 10
 ```
@@ -344,12 +344,12 @@ from typing import Dict, List
 
 class DetectionPlugin(ABC):
     """Base class for fraud detection plugins"""
-    
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """Returns plugin metadata"""
         pass
-    
+
     @abstractmethod
     def analyze(self, listing: Dict) -> Dict:
         """
@@ -361,7 +361,7 @@ class DetectionPlugin(ABC):
         }
         """
         pass
-    
+
     @abstractmethod
     def get_weight(self) -> float:
         """Return plugin weight in final score calculation"""
@@ -470,7 +470,7 @@ risk_level = {
   - Пользователи
   - Транзакции
   - Метрики качества
-  
+
 ### 5. Search Plugins Layer (Слой поиска)
 
 **Модульная система поиска и индексации**
@@ -483,12 +483,12 @@ from typing import Dict, List
 
 class SearchPlugin(ABC):
     """Base class for search plugins"""
-    
+
     @abstractmethod
     def index(self, listing: Dict) -> bool:
         """Index a listing"""
         pass
-    
+
     @abstractmethod
     def search(self, query: Dict) -> List[Dict]:
         """
@@ -496,7 +496,7 @@ class SearchPlugin(ABC):
         Returns: list of listings with relevance scores
         """
         pass
-    
+
     @abstractmethod
     def suggest(self, prefix: str) -> List[str]:
         """Auto-suggest for search"""
@@ -598,7 +598,7 @@ from typing import Dict
 
 class DisplayPlugin(ABC):
     """Base class for display plugins"""
-    
+
     @abstractmethod
     def format_listing(self, listing: Dict, format: str) -> Dict:
         """
@@ -606,7 +606,7 @@ class DisplayPlugin(ABC):
         format: 'card', 'list', 'detail', 'map', 'export'
         """
         pass
-    
+
     @abstractmethod
     def get_template(self) -> str:
         """Return template name/path"""
@@ -683,7 +683,7 @@ class DisplayPlugin(ABC):
   - ELK Stack (Elasticsearch, Logstash, Kibana) - логи
   - Sentry - отслеживание ошибок
   - Jaeger / Tempo - distributed tracing (OpenTelemetry compatible)
-  
+
 **OpenTelemetry Integration:**
 - **Traces**: Автоматическая инструментация FastAPI, PostgreSQL, Redis, HTTP clients
 - **Metrics**: Custom метрики (plugin execution time, fraud detection accuracy, scraping stats)
@@ -802,7 +802,7 @@ class DisplayPlugin(ABC):
 
 ### 1. Сбор данных
 ```
-Scheduler → Scraper Service (+ Anti-Detection) 
+Scheduler → Scraper Service (+ Anti-Detection)
     → Raw HTML → Message Queue (Kafka)
     → ETL Pipeline → Normalization + Enrichment
     → Deduplication → Storage (PostgreSQL + Elasticsearch)
@@ -815,13 +815,13 @@ New Listing → Fraud Detection Service
     ├→ Rules Engine (rule matching)
     ├→ Image Analysis (CNN + reverse search)
     └→ Risk Scoring → Store fraud_score
-    
+
 If high_risk → Alert to Admin Dashboard
 ```
 
 ### 3. Поиск и выдача
 ```
-User Search Request → API Gateway 
+User Search Request → API Gateway
     → Search Service (Elasticsearch)
     → Filter by fraud_score (exclude high-risk)
     → Enrich with data from PostgreSQL

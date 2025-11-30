@@ -1,7 +1,7 @@
 # Plugin Manifest Specification v1.0
 
-**Document Version:** 1.0.0  
-**API Version:** 1.0  
+**Document Version:** 1.0.0
+**API Version:** 1.0
 **Last Updated:** 2025-11-25
 
 ## Overview
@@ -76,14 +76,14 @@ homepage: string        # Documentation homepage
 dependencies:
   # Minimum core system version
   core_version: string  # semver constraint, e.g., ">=1.0.0,<2.0.0"
-  
+
   # Python version requirement
   python_version: string  # e.g., ">=3.10,<4.0"
-  
+
   # Other plugin dependencies
   plugins:
     plugin-id: string   # semver constraint for each plugin
-    
+
   # System dependencies (informational)
   system:
     - name: string      # e.g., "redis", "postgresql"
@@ -96,11 +96,11 @@ dependencies:
 config:
   # Path to JSON Schema file for config validation
   schema: string        # relative path, e.g., "config.schema.json"
-  
+
   # Required configuration keys
   required_keys:
     - string            # key names that must be provided
-  
+
   # Default configuration (merged with user config)
   defaults:
     key: value          # any valid YAML structure
@@ -713,7 +713,7 @@ from core.utils.plugin_validator import validate_manifest
 
 with open('plugin.yaml') as f:
     manifest = yaml.safe_load(f)
-    
+
 errors = validate_manifest(manifest, api_version='1.0')
 if errors:
     for error in errors:
@@ -735,5 +735,5 @@ if errors:
 
 ---
 
-**Maintained by**: RealEstatesAntiFraud Core Team  
+**Maintained by**: RealEstatesAntiFraud Core Team
 **Questions**: Open an issue at https://github.com/loudmantrade/RealEstatesAntiFroud/issues

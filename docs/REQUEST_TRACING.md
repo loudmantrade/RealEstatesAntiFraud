@@ -117,7 +117,7 @@ from core.utils import get_trace_id
 
 async def call_external_service():
     trace_id = get_trace_id()
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://other-service.example.com/api/data",
@@ -185,18 +185,18 @@ async def trace_context_middleware(request: Request, call_next):
     # Extract or generate IDs
     trace_id = request.headers.get("x-trace-id")
     request_id = request.headers.get("x-request-id")
-    
+
     # Set context
     trace_id, request_id = set_trace_context(trace_id, request_id)
-    
+
     try:
         # Process request
         response = await call_next(request)
-        
+
         # Add headers to response
         response.headers["X-Trace-ID"] = trace_id
         response.headers["X-Request-ID"] = request_id
-        
+
         return response
     finally:
         # Cleanup
@@ -210,13 +210,13 @@ JSONFormatter automatically includes trace IDs:
 ```python
 def format(self, record: logging.LogRecord) -> str:
     from core.utils.context import get_trace_id, get_request_id
-    
+
     log_data = {
         "timestamp": ...,
         "level": ...,
         "message": ...,
     }
-    
+
     # Add trace IDs if available
     trace_id = get_trace_id()
     request_id = get_request_id()
@@ -224,7 +224,7 @@ def format(self, record: logging.LogRecord) -> str:
         log_data["trace_id"] = trace_id
     if request_id:
         log_data["request_id"] = request_id
-    
+
     return json.dumps(log_data)
 ```
 
@@ -295,16 +295,16 @@ logger = get_logger(__name__)
 async def process_listing_event(event: dict):
     # Extract trace ID from event metadata
     trace_id = event.get("metadata", {}).get("trace_id")
-    
+
     # Set context
     set_trace_context(trace_id=trace_id)
-    
+
     try:
         logger.info("Processing listing event", context={"listing_id": event["id"]})
-        
+
         # Your processing logic
         await process_listing(event["data"])
-        
+
         logger.info("Event processed successfully")
     except Exception as e:
         logger.exception("Event processing failed")
@@ -325,12 +325,12 @@ logger = get_logger(__name__)
 async def execute_query(query: str):
     trace_id = get_trace_id()
     start = time.time()
-    
+
     # Execute query
     result = await db.execute(query)
-    
+
     duration = time.time() - start
-    
+
     if duration > 1.0:  # Slow query
         logger.warning(
             "Slow query detected",
@@ -340,7 +340,7 @@ async def execute_query(query: str):
                 "trace_id": trace_id  # Redundant but explicit
             }
         )
-    
+
     return result
 ```
 
@@ -356,9 +356,9 @@ from core.utils.context import set_trace_context, get_trace_id, clear_trace_cont
 def test_trace_context():
     # Set context
     trace_id, request_id = set_trace_context("test-123", "req-456")
-    
+
     assert get_trace_id() == "test-123"
-    
+
     # Cleanup
     clear_trace_context()
     assert get_trace_id() is None
@@ -374,12 +374,12 @@ from core.api.main import app
 
 def test_trace_propagation():
     client = TestClient(app)
-    
+
     response = client.get(
         "/api/v1/listings",
         headers={"X-Trace-ID": "my-trace-123"}
     )
-    
+
     # Trace ID should be in response headers
     assert response.headers["X-Trace-ID"] == "my-trace-123"
     assert "X-Request-ID" in response.headers

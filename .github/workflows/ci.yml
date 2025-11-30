@@ -14,27 +14,27 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-    
+
     - name: Run unit tests with coverage
       run: |
         pytest tests/unit/ --cov=core --cov-report=xml --cov-report=term-missing -v
-    
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       if: matrix.python-version == '3.13'
@@ -45,7 +45,7 @@ jobs:
         fail_ci_if_error: false
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  
+
   integration-test:
     name: Integration tests on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.11', '3.12', '3.13']
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -68,7 +68,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       redis:
         image: redis:7-alpine
         ports:
@@ -78,23 +78,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-    
+
     - name: Wait for PostgreSQL
       run: |
         until pg_isready -h localhost -p 5432 -U test_user; do
@@ -102,7 +102,7 @@ jobs:
           sleep 2
         done
         echo "PostgreSQL is ready!"
-    
+
     - name: Run integration tests with coverage
       env:
         DB_HOST: localhost
@@ -115,7 +115,7 @@ jobs:
         REDIS_DB: 0
       run: |
         pytest tests/integration/ --cov=core --cov-report=xml --cov-report=term-missing -v
-    
+
     - name: Upload integration test coverage
       uses: codecov/codecov-action@v4
       if: matrix.python-version == '3.13'
@@ -126,105 +126,105 @@ jobs:
         fail_ci_if_error: false
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  
+
   lint:
     name: Lint and format checks
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-    
+
     - name: Run flake8
       run: |
         flake8 core/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 core/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --extend-ignore=E203 --statistics
-    
+
     - name: Check formatting with black
       run: |
         black --check core/ tests/
-    
+
     - name: Run isort
       run: |
         isort --check-only core/ tests/
-  
+
   type-check:
     name: Type checking with mypy
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
-    
+
     - name: Run mypy
       run: |
         mypy core/ --ignore-missing-imports --no-strict-optional
-  
+
   security:
     name: Security checks
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-    
+
     - name: Run bandit
       run: |
         bandit -r core/ -f json -o bandit-report.json || true
         bandit -r core/ -ll -i
-    
+
     - name: Upload bandit report
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: bandit-security-report
         path: bandit-report.json
-  
+
   docker-build:
     name: Docker image build
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-    
+
     - name: Build Docker image
       uses: docker/build-push-action@v5
       with:
@@ -235,7 +235,7 @@ jobs:
         tags: real-estate-api:test
         cache-from: type=gha
         cache-to: type=gha,mode=max
-    
+
     - name: Test Docker image
       run: |
         docker run -d --name test-api -p 8000:8000 \
@@ -245,26 +245,26 @@ jobs:
           -e DB_USER=test \
           -e DB_PASSWORD=test \
           real-estate-api:test
-        
+
         # Wait for container to start
         sleep 10
-        
+
         # Check health endpoint
         curl -f http://localhost:8000/health || exit 1
-        
+
         # Check container logs
         docker logs test-api
-        
+
         # Cleanup
         docker stop test-api
         docker rm test-api
-    
+
     - name: Check image size
       run: |
         IMAGE_SIZE=$(docker image inspect real-estate-api:test --format='{{.Size}}')
         IMAGE_SIZE_MB=$((IMAGE_SIZE / 1024 / 1024))
         echo "Image size: ${IMAGE_SIZE_MB}MB"
-        
+
         if [ $IMAGE_SIZE_MB -gt 200 ]; then
           echo "::warning::Image size (${IMAGE_SIZE_MB}MB) exceeds 200MB target"
         else

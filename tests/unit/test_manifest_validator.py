@@ -17,12 +17,7 @@ from core.validators.manifest import (
 @pytest.fixture
 def valid_manifest_path():
     """Path to valid test manifest."""
-    return (
-        Path(__file__).parent.parent
-        / "fixtures"
-        / "plugins"
-        / "valid_source_plugin.yaml"
-    )
+    return Path(__file__).parent.parent / "fixtures" / "plugins" / "valid_source_plugin.yaml"
 
 
 @pytest.fixture
@@ -75,14 +70,8 @@ class TestValidateManifest:
 
     def test_custom_schema_path(self, valid_manifest_path):
         """Should accept custom schema path."""
-        schema_path = (
-            Path(__file__).parent.parent.parent
-            / "schemas"
-            / "plugin-manifest-v1.schema.json"
-        )
-        is_valid, errors = validate_manifest(
-            valid_manifest_path, schema_path=schema_path
-        )
+        schema_path = Path(__file__).parent.parent.parent / "schemas" / "plugin-manifest-v1.schema.json"
+        is_valid, errors = validate_manifest(valid_manifest_path, schema_path=schema_path)
         assert is_valid is True
         assert errors == []
 

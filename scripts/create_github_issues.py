@@ -2,7 +2,7 @@
 """
 Script to create GitHub Issues from CORE_DEVELOPMENT_PLAN.md
 Requires: pip install PyGithub python-dotenv
-Usage: 
+Usage:
   1. Create GitHub Personal Access Token with 'repo' scope
   2. Export token: export GITHUB_TOKEN=your_token_here
   3. Run: python scripts/create_github_issues.py
@@ -10,6 +10,7 @@ Usage:
 
 import os
 import sys
+
 from github import Github
 from github.GithubException import GithubException
 

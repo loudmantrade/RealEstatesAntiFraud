@@ -18,8 +18,8 @@ OTEL_ISSUES = [
 Integrate OpenTelemetry with automatic instrumentation for FastAPI, PostgreSQL, Redis, and HTTP clients to enable distributed tracing across the system.
 
 ## Related Task
-**Task ID**: 3.4  
-**Dependencies**: #19 (Structured logging), #20 (Request tracing)  
+**Task ID**: 3.4
+**Dependencies**: #19 (Structured logging), #20 (Request tracing)
 **Sprint**: S2 (Phase B)
 
 ## Acceptance Criteria
@@ -66,23 +66,23 @@ def configure_opentelemetry(
     otlp_endpoint: str = "http://localhost:4317"
 ):
     \"\"\"Configure OpenTelemetry with auto-instrumentation\"\"\"
-    
+
     # Create resource
     resource = Resource(attributes={
         SERVICE_NAME: service_name,
         SERVICE_VERSION: service_version,
     })
-    
+
     # Configure tracer provider
     provider = TracerProvider(resource=resource)
-    
+
     # Add OTLP exporter
     otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
     provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    
+
     # Set global tracer provider
     trace.set_tracer_provider(provider)
-    
+
     # Enable auto-instrumentation
     FastAPIInstrumentor.instrument()
     SQLAlchemyInstrumentor().instrument()
@@ -176,8 +176,8 @@ services:
 Add custom OpenTelemetry spans for plugin execution, fraud detection, and other business-critical operations to enable detailed distributed tracing.
 
 ## Related Task
-**Task ID**: 3.5  
-**Dependencies**: Task 3.4 (Base OTel integration)  
+**Task ID**: 3.5
+**Dependencies**: Task 3.4 (Base OTel integration)
 **Sprint**: S2 (Phase B)
 
 ## Acceptance Criteria
@@ -214,7 +214,7 @@ class PluginManager:
             span.set_attribute("plugin.id", plugin.id)
             span.set_attribute("plugin.type", plugin.type)
             span.set_attribute("plugin.version", plugin.version)
-            
+
             try:
                 # Registration logic
                 ...
@@ -223,15 +223,15 @@ class PluginManager:
                 span.set_status(Status(StatusCode.ERROR, str(e)))
                 span.record_exception(e)
                 raise
-    
+
     def execute_plugin(self, plugin_id: str, data: dict):
         with tracer.start_as_current_span("plugin.execute") as span:
             span.set_attribute("plugin.id", plugin_id)
             span.set_attribute("data.size", len(str(data)))
-            
+
             # Execution logic
             result = self._run_plugin(plugin_id, data)
-            
+
             span.set_attribute("result.status", result.get("status"))
             return result
 ```
@@ -247,23 +247,23 @@ class FraudDetector:
     def analyze(self, listing: dict):
         with tracer.start_as_current_span("fraud_detection.analyze") as span:
             span.set_attribute("listing.id", listing["id"])
-            
+
             # Run detection plugins
             signals = []
             for plugin in self.plugins:
                 with tracer.start_as_current_span(f"fraud_detection.plugin.{plugin.id}") as plugin_span:
                     plugin_span.set_attribute("plugin.id", plugin.id)
                     plugin_span.set_attribute("plugin.weight", plugin.weight)
-                    
+
                     signal = plugin.analyze(listing)
                     plugin_span.set_attribute("signal.confidence", signal["confidence"])
                     signals.append(signal)
-            
+
             # Calculate fraud score
             fraud_score = self._aggregate_signals(signals)
             span.set_attribute("fraud_score", fraud_score)
             span.set_attribute("risk_level", self._get_risk_level(fraud_score))
-            
+
             return {"fraud_score": fraud_score, "signals": signals}
 ```
 
@@ -279,15 +279,15 @@ class ProcessingOrchestrator:
         with tracer.start_as_current_span("pipeline.process") as span:
             span.set_attribute("listing.id", listing["id"])
             span.set_attribute("pipeline.stages", len(self.stages))
-            
+
             for stage in self.stages:
                 with tracer.start_as_current_span(f"pipeline.stage.{stage.name}") as stage_span:
                     stage_span.set_attribute("stage.name", stage.name)
                     stage_span.set_attribute("stage.priority", stage.priority)
-                    
+
                     listing = stage.process(listing)
                     stage_span.set_attribute("stage.status", "completed")
-            
+
             span.set_status(Status(StatusCode.OK))
             return listing
 ```
@@ -307,7 +307,7 @@ def trace_operation(operation_name: str, attributes: dict = None):
                 if attributes:
                     for key, value in attributes.items():
                         span.set_attribute(key, value)
-                
+
                 try:
                     result = func(*args, **kwargs)
                     span.set_status(Status(StatusCode.OK))
@@ -361,8 +361,8 @@ def normalize_listing(listing: dict) -> dict:
 Add custom OpenTelemetry metrics for monitoring plugin performance, fraud detection accuracy, and system health.
 
 ## Related Task
-**Task ID**: 3.6  
-**Dependencies**: Task 3.4 (Base OTel integration)  
+**Task ID**: 3.6
+**Dependencies**: Task 3.4 (Base OTel integration)
 **Sprint**: S3 (Phase C)
 
 ## Acceptance Criteria
@@ -389,13 +389,13 @@ def configure_metrics(
     otlp_endpoint: str = "http://localhost:4317"
 ):
     \"\"\"Configure OpenTelemetry metrics\"\"\"
-    
+
     # Create OTLP metric exporter
     metric_exporter = OTLPMetricExporter(endpoint=otlp_endpoint, insecure=True)
-    
+
     # Create metric reader with 60s export interval
     metric_reader = PeriodicExportingMetricReader(metric_exporter, export_interval_millis=60000)
-    
+
     # Create and set meter provider
     meter_provider = MeterProvider(metric_readers=[metric_reader])
     metrics.set_meter_provider(meter_provider)
@@ -442,7 +442,7 @@ class PluginManager:
         start_time = time.time()
         try:
             result = self._run_plugin(plugin_id, data)
-            
+
             # Record metrics
             plugin_executions.add(1, {"plugin.id": plugin_id, "status": "success"})
             plugin_execution_time.record(
@@ -496,15 +496,15 @@ detection_latency = meter.create_histogram(
 # Usage
 def analyze_listing(listing: dict):
     start_time = time.time()
-    
+
     fraud_score = calculate_fraud_score(listing)
     risk_level = get_risk_level(fraud_score)
-    
+
     # Record metrics
     fraud_score_distribution.record(fraud_score, {"listing.type": listing["type"]})
     fraud_classifications.add(1, {"risk_level": risk_level})
     detection_latency.record(time.time() - start_time)
-    
+
     return {"fraud_score": fraud_score, "risk_level": risk_level}
 ```
 
@@ -613,8 +613,8 @@ Create dashboards for:
 Integrate OpenTelemetry with structured logging to include trace_id and span_id in all log entries, enabling unified correlation between traces and logs.
 
 ## Related Task
-**Task ID**: 3.7  
-**Dependencies**: #19 (Structured logging), #20 (Request tracing), Task 3.4 (Base OTel integration)  
+**Task ID**: 3.7
+**Dependencies**: #19 (Structured logging), #20 (Request tracing), Task 3.4 (Base OTel integration)
 **Sprint**: S3 (Phase C)
 
 ## Acceptance Criteria
@@ -639,20 +639,20 @@ def configure_logging(
     otlp_endpoint: str = "http://localhost:4317"
 ):
     \"\"\"Configure OpenTelemetry logging\"\"\"
-    
+
     # Create logger provider
     logger_provider = LoggerProvider()
-    
+
     # Add OTLP log exporter
     log_exporter = OTLPLogExporter(endpoint=otlp_endpoint, insecure=True)
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
-    
+
     # Set global logger provider
     set_logger_provider(logger_provider)
-    
+
     # Create logging handler
     handler = LoggingHandler(level=logging.INFO, logger_provider=logger_provider)
-    
+
     # Attach to root logger
     logging.getLogger().addHandler(handler)
 ```
@@ -667,7 +667,7 @@ class JSONFormatter(logging.Formatter):
         # Get OTel context
         span = get_current_span()
         span_context = span.get_span_context()
-        
+
         log_data = {
             "timestamp": datetime.fromtimestamp(record.created).isoformat(),
             "level": record.levelname,
@@ -677,27 +677,27 @@ class JSONFormatter(logging.Formatter):
             "function": record.funcName,
             "line": record.lineno,
         }
-        
+
         # Add OTel trace context
         if span_context.is_valid:
             log_data["trace_id"] = format(span_context.trace_id, "032x")
             log_data["span_id"] = format(span_context.span_id, "016x")
             log_data["trace_flags"] = span_context.trace_flags
-        
+
         # Add request context (from #20)
         from core.utils.context import get_trace_id, get_request_id
         request_trace_id = get_trace_id()
         request_id = get_request_id()
-        
+
         if request_trace_id:
             log_data["request_trace_id"] = request_trace_id
         if request_id:
             log_data["request_id"] = request_id
-        
+
         # Add extra context
         if hasattr(record, "context") and record.context:
             log_data["context"] = record.context
-        
+
         # Add exception info
         if record.exc_info:
             log_data["exception"] = {
@@ -705,7 +705,7 @@ class JSONFormatter(logging.Formatter):
                 "message": str(record.exc_info[1]),
                 "traceback": self.formatException(record.exc_info),
             }
-        
+
         return json.dumps(log_data)
 ```
 
@@ -721,13 +721,13 @@ tracer = get_tracer(__name__)
 def process_listing(listing: dict):
     with tracer.start_as_current_span("process_listing") as span:
         span.set_attribute("listing.id", listing["id"])
-        
+
         # This log will include trace_id and span_id automatically
         logger.info(
             "Processing listing",
             extra={"context": {"listing_id": listing["id"], "source": listing["source"]}}
         )
-        
+
         try:
             result = do_processing(listing)
             logger.info("Processing completed successfully")
@@ -771,14 +771,14 @@ services:
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
-  
+
   promtail:
     image: grafana/promtail:latest
     volumes:
       - /var/log:/var/log
       - ./promtail-config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
-  
+
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -825,8 +825,8 @@ services:
 Deploy and configure OpenTelemetry Collector to centralize telemetry collection, processing, and export to multiple backends (Jaeger, Prometheus, Grafana Cloud, etc.).
 
 ## Related Task
-**Task ID**: 3.8  
-**Dependencies**: Task 3.4-3.7 (OTel integration)  
+**Task ID**: 3.8
+**Dependencies**: Task 3.4-3.7 (OTel integration)
 **Sprint**: S3 (Phase C)
 
 ## Acceptance Criteria
@@ -849,7 +849,7 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  
+
   prometheus:
     config:
       scrape_configs:
@@ -862,7 +862,7 @@ processors:
   batch:
     timeout: 10s
     send_batch_size: 1024
-  
+
   resource:
     attributes:
       - key: service.namespace
@@ -871,11 +871,11 @@ processors:
       - key: deployment.environment
         from_attribute: ENVIRONMENT
         action: insert
-  
+
   memory_limiter:
     check_interval: 1s
     limit_mib: 512
-  
+
   tail_sampling:
     decision_wait: 10s
     num_traces: 100
@@ -900,23 +900,23 @@ exporters:
     endpoint: jaeger:4317
     tls:
       insecure: true
-  
+
   prometheus:
     endpoint: "0.0.0.0:8889"
     namespace: real_estates
     const_labels:
       env: ${ENVIRONMENT}
-  
+
   loki:
     endpoint: http://loki:3100/loki/api/v1/push
     labels:
       resource:
         service.name: "service_name"
         service.namespace: "service_namespace"
-  
+
   logging:
     loglevel: info
-  
+
   # Optional: Grafana Cloud
   otlp/grafana:
     endpoint: ${GRAFANA_CLOUD_ENDPOINT}
@@ -929,17 +929,17 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource, tail_sampling]
       exporters: [otlp/jaeger, logging]
-    
+
     metrics:
       receivers: [otlp, prometheus]
       processors: [memory_limiter, batch, resource]
       exporters: [prometheus, logging]
-    
+
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch, resource]
       exporters: [loki, logging]
-  
+
   extensions: [health_check, pprof, zpages]
   telemetry:
     logs:
@@ -950,10 +950,10 @@ service:
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
-  
+
   pprof:
     endpoint: 0.0.0.0:1777
-  
+
   zpages:
     endpoint: 0.0.0.0:55679
 ```
@@ -981,7 +981,7 @@ services:
       - jaeger
       - prometheus
       - loki
-  
+
   jaeger:
     image: jaegertracing/all-in-one:latest
     ports:
@@ -989,7 +989,7 @@ services:
       - "14250:14250"  # gRPC
     environment:
       - COLLECTOR_OTLP_ENABLED=true
-  
+
   prometheus:
     image: prom/prometheus:latest
     volumes:
@@ -999,13 +999,13 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-  
+
   loki:
     image: grafana/loki:latest
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
-  
+
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -1114,11 +1114,11 @@ scrape_configs:
   - job_name: 'otel-collector'
     static_configs:
       - targets: ['otel-collector:8888']
-  
+
   - job_name: 'otel-metrics'
     static_configs:
       - targets: ['otel-collector:8889']
-  
+
   - job_name: 'fastapi'
     static_configs:
       - targets: ['api:8000']
@@ -1134,12 +1134,12 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-  
+
   - name: Jaeger
     type: jaeger
     access: proxy
     url: http://jaeger:16686
-  
+
   - name: Loki
     type: loki
     access: proxy
@@ -1198,16 +1198,16 @@ def create_issue(issue_data: Dict) -> None:
     cmd = ["gh", "issue", "create"]
     cmd.extend(["--title", issue_data["title"]])
     cmd.extend(["--body", issue_data["body"]])
-    
+
     for label in issue_data["labels"]:
         cmd.extend(["--label", label])
-    
+
     if issue_data["milestone"]:
         cmd.extend(["--milestone", issue_data["milestone"]])
-    
+
     for assignee in issue_data["assignees"]:
         cmd.extend(["--assignee", assignee])
-    
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         issue_url = result.stdout.strip()
@@ -1224,11 +1224,11 @@ def main():
     print("🚀 Creating OpenTelemetry Integration GitHub Issues\n")
     print("=" * 70)
     print(f"Total issues to create: {len(OTEL_ISSUES)}\n")
-    
+
     for i, issue in enumerate(OTEL_ISSUES, 1):
         print(f"[{i}/{len(OTEL_ISSUES)}] Creating issue...")
         create_issue(issue)
-    
+
     print("=" * 70)
     print(f"\n✅ Successfully created {len(OTEL_ISSUES)} issues!")
     print("\n📋 Summary:")
@@ -1237,7 +1237,9 @@ def main():
     print(f"   - Custom metrics (performance, accuracy)")
     print(f"   - Logs integration (unified correlation)")
     print(f"   - Collector deployment (centralized telemetry)")
-    print("\n🔗 View all issues: https://github.com/loudmantrade/RealEstatesAntiFraud/issues?q=is%3Aissue+label%3Aopentelemetry")
+    print(
+        "\n🔗 View all issues: https://github.com/loudmantrade/RealEstatesAntiFraud/issues?q=is%3Aissue+label%3Aopentelemetry"
+    )
 
 
 if __name__ == "__main__":

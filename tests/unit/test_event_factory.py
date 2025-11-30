@@ -352,12 +352,8 @@ class TestMetadataGeneration:
         trace_id = str(uuid.uuid4())
 
         raw = factory.create_raw_event(trace_id=trace_id)
-        normalized = factory.create_normalized_event(
-            trace_id=trace_id, parent_event_id=raw.metadata.event_id
-        )
-        processed = factory.create_processed_event(
-            trace_id=trace_id, parent_event_id=normalized.metadata.event_id
-        )
+        normalized = factory.create_normalized_event(trace_id=trace_id, parent_event_id=raw.metadata.event_id)
+        processed = factory.create_processed_event(trace_id=trace_id, parent_event_id=normalized.metadata.event_id)
 
         assert raw.metadata.trace_id == trace_id
         assert normalized.metadata.trace_id == trace_id

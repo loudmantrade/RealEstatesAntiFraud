@@ -13,12 +13,7 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from core.config import (
-    ConfigError,
-    ConfigManager,
-    ConfigNotFoundError,
-    ConfigValidationError,
-)
+from core.config import ConfigError, ConfigManager, ConfigNotFoundError, ConfigValidationError
 from core.config.config_manager import CoreConfig, PluginConfig
 
 
@@ -71,9 +66,7 @@ class TestPluginConfigSchema:
 
     def test_plugin_config_creation(self):
         """Test creating plugin config."""
-        config = PluginConfig(
-            plugin_id="test-plugin", enabled=True, config={"key": "value"}
-        )
+        config = PluginConfig(plugin_id="test-plugin", enabled=True, config={"key": "value"})
         assert config.plugin_id == "test-plugin"
         assert config.enabled is True
         assert config.config == {"key": "value"}
@@ -327,9 +320,7 @@ class TestPluginConfiguration:
             manager = ConfigManager(config_dir=config_dir, force_new=True)
             manager.load()
 
-            plugin_config = manager.load_plugin_config(
-                "test-plugin", "plugin-test.yaml"
-            )
+            plugin_config = manager.load_plugin_config("test-plugin", "plugin-test.yaml")
 
             assert plugin_config.config["api_key"] == "env_secret"
             assert plugin_config.config["rate_limit"] == 200

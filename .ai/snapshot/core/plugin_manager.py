@@ -30,10 +30,10 @@ class PluginManager:
     def register(self, metadata: PluginMetadata) -> PluginMetadata:
         """
         Register a plugin with the manager.
-        
+
         Args:
             metadata: Plugin metadata to register
-            
+
         Returns:
             Registered plugin metadata
         """
@@ -50,16 +50,16 @@ class PluginManager:
     def register_from_manifest(self, manifest_path: Path) -> PluginMetadata:
         """
         Register a plugin from manifest file with validation.
-        
+
         Args:
             manifest_path: Path to plugin.yaml file
-            
+
         Returns:
             Registered plugin metadata
-            
+
         Raises:
             ManifestValidationError: If manifest validation fails
-        
+
         Example:
             >>> manager = PluginManager()
             >>> try:
@@ -73,12 +73,12 @@ class PluginManager:
         if not is_valid:
             error_msg = f"Invalid manifest at {manifest_path}"
             raise ManifestValidationError(error_msg, errors)
-        
+
         # Load and parse manifest
         import yaml
         with open(manifest_path) as f:
             manifest_data = yaml.safe_load(f)
-        
+
         # Create metadata from manifest
         # For now, create basic PluginMetadata (will be extended later)
         metadata = PluginMetadata(
@@ -89,7 +89,7 @@ class PluginManager:
             enabled=True,  # Default enabled
             config=manifest_data.get("config", {})
         )
-        
+
         return self.register(metadata)
 
     def list(self) -> List[PluginMetadata]:
@@ -122,18 +122,18 @@ class PluginManager:
             if removed and self._dependency_graph.has_plugin(plugin_id):
                 self._dependency_graph.remove_plugin(plugin_id)
             return removed
-    
+
     def build_dependency_graph(self) -> None:
         """
         Build dependency graph from registered plugins.
-        
+
         Parses plugin dependencies and constructs DAG for load order determination.
         Must be called before load_plugins() if plugins have dependencies.
-        
+
         Raises:
             MissingDependencyError: If plugin depends on unregistered plugin
             CyclicDependencyError: If circular dependencies detected
-            
+
         Example:
             >>> manager = PluginManager()
             >>> # Register plugins with dependencies...
@@ -146,7 +146,7 @@ class PluginManager:
         with self._lock:
             # Clear existing graph
             self._dependency_graph = DependencyGraph()
-            
+
             # Add all plugins to graph
             # First pass: add all nodes without dependencies
             for plugin_id, metadata in self._plugins.items():
@@ -158,7 +158,7 @@ class PluginManager:
                 elif isinstance(metadata.config, dict):
                     # Check if dependencies stored in config
                     deps = metadata.config.get('dependencies', [])
-                
+
                 self._dependency_graph.add_plugin(
                     plugin_id=plugin_id,
                     version=metadata.version,
@@ -167,7 +167,7 @@ class PluginManager:
                 logger.debug(
                     f"Added {plugin_id} to graph with {len(deps)} dependencies"
                 )
-            
+
             # Build and validate graph
             try:
                 self._dependency_graph.build()
@@ -185,13 +185,13 @@ class PluginManager:
     def get_load_order(self) -> List[str]:
         """
         Get plugin load order based on dependency graph.
-        
+
         Returns:
             List of plugin IDs in topological order (dependencies first)
-            
+
         Raises:
             RuntimeError: If dependency graph not built
-            
+
         Example:
             >>> manager = PluginManager()
             >>> manager.build_dependency_graph()
@@ -204,7 +204,7 @@ class PluginManager:
     def reload_plugin(self, plugin_id: str) -> PluginMetadata:
         """
         Hot reload a plugin without restarting the service.
-        
+
         Process:
         1. Check plugin exists and has instance
         2. Call shutdown() on old instance for graceful cleanup
@@ -212,17 +212,17 @@ class PluginManager:
         4. Create new instance with updated code
         5. Replace old instance with new one
         6. Update metadata if manifest changed
-        
+
         Args:
             plugin_id: ID of plugin to reload
-            
+
         Returns:
             Updated plugin metadata after reload
-            
+
         Raises:
             ValueError: If plugin not found or not loaded
             RuntimeError: If reload fails
-            
+
         Example:
             >>> manager = PluginManager()
             >>> # After modifying plugin code...
@@ -234,7 +234,7 @@ class PluginManager:
             metadata = self._plugins.get(plugin_id)
             if not metadata:
                 raise ValueError(f"Plugin '{plugin_id}' not found")
-            
+
             # Check plugin has instance (was loaded)
             old_instance = self._instances.get(plugin_id)
             if not old_instance:
@@ -242,7 +242,7 @@ class PluginManager:
                     f"Plugin '{plugin_id}' not loaded, cannot reload. "
                     "Use load_plugins() first."
                 )
-            
+
             # Get stored module reference
             old_module = self._modules.get(plugin_id)
             if not old_module:
@@ -250,9 +250,9 @@ class PluginManager:
                     f"Plugin '{plugin_id}' has no module reference. "
                     "Cannot reload."
                 )
-            
+
             logger.info(f"Starting hot reload for plugin: {plugin_id}")
-            
+
             try:
                 # Step 1: Graceful shutdown of old instance
                 if hasattr(old_instance, 'shutdown'):
@@ -266,7 +266,7 @@ class PluginManager:
                             "Continuing with reload...",
                             exc_info=True
                         )
-                
+
                 # Step 2: Reload Python module to get updated code
                 try:
                     module_name = getattr(old_module, '__name__', 'unknown')
@@ -277,21 +277,21 @@ class PluginManager:
                     raise RuntimeError(
                         f"Failed to reload module for {plugin_id}: {e}"
                     ) from e
-                
+
                 # Step 3: Find manifest to re-validate and get entrypoint
                 # For now, we need to find the manifest path
                 # TODO: Store manifest path in metadata for easier reload
                 # As a workaround, we'll use the stored module to get class
-                
+
                 # Get updated class from reloaded module
                 plugin_class_name = type(old_instance).__name__
                 if not hasattr(reloaded_module, plugin_class_name):
                     raise RuntimeError(
                         f"Class '{plugin_class_name}' not found in reloaded module"
                     )
-                
+
                 updated_plugin_class = getattr(reloaded_module, plugin_class_name)
-                
+
                 # Step 4: Create new instance
                 try:
                     new_instance = updated_plugin_class()
@@ -300,17 +300,17 @@ class PluginManager:
                     raise RuntimeError(
                         f"Failed to instantiate new plugin instance: {e}"
                     ) from e
-                
+
                 # Step 5: Replace old instance with new one
                 self._instances[plugin_id] = new_instance
                 self._modules[plugin_id] = reloaded_module
-                
+
                 logger.info(f"Hot reload completed successfully for {plugin_id}")
-                
+
                 # Return updated metadata
                 # Note: metadata version stays same unless manifest changed
                 return metadata
-                
+
             except Exception as e:
                 # On any error, try to restore old instance if possible
                 logger.error(
@@ -325,16 +325,16 @@ class PluginManager:
     def discover_plugins(self, plugins_dir: Path) -> List[Path]:
         """
         Recursively discover plugin manifests in plugins directory.
-        
+
         Scans the directory tree looking for plugin.yaml files and validates them.
         Returns paths to valid manifests only; logs errors for invalid ones.
-        
+
         Args:
             plugins_dir: Root directory to scan for plugins
-            
+
         Returns:
             List of paths to valid plugin.yaml files
-            
+
         Example:
             >>> manager = PluginManager()
             >>> manifests = manager.discover_plugins(Path("plugins"))

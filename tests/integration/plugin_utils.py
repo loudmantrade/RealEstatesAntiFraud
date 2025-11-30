@@ -45,9 +45,7 @@ class PluginTestHelper:
         fixture_base = Path(__file__).parent.parent / "fixtures" / "plugins"
         return fixture_base / plugin_name
 
-    def copy_plugin_fixture(
-        self, plugin_name: str, dest_name: Optional[str] = None
-    ) -> Path:
+    def copy_plugin_fixture(self, plugin_name: str, dest_name: Optional[str] = None) -> Path:
         """Copy a plugin fixture to the test directory.
 
         Args:

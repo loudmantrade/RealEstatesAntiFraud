@@ -115,7 +115,7 @@ async def test_isolated(redis_clean):
     # Redis is empty at start
     keys = await redis_clean.keys("*")
     assert keys == []
-    
+
     # Your test code...
 ```
 
@@ -158,7 +158,7 @@ class TestMyFeature:
         """Test with clean Redis state."""
         # Set data
         await redis_clean.set("user:1", "John")
-        
+
         # Get data
         name = await redis_clean.get("user:1")
         assert name == "John"
@@ -172,11 +172,11 @@ async def test_queue_push_pop(redis_clean):
     """Test queue operations."""
     # Push to queue
     await redis_clean.lpush("queue:tasks", "task1", "task2")
-    
+
     # Pop from queue
     task = await redis_clean.rpop("queue:tasks")
     assert task == "task1"
-    
+
     # Check remaining
     length = await redis_clean.llen("queue:tasks")
     assert length == 1
@@ -190,11 +190,11 @@ async def test_cache_with_ttl(redis_clean):
     """Test cached data with TTL."""
     # Set with 60 second expiry
     await redis_clean.setex("cache:key", 60, "cached_value")
-    
+
     # Verify TTL
     ttl = await redis_clean.ttl("cache:key")
     assert 0 < ttl <= 60
-    
+
     # Get value
     value = await redis_clean.get("cache:key")
     assert value == "cached_value"
@@ -207,13 +207,13 @@ async def test_cache_with_ttl(redis_clean):
 async def test_transaction(redis_clean):
     """Test atomic operations."""
     pipeline = redis_clean.pipeline(transaction=True)
-    
+
     pipeline.set("counter", 0)
     pipeline.incr("counter")
     pipeline.incr("counter")
-    
+
     results = await pipeline.execute()
-    
+
     counter = await redis_clean.get("counter")
     assert counter == "2"
 ```
@@ -351,7 +351,7 @@ async def test_cleanup(redis_clean):
     # Start clean
     keys = await redis_clean.keys("*")
     assert len(keys) == 0
-    
+
     # Test operations...
 ```
 

@@ -1,6 +1,7 @@
 """
 Test script for validating plugin manifests against JSON Schema.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -9,14 +10,15 @@ import yaml
 
 try:
     import jsonschema
-    from jsonschema import validate, ValidationError
+    from jsonschema import ValidationError, validate
 except ImportError:
     print("❌ jsonschema package not installed")
     print("Installing jsonschema...")
     import subprocess
+
     subprocess.check_call([sys.executable, "-m", "pip", "install", "jsonschema"])
     import jsonschema
-    from jsonschema import validate, ValidationError
+    from jsonschema import ValidationError, validate
 
 
 def load_schema():
@@ -35,7 +37,7 @@ def load_manifest(manifest_path: Path):
 def validate_manifest(manifest_path: Path, schema: dict) -> tuple[bool, str]:
     """
     Validate manifest against schema.
-    
+
     Returns:
         (is_valid, message)
     """
@@ -53,7 +55,7 @@ def main():
     """Run validation tests."""
     print("🧪 Testing Plugin Manifest Validation\n")
     print("=" * 70)
-    
+
     # Load schema
     try:
         schema = load_schema()
@@ -63,17 +65,17 @@ def main():
     except Exception as e:
         print(f"❌ Failed to load schema: {e}")
         return 1
-    
+
     # Find test manifests
     fixtures_dir = Path(__file__).parent.parent / "tests" / "fixtures" / "plugins"
     manifest_files = sorted(fixtures_dir.glob("*.yaml"))
-    
+
     if not manifest_files:
         print(f"⚠️  No test manifests found in {fixtures_dir}")
         return 1
-    
+
     print(f"📁 Found {len(manifest_files)} test manifest(s)\n")
-    
+
     # Validate each manifest
     results = []
     for manifest_path in manifest_files:
@@ -82,30 +84,26 @@ def main():
         results.append((manifest_path.name, is_valid, message))
         print(f"  {message}")
         print()
-    
+
     # Summary
     print("=" * 70)
     print("\n📊 Summary:\n")
-    
+
     valid_count = sum(1 for _, is_valid, _ in results if is_valid)
     invalid_count = len(results) - valid_count
-    
+
     print(f"Total: {len(results)}")
     print(f"✅ Valid: {valid_count}")
     print(f"❌ Invalid: {invalid_count}")
     print()
-    
+
     # Expected results
     expected_valid = ["valid_source_plugin.yaml"]
-    expected_invalid = [
-        "invalid_missing_fields.yaml",
-        "invalid_id_pattern.yaml", 
-        "invalid_version.yaml"
-    ]
-    
+    expected_invalid = ["invalid_missing_fields.yaml", "invalid_id_pattern.yaml", "invalid_version.yaml"]
+
     print("🎯 Expected Results Check:")
     all_correct = True
-    
+
     for name, is_valid, _ in results:
         if name in expected_valid:
             if is_valid:
@@ -119,7 +117,7 @@ def main():
             else:
                 print(f"  ❌ {name} - should be INVALID but got VALID")
                 all_correct = False
-    
+
     print()
     if all_correct:
         print("🎉 All tests passed! Schema validation works correctly.")

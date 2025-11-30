@@ -1,7 +1,7 @@
 """Create listings table
 
 Revision ID: 62b16f27f039
-Revises: 
+Revises:
 Create Date: 2025-11-28 11:56:31.864682
 
 """

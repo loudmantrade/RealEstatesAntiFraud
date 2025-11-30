@@ -17,14 +17,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-from core.models.events import (
-    EventMetadata,
-    EventStatus,
-    EventType,
-    ProcessedListingEvent,
-    RawListingEvent,
-    Topics,
-)
+from core.models.events import EventMetadata, EventStatus, EventType, ProcessedListingEvent, RawListingEvent, Topics
 from core.pipeline.orchestrator import ProcessingOrchestrator
 from core.plugin_manager import PluginManager
 from core.queue.in_memory_queue import InMemoryQueuePlugin
@@ -326,9 +319,7 @@ class TestOrchestratorIntegration:
         queue.create_topic(Topics.PROCESSING_FAILED)
 
         manager = PluginManager()
-        orchestrator = ProcessingOrchestrator(
-            plugin_manager=manager, queue=queue, max_retries=3
-        )
+        orchestrator = ProcessingOrchestrator(plugin_manager=manager, queue=queue, max_retries=3)
 
         yield orchestrator, queue
 
@@ -502,9 +493,7 @@ class TestEndToEndIntegration:
 
             # Monitor
             processed = []
-            queue.subscribe(
-                Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg))
 
             # Publish events
             for i in range(10):
@@ -560,9 +549,7 @@ class TestEndToEndIntegration:
 
             # Monitor
             processed = []
-            queue.subscribe(
-                Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg)
-            )
+            queue.subscribe(Topics.PROCESSED_LISTINGS, lambda msg: processed.append(msg))
 
             # Publish
             for i in range(5):

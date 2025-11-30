@@ -24,10 +24,10 @@ class PluginNode:
     plugin_id: str
     version: str
     dependencies: List[str]  # List of plugin IDs this plugin depends on
-    
+
     def __hash__(self):
         return hash(self.plugin_id)
-    
+
     def __eq__(self, other):
         if not isinstance(other, PluginNode):
             return False
@@ -56,17 +56,17 @@ class MissingDependencyError(Exception):
 class DependencyGraph:
     """
     Manages plugin dependency graph with DAG structure.
-    
+
     Features:
     - Add plugins with their dependencies
     - Build DAG and validate structure
     - Compute topological order for loading
     - Detect circular dependencies
     - Visualize graph structure
-    
+
     Thread-safety: Not thread-safe. External synchronization required.
     """
-    
+
     def __init__(self):
         """Initialize empty dependency graph."""
         self._nodes: Dict[str, PluginNode] = {}
@@ -75,7 +75,7 @@ class DependencyGraph:
         self._load_order: Optional[List[str]] = None
         self._is_built = False
         logger.debug("Initialized DependencyGraph")
-    
+
     def add_plugin(
         self,
         plugin_id: str,
@@ -84,118 +84,118 @@ class DependencyGraph:
     ) -> None:
         """
         Add a plugin node to the graph.
-        
+
         Args:
             plugin_id: Unique plugin identifier
             version: Plugin version (semver)
             dependencies: List of plugin IDs this plugin depends on
-            
+
         Raises:
             ValueError: If plugin_id already exists
         """
         if plugin_id in self._nodes:
             raise ValueError(f"Plugin '{plugin_id}' already exists in graph")
-        
+
         deps = dependencies or []
         node = PluginNode(
             plugin_id=plugin_id,
             version=version,
             dependencies=deps
         )
-        
+
         self._nodes[plugin_id] = node
-        
+
         # Build adjacency lists
         for dep_id in deps:
             self._adjacency[plugin_id].add(dep_id)
             self._reverse_adjacency[dep_id].add(plugin_id)
-        
+
         # Invalidate cached load order
         self._load_order = None
         self._is_built = False
-        
+
         logger.debug(
             f"Added plugin '{plugin_id}' v{version} with {len(deps)} dependencies"
         )
-    
+
     def remove_plugin(self, plugin_id: str) -> None:
         """
         Remove a plugin from the graph.
-        
+
         Args:
             plugin_id: Plugin identifier to remove
-            
+
         Raises:
             KeyError: If plugin doesn't exist
         """
         if plugin_id not in self._nodes:
             raise KeyError(f"Plugin '{plugin_id}' not found in graph")
-        
+
         # Remove from adjacency lists
         for dep_id in self._nodes[plugin_id].dependencies:
             self._reverse_adjacency[dep_id].discard(plugin_id)
-        
+
         # Remove reverse adjacency entries
         if plugin_id in self._reverse_adjacency:
             for dependent_id in self._reverse_adjacency[plugin_id]:
                 self._adjacency[dependent_id].discard(plugin_id)
             del self._reverse_adjacency[plugin_id]
-        
+
         # Remove adjacency entry
         if plugin_id in self._adjacency:
             del self._adjacency[plugin_id]
-        
+
         # Remove node
         del self._nodes[plugin_id]
-        
+
         # Invalidate cache
         self._load_order = None
         self._is_built = False
-        
+
         logger.debug(f"Removed plugin '{plugin_id}' from graph")
-    
+
     def has_plugin(self, plugin_id: str) -> bool:
         """Check if plugin exists in graph."""
         return plugin_id in self._nodes
-    
+
     def get_dependencies(self, plugin_id: str) -> List[str]:
         """
         Get direct dependencies of a plugin.
-        
+
         Args:
             plugin_id: Plugin identifier
-            
+
         Returns:
             List of plugin IDs that this plugin depends on
-            
+
         Raises:
             KeyError: If plugin doesn't exist
         """
         if plugin_id not in self._nodes:
             raise KeyError(f"Plugin '{plugin_id}' not found in graph")
         return list(self._nodes[plugin_id].dependencies)
-    
+
     def get_dependents(self, plugin_id: str) -> List[str]:
         """
         Get plugins that depend on this plugin.
-        
+
         Args:
             plugin_id: Plugin identifier
-            
+
         Returns:
             List of plugin IDs that depend on this plugin
-            
+
         Raises:
             KeyError: If plugin doesn't exist
         """
         if plugin_id not in self._nodes:
             raise KeyError(f"Plugin '{plugin_id}' not found in graph")
         return list(self._reverse_adjacency.get(plugin_id, []))
-    
+
     def validate_dependencies(self) -> None:
         """
         Validate that all dependencies exist in the graph.
-        
+
         Raises:
             MissingDependencyError: If any plugin has missing dependencies
         """
@@ -206,24 +206,24 @@ class DependencyGraph:
             ]
             if missing:
                 raise MissingDependencyError(plugin_id, missing)
-        
+
         logger.debug("All dependencies validated successfully")
-    
+
     def detect_cycle(self) -> Optional[List[str]]:
         """
         Detect circular dependencies using DFS.
-        
+
         Returns:
             List of plugin IDs forming a cycle, or None if no cycle exists
         """
         WHITE, GRAY, BLACK = 0, 1, 2
         color: Dict[str, int] = {node: WHITE for node in self._nodes}
         parent: Dict[str, Optional[str]] = {node: None for node in self._nodes}
-        
+
         def dfs(node: str) -> Optional[List[str]]:
             """DFS to detect back edges (cycles)."""
             color[node] = GRAY
-            
+
             for neighbor in self._adjacency.get(node, []):
                 if color[neighbor] == GRAY:
                     # Back edge found - reconstruct cycle
@@ -234,110 +234,110 @@ class DependencyGraph:
                         current = parent[current]
                     cycle.reverse()
                     return cycle
-                
+
                 if color[neighbor] == WHITE:
                     parent[neighbor] = node
                     cycle = dfs(neighbor)
                     if cycle:
                         return cycle
-            
+
             color[node] = BLACK
             return None
-        
+
         # Try DFS from each unvisited node
         for node in self._nodes:
             if color[node] == WHITE:
                 cycle = dfs(node)
                 if cycle:
                     return cycle
-        
+
         return None
-    
+
     def build(self) -> None:
         """
         Build and validate the dependency graph.
-        
+
         Raises:
             MissingDependencyError: If dependencies are missing
             CyclicDependencyError: If circular dependencies exist
         """
         logger.info(f"Building dependency graph with {len(self._nodes)} plugins")
-        
+
         # Validate all dependencies exist
         self.validate_dependencies()
-        
+
         # Detect cycles
         cycle = self.detect_cycle()
         if cycle:
             raise CyclicDependencyError(cycle)
-        
+
         self._is_built = True
         logger.info("Dependency graph built successfully")
-    
+
     def get_load_order(self) -> List[str]:
         """
         Get topologically sorted plugin load order using Kahn's algorithm.
-        
+
         Returns:
             List of plugin IDs in load order (dependencies first)
-            
+
         Raises:
             RuntimeError: If graph hasn't been built
             CyclicDependencyError: If circular dependencies exist
         """
         if not self._is_built:
             raise RuntimeError("Graph must be built before getting load order")
-        
+
         # Return cached result if available
         if self._load_order is not None:
             return self._load_order.copy()
-        
+
         # Kahn's algorithm for topological sort
         in_degree: Dict[str, int] = {
             node: len(deps)
             for node, deps in self._adjacency.items()
         }
-        
+
         # Add nodes with no dependencies
         for node in self._nodes:
             if node not in in_degree:
                 in_degree[node] = 0
-        
+
         # Queue of nodes with no dependencies
         queue: deque = deque([
             node for node, degree in in_degree.items()
             if degree == 0
         ])
-        
+
         result: List[str] = []
-        
+
         while queue:
             # Remove node with no dependencies
             current = queue.popleft()
             result.append(current)
-            
+
             # Reduce in-degree for dependents
             for dependent in self._reverse_adjacency.get(current, []):
                 in_degree[dependent] -= 1
                 if in_degree[dependent] == 0:
                     queue.append(dependent)
-        
+
         # If not all nodes processed, there's a cycle
         if len(result) != len(self._nodes):
             # This shouldn't happen if build() was called, but double-check
             cycle = self.detect_cycle()
             raise CyclicDependencyError(cycle or ["unknown"])
-        
+
         # Cache result
         self._load_order = result
         logger.debug(f"Computed load order: {' -> '.join(result)}")
-        
+
         return result.copy()
-    
+
     def export_dot(self) -> str:
         """
         Export graph in DOT format for Graphviz visualization.
-        
+
         Returns:
             DOT format string
         """
@@ -345,31 +345,31 @@ class DependencyGraph:
         lines.append('  rankdir=LR;')
         lines.append('  node [shape=box, style=rounded];')
         lines.append('')
-        
+
         # Add nodes
         for plugin_id, node in self._nodes.items():
             label = f"{plugin_id}\\nv{node.version}"
             lines.append(f'  "{plugin_id}" [label="{label}"];')
-        
+
         lines.append('')
-        
+
         # Add edges (dependencies)
         for plugin_id, deps in self._adjacency.items():
             for dep_id in deps:
                 lines.append(f'  "{plugin_id}" -> "{dep_id}";')
-        
+
         lines.append('}')
-        
+
         return '\n'.join(lines)
-    
+
     def __len__(self) -> int:
         """Return number of plugins in graph."""
         return len(self._nodes)
-    
+
     def __contains__(self, plugin_id: str) -> bool:
         """Check if plugin exists in graph."""
         return plugin_id in self._nodes
-    
+
     def __repr__(self) -> str:
         """String representation of graph."""
         return (

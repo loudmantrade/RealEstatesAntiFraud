@@ -12,13 +12,13 @@ Unified Data Model (UDM) - это стандартизированная мод�
   "type": "object",
   "required": ["listing_id", "source", "type", "property_type", "location", "price"],
   "properties": {
-    
+
     "listing_id": {
       "type": "string",
       "format": "uuid",
       "description": "Уникальный идентификатор объявления в системе"
     },
-    
+
     "source": {
       "type": "object",
       "required": ["plugin_id", "platform", "original_id", "url"],
@@ -48,13 +48,13 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "type": {
       "type": "string",
       "enum": ["sale", "rent", "daily_rent"],
       "description": "Тип сделки"
     },
-    
+
     "property_type": {
       "type": "string",
       "enum": [
@@ -74,7 +74,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
       ],
       "description": "Тип недвижимости"
     },
-    
+
     "location": {
       "type": "object",
       "required": ["country", "city"],
@@ -162,7 +162,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "price": {
       "type": "object",
       "required": ["amount", "currency"],
@@ -220,7 +220,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "details": {
       "type": "object",
       "properties": {
@@ -359,7 +359,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "description": {
       "type": "object",
       "properties": {
@@ -398,7 +398,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "media": {
       "type": "object",
       "properties": {
@@ -478,7 +478,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "seller": {
       "type": "object",
       "required": ["type"],
@@ -563,7 +563,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "legal": {
       "type": "object",
       "properties": {
@@ -589,7 +589,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "metadata": {
       "type": "object",
       "required": ["scraped_at"],
@@ -646,7 +646,7 @@ Unified Data Model (UDM) - это стандартизированная мод�
         }
       }
     },
-    
+
     "fraud_detection": {
       "type": "object",
       "description": "Результаты детекции мошенничества",
@@ -863,7 +863,7 @@ def validate_udm(listing: dict) -> bool:
     """Validate listing against UDM schema"""
     with open('udm_schema.json') as f:
         schema = json.load(f)
-    
+
     try:
         validate(instance=listing, schema=schema)
         return True
@@ -879,7 +879,7 @@ def validate_udm(listing: dict) -> bool:
 ```python
 class UDMMapper:
     """Helper class for mapping to UDM format"""
-    
+
     @staticmethod
     def create_listing(
         listing_id: str,
@@ -891,7 +891,7 @@ class UDMMapper:
         **kwargs
     ) -> dict:
         """Create UDM listing with required fields"""
-        
+
         listing = {
             'listing_id': listing_id,
             'source': source,
@@ -903,7 +903,7 @@ class UDMMapper:
                 'scraped_at': datetime.utcnow().isoformat() + 'Z'
             }
         }
-        
+
         # Add optional fields
         if 'details' in kwargs:
             listing['details'] = kwargs['details']
@@ -913,7 +913,7 @@ class UDMMapper:
             listing['media'] = kwargs['media']
         if 'seller' in kwargs:
             listing['seller'] = kwargs['seller']
-            
+
         return listing
 ```
 

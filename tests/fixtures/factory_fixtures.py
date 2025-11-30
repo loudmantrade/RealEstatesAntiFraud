@@ -216,9 +216,7 @@ def fraud_candidates(listing_factory):
             assert len(fraud_candidates) == 3
             # All should have suspicious characteristics
     """
-    return listing_factory.create_fraud_candidates(
-        count=3, fraud_type="unrealistic_price"
-    )
+    return listing_factory.create_fraud_candidates(count=3, fraud_type="unrealistic_price")
 
 
 @pytest.fixture

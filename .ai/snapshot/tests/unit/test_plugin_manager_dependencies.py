@@ -52,17 +52,17 @@ def temp_plugins_dir():
 def create_plugin_manifest(plugin_dir: Path, plugin_data: dict):
     """Helper to create plugin manifest and module."""
     plugin_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Write manifest
     manifest_path = plugin_dir / "plugin.yaml"
     with open(manifest_path, 'w') as f:
         yaml.dump(plugin_data, f)
-    
+
     # Write Python module if entrypoint specified
     if "entrypoint" in plugin_data:
         module_name = plugin_data["entrypoint"]["module"]
         class_name = plugin_data["entrypoint"]["class"]
-        
+
         # Create module file
         module_file = plugin_dir / f"{module_name}.py"
         module_content = f"""
@@ -71,7 +71,7 @@ from core.interfaces.source_plugin import SourcePlugin
 class {class_name}(SourcePlugin):
     def scrape(self, config):
         return []
-    
+
     def validate(self, listing):
         return True
 """
@@ -81,7 +81,7 @@ class {class_name}(SourcePlugin):
 
 class TestPluginManagerDependencies:
     """Test plugin loading with dependencies."""
-    
+
     def test_load_plugins_no_dependencies(self, temp_plugins_dir):
         """Test loading plugins without dependencies."""
         # Create plugins
@@ -100,7 +100,7 @@ class TestPluginManagerDependencies:
                 }
             }
         )
-        
+
         create_plugin_manifest(
             temp_plugins_dir / "plugin-b",
             {
@@ -116,11 +116,11 @@ class TestPluginManagerDependencies:
                 }
             }
         )
-        
+
         # Load plugins
         manager = PluginManager()
         loaded, failed = manager.load_plugins(plugins_dir=temp_plugins_dir)
-        
+
         assert len(loaded) == 2
         assert len(failed) == 0
         assert manager.get("plugin-source-a") is not None

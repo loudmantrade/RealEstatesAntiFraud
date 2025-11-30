@@ -212,17 +212,17 @@ All events include standard metadata for tracing and tracking:
     "timestamp": "2025-11-28T...",
     "source_plugin_id": "cian",
     "source_platform": "cian.ru",
-    
+
     # Tracing (from #20)
     "trace_id": "trace-123",
     "request_id": "req-456",
     "parent_event_id": "uuid",
-    
+
     # Retry logic
     "retry_count": 0,
     "max_retries": 3,
     "status": "pending",
-    
+
     # Context
     "tags": {"environment": "production"},
     "version": "1.0"

@@ -19,12 +19,7 @@ def plugin_manager():
 @pytest.fixture
 def valid_manifest_path():
     """Path to valid test manifest."""
-    return (
-        Path(__file__).parent.parent
-        / "fixtures"
-        / "plugins"
-        / "valid_source_plugin.yaml"
-    )
+    return Path(__file__).parent.parent / "fixtures" / "plugins" / "valid_source_plugin.yaml"
 
 
 @pytest.fixture
@@ -52,21 +47,15 @@ class TestPluginManagerValidation:
         assert plugin.type == "source"
         assert plugin.enabled is True
 
-    def test_register_from_invalid_manifest_raises_error(
-        self, plugin_manager, invalid_manifest_paths
-    ):
+    def test_register_from_invalid_manifest_raises_error(self, plugin_manager, invalid_manifest_paths):
         """Should raise ManifestValidationError for invalid manifest."""
         with pytest.raises(ManifestValidationError) as exc_info:
-            plugin_manager.register_from_manifest(
-                invalid_manifest_paths["missing_fields"]
-            )
+            plugin_manager.register_from_manifest(invalid_manifest_paths["missing_fields"])
 
         error = exc_info.value
         assert len(error.errors) > 0
 
-    def test_invalid_manifest_not_registered(
-        self, plugin_manager, invalid_manifest_paths
-    ):
+    def test_invalid_manifest_not_registered(self, plugin_manager, invalid_manifest_paths):
         """Invalid manifest should not be registered."""
         initial_count = len(plugin_manager.list())
 
@@ -77,9 +66,7 @@ class TestPluginManagerValidation:
         final_count = len(plugin_manager.list())
         assert final_count == initial_count
 
-    def test_validation_error_contains_details(
-        self, plugin_manager, invalid_manifest_paths
-    ):
+    def test_validation_error_contains_details(self, plugin_manager, invalid_manifest_paths):
         """Validation error should contain useful details."""
         with pytest.raises(ManifestValidationError) as exc_info:
             plugin_manager.register_from_manifest(invalid_manifest_paths["bad_version"])
@@ -98,9 +85,7 @@ class TestPluginManagerValidation:
         error = exc_info.value
         assert "not found" in " ".join(error.errors).lower()
 
-    def test_registered_plugin_can_be_retrieved(
-        self, plugin_manager, valid_manifest_path
-    ):
+    def test_registered_plugin_can_be_retrieved(self, plugin_manager, valid_manifest_path):
         """Registered plugin should be retrievable by ID."""
         plugin = plugin_manager.register_from_manifest(valid_manifest_path)
 
@@ -109,9 +94,7 @@ class TestPluginManagerValidation:
         assert retrieved.id == plugin.id
         assert retrieved.name == plugin.name
 
-    def test_registered_plugin_appears_in_list(
-        self, plugin_manager, valid_manifest_path
-    ):
+    def test_registered_plugin_appears_in_list(self, plugin_manager, valid_manifest_path):
         """Registered plugin should appear in list."""
         initial_count = len(plugin_manager.list())
 
@@ -121,9 +104,7 @@ class TestPluginManagerValidation:
         assert len(plugins) == initial_count + 1
         assert any(p.id == plugin.id for p in plugins)
 
-    def test_multiple_valid_manifests(
-        self, plugin_manager, valid_manifest_path, tmp_path
-    ):
+    def test_multiple_valid_manifests(self, plugin_manager, valid_manifest_path, tmp_path):
         """Should register multiple valid manifests."""
         # Register first plugin
         plugin1 = plugin_manager.register_from_manifest(valid_manifest_path)
@@ -152,9 +133,7 @@ class TestPluginManagerValidation:
         assert plugin1.id in [p.id for p in plugins]
         assert plugin2.id in [p.id for p in plugins]
 
-    def test_validation_runs_before_registration(
-        self, plugin_manager, invalid_manifest_paths
-    ):
+    def test_validation_runs_before_registration(self, plugin_manager, invalid_manifest_paths):
         """Validation should happen before any registration attempt."""
         # Try to register invalid manifest
         try:

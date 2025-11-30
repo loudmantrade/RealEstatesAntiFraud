@@ -78,25 +78,25 @@ from core.interfaces.source_plugin import SourcePlugin
 class {class_name}(SourcePlugin):
     def scrape(self, config):
         return []
-    
+
     def scrape_single(self, listing_id, config):
         return {{}}
-    
+
     def validate(self, listing):
         return True
-    
+
     def validate_listing(self, listing):
         return True
-    
+
     def validate_config(self, config):
         return True
-    
+
     def configure(self, config):
         pass
-    
+
     def get_metadata(self):
         return {{}}
-    
+
     def get_statistics(self):
         return {{}}
 """
@@ -347,9 +347,7 @@ class TestPluginManagerDependencies:
                 "type": "source",
                 "api_version": "1.0",
                 "description": "Plugin B",
-                "dependencies": {
-                    "plugins": {"plugin-source-a": ">=1.0.0"}  # Does not exist
-                },
+                "dependencies": {"plugins": {"plugin-source-a": ">=1.0.0"}},  # Does not exist
                 "entrypoint": {"module": "plugin_b", "class": "PluginB"},
             },
         )

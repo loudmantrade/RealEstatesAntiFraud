@@ -66,7 +66,7 @@ dependencies:
   python_version: ">=3.10"
   plugins:
     - plugin-processing-normalizer: ">=1.0.0"
-  
+
 # Конфигурация
 config:
   schema: config.yaml

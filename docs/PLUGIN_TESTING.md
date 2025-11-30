@@ -221,10 +221,10 @@ from core.interfaces.processing_plugin import ProcessingPlugin
 class CustomPlugin(ProcessingPlugin):
     async def process(self, listing):
         return listing
-    
+
     def get_metadata(self):
         return {"id": "custom-test-plugin"}
-    
+
     def get_weight(self):
         return 1.0
 '''
@@ -281,10 +281,10 @@ Copies common test plugins to the test directory:
 def test_with_samples(sample_plugins):
     # sample_plugins is a dict with keys:
     # "processing", "detection", "dependent", "source"
-    
+
     processing_dir = sample_plugins["processing"]
     detection_dir = sample_plugins["detection"]
-    
+
     assert (processing_dir / "plugin.yaml").exists()
     assert (detection_dir / "plugin.yaml").exists()
 ```
@@ -296,15 +296,15 @@ Provides a fully initialized `PluginManager` with test plugins loaded:
 ```python
 async def test_plugin_loading(plugin_manager_with_fixtures):
     manager = plugin_manager_with_fixtures
-    
+
     # Plugins are already discovered and loaded
     plugins = manager.get_all_plugins()
     assert len(plugins) > 0
-    
+
     # Get specific plugin
     processing = manager.get_plugin("plugin-processing-test")
     assert processing is not None
-    
+
     # Use plugin
     listing = {"id": "123", "price": 1000000}
     result = await processing.process(listing)
@@ -323,10 +323,10 @@ from tests.fixtures.plugins.test_processing_plugin import TestProcessingPlugin
 async def test_processing_plugin():
     """Test basic processing plugin functionality."""
     plugin = TestProcessingPlugin({"price_multiplier": 2.0})
-    
+
     listing = {"id": "123", "price": 1000000}
     result = await plugin.process(listing)
-    
+
     assert result["price_normalized"] == 2000000
     assert result["processed"] is True
 ```
@@ -337,15 +337,15 @@ async def test_processing_plugin():
 async def test_plugin_manager_integration(plugin_manager_with_fixtures):
     """Test plugins through plugin manager."""
     manager = plugin_manager_with_fixtures
-    
+
     # Get plugin
     plugin = manager.get_plugin("plugin-processing-test")
     assert plugin is not None
-    
+
     # Verify metadata
     metadata = plugin.get_metadata()
     assert metadata["type"] == "processing"
-    
+
     # Use plugin
     listing = {"id": "123", "price": 1000000}
     result = await plugin.process(listing)
@@ -358,21 +358,21 @@ async def test_plugin_manager_integration(plugin_manager_with_fixtures):
 def test_plugin_discovery(plugin_test_helper, tmp_path):
     """Test plugin discovery from directory."""
     from core.plugin_manager import PluginManager
-    
+
     # Copy test plugins
     plugin_test_helper.copy_plugin_fixture("test_processing_plugin")
     plugin_test_helper.copy_plugin_fixture("test_detection_plugin")
-    
+
     # Create plugin manager
     manager = PluginManager(plugin_dirs=[tmp_path])
-    
+
     # Discover plugins
     await manager.discover_plugins()
-    
+
     # Verify discovery
     plugins = manager.get_all_plugins()
     assert len(plugins) >= 2
-    
+
     plugin_ids = [p.get_metadata()["id"] for p in plugins]
     assert "plugin-processing-test" in plugin_ids
     assert "plugin-detection-test" in plugin_ids
@@ -384,22 +384,22 @@ def test_plugin_discovery(plugin_test_helper, tmp_path):
 async def test_plugin_dependencies(plugin_manager_with_fixtures):
     """Test plugin dependency resolution."""
     manager = plugin_manager_with_fixtures
-    
+
     # Get dependent plugin (requires other plugins)
     dependent = manager.get_plugin("plugin-dependent-test")
     assert dependent is not None
-    
+
     # Verify dependencies loaded first
     metadata = dependent.get_metadata()
     assert "dependencies" in metadata
-    
+
     # Verify can use dependent plugin
     listing = {"id": "123", "price": 1000000}
-    
+
     # Process with dependency chain
     processing = manager.get_plugin("plugin-processing-test")
     processed = await processing.process(listing)
-    
+
     enriched = await dependent.process(processed)
     assert enriched["enriched"] is True
 ```
@@ -416,7 +416,7 @@ async def test_custom_plugin(plugin_test_helper):
         plugin_type="processing",
         entrypoint="processor.CustomProcessor",
     )
-    
+
     # Create plugin implementation
     code = '''
 from core.interfaces.processing_plugin import ProcessingPlugin
@@ -425,23 +425,23 @@ class CustomProcessor(ProcessingPlugin):
     async def process(self, listing):
         listing["custom_processed"] = True
         return listing
-    
+
     def get_metadata(self):
         return {"id": "custom-processor", "type": "processing"}
-    
+
     def get_weight(self):
         return 1.0
 '''
     plugin_test_helper.create_plugin_file(plugin_dir, "processor.py", code)
-    
+
     # Load and test plugin
     from core.plugin_manager import PluginManager
     manager = PluginManager(plugin_dirs=[plugin_dir.parent])
     await manager.discover_plugins()
-    
+
     plugin = manager.get_plugin("custom-processor")
     assert plugin is not None
-    
+
     listing = {"id": "123"}
     result = await plugin.process(listing)
     assert result["custom_processed"] is True
@@ -473,16 +473,16 @@ Ensure plugins don't affect each other between tests:
 async def test_plugin_isolation_1(plugin_manager_with_fixtures):
     manager = plugin_manager_with_fixtures
     plugin = manager.get_plugin("plugin-detection-test")
-    
+
     # Process listing
     await plugin.analyze({"id": "123", "price": 1000000})
-    
+
     # Don't rely on state persisting to next test
 
 async def test_plugin_isolation_2(plugin_manager_with_fixtures):
     manager = plugin_manager_with_fixtures
     plugin = manager.get_plugin("plugin-detection-test")
-    
+
     # Plugin state should be clean (new instance)
     assert plugin.analysis_count == 0
 ```
@@ -494,11 +494,11 @@ Test how plugins handle invalid inputs:
 ```python
 async def test_plugin_error_handling():
     plugin = TestProcessingPlugin()
-    
+
     # Test with None price
     result = await plugin.process({"id": "123", "price": None})
     assert "price_normalized" not in result
-    
+
     # Test with missing fields
     result = await plugin.process({})
     assert result["processed"] is True
@@ -516,10 +516,10 @@ Verify configuration is properly applied:
 ])
 async def test_plugin_configuration(multiplier, expected):
     plugin = TestProcessingPlugin({"price_multiplier": multiplier})
-    
+
     listing = {"id": "123", "price": 1000000}
     result = await plugin.process(listing)
-    
+
     assert result["price_normalized"] == expected
 ```
 
@@ -532,12 +532,12 @@ async def test_plugin_lifecycle():
     # Initialize
     plugin = TestProcessingPlugin()
     assert plugin.processed_count == 0
-    
+
     # Use
     await plugin.process({"id": "1", "price": 1000})
     await plugin.process({"id": "2", "price": 2000})
     assert plugin.processed_count == 2
-    
+
     # Shutdown
     plugin.shutdown()
     assert plugin.processed_count == 0

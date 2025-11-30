@@ -69,14 +69,14 @@ dependencies:
     plugin-detection-ml: "~1.5.0"           # Tilde: allows 1.5.x (not 1.6.0)
     plugin-source-base: ">=1.0.0 <2.0.0"    # Range: between 1.0.0 and 2.0.0
     plugin-utils-common: "*"                 # Any version
-  
+
 # Конфигурация
 config:
   schema: config.yaml
   required_keys:
     - api_key
     - base_url
-  
+
 # Возможности
 capabilities:
   - incremental_scraping
@@ -138,22 +138,22 @@ class ScrapingParams:
 
 class SourcePlugin(ABC):
     """Base class for all source plugins"""
-    
+
     def __init__(self, config: Dict):
         """
         Initialize plugin with configuration
-        
+
         Args:
             config: Plugin configuration dict
         """
         self.config = config
         self.enabled = False
-        
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """
         Returns plugin metadata
-        
+
         Returns:
             {
                 'id': str,
@@ -164,71 +164,71 @@ class SourcePlugin(ABC):
             }
         """
         pass
-    
+
     @abstractmethod
     def configure(self, config: Dict) -> None:
         """
         Configure plugin with settings
-        
+
         Args:
             config: Configuration dictionary
         """
         pass
-    
+
     @abstractmethod
     def validate_config(self) -> bool:
         """
         Validate plugin configuration
-        
+
         Returns:
             True if config is valid
         """
         pass
-    
+
     @abstractmethod
     def scrape(self, params: ScrapingParams) -> Iterator[Dict]:
         """
         Main scraping method
-        
+
         Args:
             params: Scraping parameters
-            
+
         Yields:
             Listings in Unified Data Model format
         """
         pass
-    
+
     @abstractmethod
     def scrape_single(self, listing_id: str) -> Optional[Dict]:
         """
         Scrape single listing by ID
-        
+
         Args:
             listing_id: Listing identifier
-            
+
         Returns:
             Listing in UDM format or None
         """
         pass
-    
+
     @abstractmethod
     def validate_listing(self, listing: Dict) -> bool:
         """
         Validate listing data against UDM schema
-        
+
         Args:
             listing: Listing data
-            
+
         Returns:
             True if valid
         """
         pass
-    
+
     @abstractmethod
     def get_statistics(self) -> Dict:
         """
         Return scraping statistics
-        
+
         Returns:
             {
                 'total_scraped': int,
@@ -239,21 +239,21 @@ class SourcePlugin(ABC):
             }
         """
         pass
-    
+
     def on_error(self, error: Exception, context: Dict) -> None:
         """
         Error handler
-        
+
         Args:
             error: Exception that occurred
             context: Context information
         """
         pass
-    
+
     def health_check(self) -> bool:
         """
         Check if plugin is healthy
-        
+
         Returns:
             True if healthy
         """
@@ -270,7 +270,7 @@ from .base import SourcePlugin, ScrapingParams
 
 class ExampleScraperPlugin(SourcePlugin):
     """Example HTML scraper plugin"""
-    
+
     def get_metadata(self) -> Dict:
         return {
             'id': 'plugin-source-example',
@@ -279,52 +279,52 @@ class ExampleScraperPlugin(SourcePlugin):
             'type': 'source',
             'capabilities': ['incremental_scraping', 'batch_processing']
         }
-    
+
     def configure(self, config: Dict) -> None:
         self.base_url = config.get('base_url')
         self.api_key = config.get('api_key')
         self.rate_limit = config.get('rate_limit', 10)
-        
+
     def validate_config(self) -> bool:
         return bool(self.base_url and self.api_key)
-    
+
     def scrape(self, params: ScrapingParams) -> Iterator[Dict]:
         """Main scraping logic"""
-        
+
         # Build URL with params
         url = self._build_url(params)
-        
+
         # Use Scrapy spider
         process = CrawlerProcess({
             'USER_AGENT': 'Mozilla/5.0...',
             'DOWNLOAD_DELAY': 1.0 / self.rate_limit,
         })
-        
+
         listings = []
-        
+
         class ListingSpider(scrapy.Spider):
             name = 'listings'
             start_urls = [url]
-            
+
             def parse(self, response):
                 for item in response.css('.listing-item'):
                     listing = self._extract_listing(item)
                     listings.append(listing)
-                    
+
                 # Pagination
                 next_page = response.css('a.next-page::attr(href)').get()
                 if next_page:
                     yield response.follow(next_page, self.parse)
-        
+
         process.crawl(ListingSpider)
         process.start()
-        
+
         for listing in listings:
             # Map to UDM format
             udm_listing = self._map_to_udm(listing)
             if self.validate_listing(udm_listing):
                 yield udm_listing
-    
+
     def _extract_listing(self, item) -> Dict:
         """Extract listing from HTML element"""
         return {
@@ -333,7 +333,7 @@ class ExampleScraperPlugin(SourcePlugin):
             'address': item.css('.address::text').get(),
             # ... more fields
         }
-    
+
     def _map_to_udm(self, listing: Dict) -> Dict:
         """Map scraped data to Unified Data Model"""
         return {
@@ -356,17 +356,17 @@ class ExampleScraperPlugin(SourcePlugin):
             },
             # ... map all other fields according to UDM
         }
-    
+
     def validate_listing(self, listing: Dict) -> bool:
         """Validate listing against UDM schema"""
         required_fields = ['listing_id', 'source', 'type', 'price']
         return all(listing.get(field) for field in required_fields)
-    
+
     def scrape_single(self, listing_id: str) -> Optional[Dict]:
         """Scrape single listing"""
         # Implementation
         pass
-    
+
     def get_statistics(self) -> Dict:
         return {
             'total_scraped': self.stats.get('scraped', 0),
@@ -386,23 +386,23 @@ from .base import SourcePlugin, ScrapingParams
 
 class APIConnectorPlugin(SourcePlugin):
     """Partner API connector plugin"""
-    
+
     def configure(self, config: Dict) -> None:
         self.api_url = config.get('api_url')
         self.api_key = config.get('api_key')
         self.oauth_token = config.get('oauth_token')
-        
+
     def scrape(self, params: ScrapingParams) -> Iterator[Dict]:
         """Fetch from API"""
-        
+
         headers = {
             'Authorization': f'Bearer {self.oauth_token}',
             'X-API-Key': self.api_key
         }
-        
+
         page = 1
         per_page = 100
-        
+
         while True:
             response = requests.get(
                 f'{self.api_url}/listings',
@@ -415,23 +415,23 @@ class APIConnectorPlugin(SourcePlugin):
                     # ... other params
                 }
             )
-            
+
             if response.status_code != 200:
                 break
-                
+
             data = response.json()
             listings = data.get('listings', [])
-            
+
             if not listings:
                 break
-            
+
             for listing in listings:
                 udm_listing = self._map_to_udm(listing)
                 if self.validate_listing(udm_listing):
                     yield udm_listing
-            
+
             page += 1
-            
+
             # Check if there are more pages
             if page > data.get('total_pages', 1):
                 break
@@ -447,42 +447,42 @@ from typing import Dict, Any, Optional
 
 class ProcessingPlugin(ABC):
     """Base class for processing plugins"""
-    
+
     def __init__(self, config: Dict):
         self.config = config
-        
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """Returns plugin metadata"""
         pass
-    
+
     @abstractmethod
     def process(self, listing: Dict) -> Dict:
         """
         Process listing and return enriched data
-        
+
         Args:
             listing: Listing in UDM format
-            
+
         Returns:
             Enriched listing in UDM format
         """
         pass
-    
+
     @abstractmethod
     def get_priority(self) -> int:
         """
         Return execution priority (lower = earlier)
-        
+
         Returns:
             Priority value (0-100)
         """
         pass
-    
+
     def validate_input(self, listing: Dict) -> bool:
         """Validate input data"""
         return True
-    
+
     def validate_output(self, listing: Dict) -> bool:
         """Validate output data"""
         return True
@@ -497,7 +497,7 @@ from .base import ProcessingPlugin
 
 class GeocodingPlugin(ProcessingPlugin):
     """Geocode addresses to coordinates"""
-    
+
     def get_metadata(self) -> Dict:
         return {
             'id': 'plugin-processing-geocoder',
@@ -505,49 +505,49 @@ class GeocodingPlugin(ProcessingPlugin):
             'version': '1.0.0',
             'type': 'processing'
         }
-    
+
     def get_priority(self) -> int:
         return 3  # Execute after normalization
-    
+
     def process(self, listing: Dict) -> Dict:
         """Add geocoding data"""
-        
+
         location = listing.get('location', {})
         address = location.get('address')
-        
+
         if not address:
             return listing
-        
+
         # Skip if already has coordinates
         if location.get('coordinates'):
             return listing
-        
+
         # Geocode using external service
         coords = self._geocode(address)
-        
+
         if coords:
             listing['location']['coordinates'] = coords
-            
+
             # Add enrichment data
             enrichment = self._get_location_enrichment(coords)
             listing['location']['enrichment'] = enrichment
-        
+
         return listing
-    
+
     def _geocode(self, address: str) -> Optional[Dict]:
         """Geocode address to coordinates"""
         provider = self.config.get('provider', 'yandex')
-        
+
         if provider == 'yandex':
             return self._geocode_yandex(address)
         elif provider == 'google':
             return self._geocode_google(address)
         else:
             return None
-    
+
     def _geocode_yandex(self, address: str) -> Optional[Dict]:
         api_key = self.config.get('yandex_api_key')
-        
+
         response = requests.get(
             'https://geocode-maps.yandex.ru/1.x/',
             params={
@@ -556,15 +556,15 @@ class GeocodingPlugin(ProcessingPlugin):
                 'format': 'json'
             }
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             point = data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject']['Point']['pos']
             lng, lat = map(float, point.split())
             return {'lat': lat, 'lng': lng}
-        
+
         return None
-    
+
     def _get_location_enrichment(self, coords: Dict) -> Dict:
         """Get additional location data"""
         return {
@@ -593,17 +593,17 @@ class FraudSignal:
 
 class DetectionPlugin(ABC):
     """Base class for fraud detection plugins"""
-    
+
     @abstractmethod
     def get_metadata(self) -> Dict:
         """Returns plugin metadata"""
         pass
-    
+
     @abstractmethod
     def analyze(self, listing: Dict) -> Dict:
         """
         Analyze listing for fraud signals
-        
+
         Returns:
             {
                 'signals': List[FraudSignal],
@@ -612,12 +612,12 @@ class DetectionPlugin(ABC):
             }
         """
         pass
-    
+
     @abstractmethod
     def get_weight(self) -> float:
         """
         Return plugin weight in final score calculation
-        
+
         Returns:
             Weight value (0.0 - 1.0)
         """
@@ -633,7 +633,7 @@ from .base import DetectionPlugin, FraudSignal
 
 class PriceAnomalyPlugin(DetectionPlugin):
     """Detect abnormal prices"""
-    
+
     def get_metadata(self) -> Dict:
         return {
             'id': 'plugin-detection-price-anomaly',
@@ -641,36 +641,36 @@ class PriceAnomalyPlugin(DetectionPlugin):
             'version': '1.0.0',
             'type': 'detection'
         }
-    
+
     def get_weight(self) -> float:
         return 0.3  # 30% weight in final score
-    
+
     def analyze(self, listing: Dict) -> Dict:
         """Analyze price for anomalies"""
-        
+
         signals = []
-        
+
         # Get listing details
         price = listing['price']['amount']
         area = listing['details'].get('area_total', 0)
         location = listing['location']
         property_type = listing['property_type']
-        
+
         if area == 0:
             return {'signals': signals, 'confidence': 0.0, 'details': {}}
-        
+
         price_per_sqm = price / area
-        
+
         # Get market statistics for comparison
         market_stats = self._get_market_stats(location, property_type)
-        
+
         if market_stats:
             mean_price = market_stats['mean_price_per_sqm']
             std_price = market_stats['std_price_per_sqm']
-            
+
             # Calculate Z-score
             z_score = abs((price_per_sqm - mean_price) / std_price)
-            
+
             # Too low price (potential scam)
             if price_per_sqm < mean_price - 2 * std_price:
                 signals.append(FraudSignal(
@@ -683,7 +683,7 @@ class PriceAnomalyPlugin(DetectionPlugin):
                         'z_score': z_score
                     }
                 ))
-            
+
             # Too high price (potential overpricing)
             elif price_per_sqm > mean_price + 3 * std_price:
                 signals.append(FraudSignal(
@@ -696,7 +696,7 @@ class PriceAnomalyPlugin(DetectionPlugin):
                         'z_score': z_score
                     }
                 ))
-        
+
         # Round numbers (999999 often used in scams)
         if self._is_suspicious_round_number(price):
             signals.append(FraudSignal(
@@ -705,13 +705,13 @@ class PriceAnomalyPlugin(DetectionPlugin):
                 description='Price uses suspicious round number pattern',
                 evidence={'price': price}
             ))
-        
+
         # Calculate overall confidence
         if signals:
             confidence = sum(s.severity for s in signals) / len(signals)
         else:
             confidence = 0.0
-        
+
         return {
             'signals': signals,
             'confidence': confidence,
@@ -720,13 +720,13 @@ class PriceAnomalyPlugin(DetectionPlugin):
                 'market_comparison': market_stats
             }
         }
-    
+
     def _get_market_stats(self, location: Dict, property_type: str) -> Dict:
         """Get market statistics from database"""
         # Query database for similar listings
         # Return mean, std, percentiles, etc.
         pass
-    
+
     def _is_suspicious_round_number(self, price: int) -> bool:
         """Check if price is suspiciously round"""
         # Check patterns like 999999, 1000000, etc.
@@ -793,7 +793,7 @@ from plugin_source_example import ExampleScraperPlugin
 def test_plugin_metadata():
     plugin = ExampleScraperPlugin({})
     metadata = plugin.get_metadata()
-    
+
     assert metadata['id'] == 'plugin-source-example'
     assert metadata['type'] == 'source'
     assert 'incremental_scraping' in metadata['capabilities']
@@ -804,28 +804,28 @@ def test_scraping():
         'api_key': 'test-key',
         'rate_limit': 10
     }
-    
+
     plugin = ExampleScraperPlugin(config)
     plugin.configure(config)
-    
+
     params = ScrapingParams(city='Moscow', property_type='apartment')
     listings = list(plugin.scrape(params))
-    
+
     assert len(listings) > 0
     assert plugin.validate_listing(listings[0])
 
 def test_udm_mapping():
     plugin = ExampleScraperPlugin({})
-    
+
     raw_listing = {
         'id': '123',
         'title': 'Test Apartment',
         'price': '5000000 руб.',
         'address': 'Moscow, Test Street, 1'
     }
-    
+
     udm_listing = plugin._map_to_udm(raw_listing)
-    
+
     assert udm_listing['listing_id']
     assert udm_listing['source']['platform'] == 'example.com'
     assert udm_listing['price']['currency'] == 'RUB'
@@ -837,20 +837,20 @@ def test_udm_mapping():
 def test_full_pipeline():
     # Install plugin
     from core.plugin_manager import PluginManager
-    
+
     manager = PluginManager()
     plugin = manager.install('./plugin-source-example')
-    
+
     # Configure
     plugin.configure({
         'api_key': 'test-key',
         'base_url': 'https://example.com'
     })
-    
+
     # Scrape
     params = ScrapingParams(city='Moscow', limit=10)
     listings = list(plugin.scrape(params))
-    
+
     # Verify UDM format
     for listing in listings:
         assert plugin.validate_listing(listing)
@@ -913,7 +913,7 @@ realestate-cli plugin publish plugin-source-example-1.0.0.zip \
 ## 8. Plugin Lifecycle
 
 ```
-[Development] → [Testing] → [Packaging] → [Publishing] → [Installation] 
+[Development] → [Testing] → [Packaging] → [Publishing] → [Installation]
      ↓              ↓            ↓             ↓              ↓
   [Local]      [Unit/Int]   [Validation]  [Marketplace]   [Registry]
                                                               ↓
@@ -1181,35 +1181,35 @@ logger = logging.getLogger(__name__)
 
 class CianSourcePlugin(SourcePlugin):
     """Source plugin for scraping Cian.ru."""
-    
+
     def __init__(self):
         """Initialize plugin."""
         self.initialized = True
         logger.info("CianSourcePlugin initialized")
-    
+
     def configure(self, config: Dict) -> None:
         """Configure plugin with settings."""
         self.api_key = config.get("api_key")
         self.base_url = config.get("base_url", "https://cian.ru")
         logger.info(f"Configured with base_url: {self.base_url}")
-    
+
     def validate_listing(self, listing: Dict) -> bool:
         """Validate scraped listing data."""
         required_fields = ["id", "title", "price"]
         return all(field in listing for field in required_fields)
-    
+
     def scrape(self, params: Optional[Dict] = None) -> List[UnifiedListing]:
         """Scrape multiple listings."""
         # Implementation here
         logger.info("Scraping listings from Cian.ru")
         return []
-    
+
     def scrape_single(self, listing_id: str) -> Optional[UnifiedListing]:
         """Scrape single listing by ID."""
         # Implementation here
         logger.info(f"Scraping listing {listing_id}")
         return None
-    
+
     def get_metadata(self) -> Dict:
         """Return plugin metadata."""
         return {
@@ -1217,7 +1217,7 @@ class CianSourcePlugin(SourcePlugin):
             "version": "1.0.0",
             "supported_cities": ["moscow", "saint_petersburg"]
         }
-    
+
     def get_statistics(self) -> Dict:
         """Return scraping statistics."""
         return {
@@ -1391,7 +1391,7 @@ MissingDependencyError: Plugin 'plugin-a' has missing dependencies: plugin-b, pl
 
 #### Version Incompatibility
 ```
-VersionIncompatibilityError: Plugin 'plugin-a' requires 'plugin-b' version '^2.0.0', 
+VersionIncompatibilityError: Plugin 'plugin-a' requires 'plugin-b' version '^2.0.0',
 but found version '1.5.0'
 ```
 
@@ -1473,24 +1473,24 @@ dependencies:
   # Core system requirements
   core_version: ">=1.0.0"
   python_version: ">=3.10,<4.0"
-  
+
   # Plugin dependencies with various constraints
   plugins:
     # Required base functionality - caret for stability
     plugin-source-base: "^2.0.0"
-    
+
     # Geocoding service - tilde for conservative updates
     plugin-processing-geocoder: "~1.5.0"
-    
+
     # ML model plugin - exact version for reproducibility
     plugin-detection-ml-model: "3.2.1"
-    
+
     # Utility library - range for flexibility
     plugin-utils-common: ">=1.0.0 <2.0.0"
-    
+
     # Optional enhancement - any version
     plugin-enhancement-images: "*"
-    
+
     # Cache service - support both v1 and v2
     plugin-cache-redis: ">=1.5.0 <3.0.0"
 ```
@@ -1536,7 +1536,7 @@ with open("dependencies.dot", "w") as f:
 
 The plugin system supports hot reload - updating plugin code without restarting the core service. This enables:
 - **Development**: Rapid iteration without service restarts
-- **Production Updates**: Deploy bug fixes and features with zero downtime  
+- **Production Updates**: Deploy bug fixes and features with zero downtime
 - **A/B Testing**: Safely test new plugin versions
 
 ### How It Works
@@ -1576,20 +1576,20 @@ class MySourcePlugin(SourcePlugin):
     def __init__(self):
         self.db_connection = create_connection()
         self.background_task = start_task()
-    
+
     def shutdown(self) -> None:
         """Gracefully shutdown plugin before reload."""
         # Close database connections
         if self.db_connection:
             self.db_connection.close()
-        
+
         # Stop background tasks
         if self.background_task:
             self.background_task.cancel()
-        
+
         # Save state if needed
         self.save_state()
-    
+
     # ... implement abstract methods ...
 ```
 
@@ -1675,4 +1675,3 @@ Set log level to DEBUG for troubleshooting:
 import logging
 logging.getLogger('core.plugin_manager').setLevel(logging.DEBUG)
 ```
-

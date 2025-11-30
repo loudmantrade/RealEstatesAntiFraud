@@ -14,11 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from core.config import (
-    ConfigManager,
-    ConfigNotFoundError,
-    ConfigValidationError,
-)
+from core.config import ConfigManager, ConfigNotFoundError, ConfigValidationError
 
 
 @pytest.fixture
@@ -122,9 +118,7 @@ class TestConfigurationLoading:
         with pytest.raises(ConfigValidationError):
             manager.load()
 
-    def test_load_config_multiple_times_is_idempotent(
-        self, temp_config_dir, core_config_yaml
-    ):
+    def test_load_config_multiple_times_is_idempotent(self, temp_config_dir, core_config_yaml):
         """Test loading config multiple times doesn't cause issues."""
         manager = ConfigManager(config_dir=temp_config_dir, force_new=True)
         manager.load()
@@ -139,9 +133,7 @@ class TestConfigurationLoading:
 class TestEnvironmentOverrides:
     """Test environment variable overrides."""
 
-    def test_env_override_single_value(
-        self, temp_config_dir, core_config_yaml, clean_env
-    ):
+    def test_env_override_single_value(self, temp_config_dir, core_config_yaml, clean_env):
         """Test environment variable overrides single config value."""
         os.environ["CORE_API_PORT"] = "8888"
 
@@ -150,9 +142,7 @@ class TestEnvironmentOverrides:
 
         assert manager.get("api_port") == 8888
 
-    def test_env_override_multiple_values(
-        self, temp_config_dir, core_config_yaml, clean_env
-    ):
+    def test_env_override_multiple_values(self, temp_config_dir, core_config_yaml, clean_env):
         """Test multiple environment variable overrides."""
         os.environ["CORE_DB_HOST"] = "prod-db.example.com"
         os.environ["CORE_DB_PORT"] = "3306"
@@ -165,9 +155,7 @@ class TestEnvironmentOverrides:
         assert manager.get("db_port") == 3306
         assert manager.get("environment") == "production"
 
-    def test_env_override_boolean_values(
-        self, temp_config_dir, core_config_yaml, clean_env
-    ):
+    def test_env_override_boolean_values(self, temp_config_dir, core_config_yaml, clean_env):
         """Test environment variable override for boolean values."""
         os.environ["CORE_DEBUG"] = "false"
         os.environ["CORE_API_RELOAD"] = "true"
@@ -178,9 +166,7 @@ class TestEnvironmentOverrides:
         assert manager.get("debug") is False
         assert manager.get("api_reload") is True
 
-    def test_env_override_takes_precedence_over_file(
-        self, temp_config_dir, core_config_yaml, clean_env
-    ):
+    def test_env_override_takes_precedence_over_file(self, temp_config_dir, core_config_yaml, clean_env):
         """Test that environment variables take precedence over file values."""
         # File has api_port: 9000
         os.environ["CORE_API_PORT"] = "7777"
@@ -210,16 +196,12 @@ class TestEnvironmentOverrides:
 class TestPluginConfiguration:
     """Test plugin-specific configuration."""
 
-    def test_load_plugin_config_from_file(
-        self, temp_config_dir, core_config_yaml, plugin_config_yaml
-    ):
+    def test_load_plugin_config_from_file(self, temp_config_dir, core_config_yaml, plugin_config_yaml):
         """Test loading plugin configuration from file."""
         manager = ConfigManager(config_dir=temp_config_dir, force_new=True)
         manager.load()
 
-        plugin_config = manager.load_plugin_config(
-            "test-plugin", config_file="plugin-test.yaml"
-        )
+        plugin_config = manager.load_plugin_config("test-plugin", config_file="plugin-test.yaml")
 
         assert plugin_config.plugin_id == "test-plugin"
         assert plugin_config.enabled is True
@@ -236,9 +218,7 @@ class TestPluginConfiguration:
         assert plugin_config.enabled is True
         assert plugin_config.config == {}
 
-    def test_plugin_env_override(
-        self, temp_config_dir, core_config_yaml, plugin_config_yaml, clean_env
-    ):
+    def test_plugin_env_override(self, temp_config_dir, core_config_yaml, plugin_config_yaml, clean_env):
         """Test plugin configuration override via environment."""
         os.environ["PLUGIN_TEST_PLUGIN_ENABLED"] = "false"
         os.environ["PLUGIN_TEST_PLUGIN_TIMEOUT"] = "60"
@@ -246,9 +226,7 @@ class TestPluginConfiguration:
         manager = ConfigManager(config_dir=temp_config_dir, force_new=True)
         manager.load()
 
-        plugin_config = manager.load_plugin_config(
-            "test-plugin", config_file="plugin-test.yaml"
-        )
+        plugin_config = manager.load_plugin_config("test-plugin", config_file="plugin-test.yaml")
 
         # ENV vars go into config dict and are converted to proper types
         assert plugin_config.config.get("enabled") is False
@@ -271,9 +249,7 @@ class TestPluginConfiguration:
         manager.load()
 
         for i in range(3):
-            plugin_config = manager.load_plugin_config(
-                f"plugin-{i}", config_file=f"plugin-{i}.yaml"
-            )
+            plugin_config = manager.load_plugin_config(f"plugin-{i}", config_file=f"plugin-{i}.yaml")
             assert plugin_config.plugin_id == f"plugin-{i}"
             assert plugin_config.config["value"] == i * 10
 

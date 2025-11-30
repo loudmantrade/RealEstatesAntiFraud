@@ -72,7 +72,7 @@ def test_builder(listing_builder):
 def test_lisboa(lisboa_apartments):
     assert len(lisboa_apartments) == 5
     assert all(l.location.city == "Lisboa" for l in lisboa_apartments)
-    
+
     # Districts: Baixa, Chiado, Alfama, Belém, Parque das Nações
     districts = {l.location.district for l in lisboa_apartments}
     assert len(districts) >= 3
@@ -86,7 +86,7 @@ def test_lisboa(lisboa_apartments):
 def test_porto(porto_apartments):
     assert len(porto_apartments) == 5
     assert all(l.location.city == "Porto" for l in porto_apartments)
-    
+
     # Districts: Ribeira, Boavista, Cedofeita, Foz, Matosinhos
 ```
 
@@ -111,7 +111,7 @@ def test_portugal(portuguese_cities):
 def test_kyiv(kyiv_apartments):
     assert len(kyiv_apartments) == 5
     assert all(l.location.city == "Київ" for l in kyiv_apartments)
-    
+
     # Districts: Печерськ, Поділ, Шевченківський, Оболонь, Дарницький
 ```
 
@@ -123,7 +123,7 @@ def test_kyiv(kyiv_apartments):
 def test_lviv(lviv_apartments):
     assert len(lviv_apartments) == 5
     assert all(l.location.city == "Львів" for l in lviv_apartments)
-    
+
     # Districts: Личаківський, Галицький, Франківський
 ```
 
@@ -285,7 +285,7 @@ def test_complex_listing(listing_builder):
 ```python
 def test_event_flow(event_chain):
     raw, normalized, processed = event_chain[:3]
-    
+
     assert raw.event_type == EventType.RAW_LISTING_RECEIVED
     assert normalized.event_type == EventType.LISTING_NORMALIZED
     assert processed.event_type == EventType.LISTING_PROCESSED
@@ -296,11 +296,11 @@ def test_event_flow(event_chain):
 ```python
 def test_fraud_algorithm(fraud_candidates, listing_factory):
     normal_listings = listing_factory.create_batch(10)
-    
+
     for fraud in fraud_candidates:
         score = calculate_fraud_score(fraud)
         assert score > 0.7  # High fraud score
-    
+
     for normal in normal_listings:
         score = calculate_fraud_score(normal)
         assert score < 0.3  # Low fraud score
@@ -314,7 +314,7 @@ Combine multiple fixtures:
 def test_market_comparison(lisboa_apartments, kyiv_apartments):
     lisboa_avg = sum(l.price.amount for l in lisboa_apartments) / len(lisboa_apartments)
     kyiv_avg = sum(l.price.amount for l in kyiv_apartments) / len(kyiv_apartments)
-    
+
     # Portugal market typically more expensive
     assert lisboa_avg > kyiv_avg
 ```
@@ -333,7 +333,7 @@ def test_city_apartments(listing_factory, city, expected_count):
         method_name = f"create_{city.lower()}_apartments"
     else:
         method_name = f"create_{city.lower()}_apartments"
-    
+
     method = getattr(listing_factory, method_name)
     listings = method(count=expected_count)
     assert len(listings) == expected_count

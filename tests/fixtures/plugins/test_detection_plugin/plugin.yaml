@@ -16,7 +16,7 @@ configuration:
     type: float
     default: 2.0
     description: Multiplier for average price to flag anomalies
-  
+
   enable_duplicate_check:
     type: boolean
     default: true

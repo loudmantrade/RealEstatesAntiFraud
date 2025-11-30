@@ -12,9 +12,9 @@ ERRORS=0
 check_service() {
     local service_name=$1
     local check_command=$2
-    
+
     echo -n "  Checking $service_name..."
-    
+
     if eval "$check_command" &> /dev/null; then
         echo -e " ${GREEN}✓${NC}"
         return 0
@@ -28,7 +28,7 @@ check_service() {
 check_python_package() {
     local package=$1
     echo -n "  Checking $package..."
-    
+
     if python -c "import $package" 2>/dev/null; then
         echo -e " ${GREEN}✓${NC}"
         return 0

@@ -278,12 +278,8 @@ class TestRedisQueueSubscribe:
         clean_redis_queue.create_topic(topic)
 
         # Subscribe twice
-        sub_id_1 = clean_redis_queue.subscribe(
-            topic, lambda msg: received_1.append(msg)
-        )
-        sub_id_2 = clean_redis_queue.subscribe(
-            topic, lambda msg: received_2.append(msg)
-        )
+        sub_id_1 = clean_redis_queue.subscribe(topic, lambda msg: received_1.append(msg))
+        sub_id_2 = clean_redis_queue.subscribe(topic, lambda msg: received_2.append(msg))
 
         assert sub_id_1 != sub_id_2
 

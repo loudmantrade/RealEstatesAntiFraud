@@ -9,15 +9,15 @@ config:
   # API credentials
   api_key: ""  # Override with PLUGIN_EXAMPLE_PLUGIN_API_KEY
   api_endpoint: "https://api.example.com"
-  
+
   # Rate limiting
   rate_limit: 100
   rate_period: 60  # seconds
-  
+
   # Retry settings
   max_retries: 3
   retry_delay: 5
-  
+
   # Custom settings
   custom_setting: "value"
   nested:

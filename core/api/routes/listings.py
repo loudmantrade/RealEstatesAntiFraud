@@ -46,12 +46,8 @@ def list_listings(
     city: Optional[str] = Query(None, description="Filter by city"),
     price_min: Optional[float] = Query(None, ge=0, description="Minimum price"),
     price_max: Optional[float] = Query(None, ge=0, description="Maximum price"),
-    fraud_score_min: Optional[float] = Query(
-        None, ge=0, le=1, description="Minimum fraud score"
-    ),
-    fraud_score_max: Optional[float] = Query(
-        None, ge=0, le=1, description="Maximum fraud score"
-    ),
+    fraud_score_min: Optional[float] = Query(None, ge=0, le=1, description="Minimum fraud score"),
+    fraud_score_max: Optional[float] = Query(None, ge=0, le=1, description="Maximum fraud score"),
 ) -> PaginatedResponse:
     """List listings with pagination and filters."""
     repo = ListingRepository(db)
@@ -63,9 +59,7 @@ def list_listings(
     if fraud_score_min is not None or fraud_score_max is not None:
         min_score = fraud_score_min if fraud_score_min is not None else 0.0
         max_score = fraud_score_max if fraud_score_max is not None else 1.0
-        items = repo.get_by_fraud_score_range(
-            min_score, max_score, skip=skip, limit=page_size
-        )
+        items = repo.get_by_fraud_score_range(min_score, max_score, skip=skip, limit=page_size)
         # Count with fraud score filter
         total = repo.count_by_fraud_score_range(min_score, max_score)
     elif price_min is not None or price_max is not None:
@@ -77,9 +71,7 @@ def list_listings(
             limit=page_size,
         )
         # Count with price filter
-        total = repo.count_by_price_range(
-            min_price=price_min, max_price=price_max, city=city
-        )
+        total = repo.count_by_price_range(min_price=price_min, max_price=price_max, city=city)
     else:
         items = repo.get_all(skip=skip, limit=page_size, city=city)
         total = repo.count(city=city)
@@ -96,9 +88,7 @@ def list_listings(
 
 
 @router.post("/", response_model=ListingResponse, status_code=201)
-def create_listing(
-    req: CreateListingRequest, db: Session = Depends(get_db)
-) -> ListingResponse:
+def create_listing(req: CreateListingRequest, db: Session = Depends(get_db)) -> ListingResponse:
     """Create a new listing."""
     repo = ListingRepository(db)
 

@@ -71,7 +71,7 @@ def test_simple_listing():
     """Create a single realistic listing."""
     factory = ListingFactory()
     listing = factory.create_listing()
-    
+
     assert listing.listing_id is not None
     assert listing.price.amount > 0
     assert listing.location.city is not None
@@ -292,7 +292,7 @@ def test_create_listing_api(client, listing_factory):
     """Test API endpoint with factory data."""
     listing = listing_factory.create_listing()
     payload = listing.dict()
-    
+
     response = client.post("/api/v1/listings/", json=payload)
     assert response.status_code == 201
 ```
@@ -303,11 +303,11 @@ def test_create_listing_api(client, listing_factory):
 def test_bulk_insert(db_session, listing_factory):
     """Test database with multiple listings."""
     listings = listing_factory.create_batch(100)
-    
+
     for listing in listings:
         model = listing_to_model(listing)
         db_session.add(model)
-    
+
     db_session.commit()
     count = db_session.query(ListingModel).count()
     assert count == 100
@@ -321,18 +321,18 @@ def test_filter_by_city(db_session, listing_factory):
     # Create listings in different cities
     lisboa = listing_factory.create_lisboa_apartments(5)
     porto = listing_factory.create_porto_apartments(3)
-    
+
     for listing in lisboa + porto:
         model = listing_to_model(listing)
         db_session.add(model)
-    
+
     db_session.commit()
-    
+
     # Filter by city
     results = db_session.query(ListingModel).filter(
         ListingModel.city == "Lisboa"
     ).all()
-    
+
     assert len(results) == 5
 ```
 
@@ -344,7 +344,7 @@ def test_specific_price(listing_factory):
     listing = listing_factory.create_listing(
         price={"amount": 1_500_000, "currency": "EUR"}
     )
-    
+
     assert listing.price.amount == 1_500_000
     assert listing.price.currency == "EUR"
 ```
@@ -375,7 +375,7 @@ def test_fraud_detection(listing_builder):
         .with_area(150.0)
         .as_fraud_candidate(fraud_type="unrealistic_price")
         .build())
-    
+
     # Calculate price per sqm
     price_per_sqm = listing.price.amount / listing.area
     assert price_per_sqm < 500  # Way below market
@@ -387,14 +387,14 @@ def test_fraud_detection(listing_builder):
 def test_event_pipeline(event_factory):
     """Test event processing pipeline."""
     events = event_factory.create_event_chain()
-    
+
     assert events["raw"].event_type == "RawListingReceived"
     assert events["normalized"].event_type == "ListingNormalized"
     assert events["processed"].event_type == "ListingProcessed"
     assert events["fraud"].event_type == "FraudDetected"
-    
+
     # Check correlation
-    assert (events["normalized"].correlation_id == 
+    assert (events["normalized"].correlation_id ==
             events["raw"].correlation_id)
 ```
 
@@ -412,7 +412,7 @@ def test_price_anomaly_detection(listing_factory):
     # Normal Lisboa apartment
     normal = listing_factory.create_lisboa_apartments(1)[0]
     normal_price_per_sqm = normal.price.amount / normal.area
-    
+
     # Fraudulent listing
     fraud_listings = listing_factory.create_fraud_candidates(
         count=1,
@@ -420,7 +420,7 @@ def test_price_anomaly_detection(listing_factory):
     )
     fraud = fraud_listings[0]
     fraud_price_per_sqm = fraud.price.amount / fraud.area
-    
+
     # Fraud should be significantly cheaper
     assert fraud_price_per_sqm < normal_price_per_sqm * 0.3
     assert fraud.fraud_score > 0.7
@@ -435,7 +435,7 @@ def test_no_photos_detection(listing_factory):
         count=5,
         fraud_type="no_photos"
     )
-    
+
     for listing in fraud_listings:
         assert len(listing.media.photos) == 0
         assert listing.fraud_score > 0.5
@@ -450,11 +450,11 @@ def test_duplicate_detection(listing_factory):
         count=5,
         fraud_type="duplicate"
     )
-    
+
     # All should be in same city
     cities = {l.location.city for l in duplicates}
     assert len(cities) == 1
-    
+
     # Similar prices
     prices = [l.price.amount for l in duplicates]
     price_range = max(prices) - min(prices)
@@ -467,11 +467,11 @@ def test_duplicate_detection(listing_factory):
 def test_large_dataset_generation(listing_factory):
     """Generate large dataset for performance testing."""
     import time
-    
+
     start = time.time()
     listings = listing_factory.create_batch(1000)
     duration = time.time() - start
-    
+
     assert len(listings) == 1000
     assert duration < 5.0  # Should be fast
 ```
@@ -483,7 +483,7 @@ def test_market_price_distribution(listing_factory):
     """Analyze price distribution across districts."""
     # Generate Lisboa data
     listings = listing_factory.create_lisboa_apartments(50)
-    
+
     # Group by district
     by_district = {}
     for listing in listings:
@@ -491,7 +491,7 @@ def test_market_price_distribution(listing_factory):
         if district not in by_district:
             by_district[district] = []
         by_district[district].append(listing.price.amount / listing.area)
-    
+
     # Check reasonable distribution
     for district, prices in by_district.items():
         avg_price = sum(prices) / len(prices)
@@ -504,7 +504,7 @@ def test_market_price_distribution(listing_factory):
 def test_edge_cases_handling(listing_factory):
     """Test system with edge case data."""
     edge_cases = listing_factory.create_edge_cases(10)
-    
+
     # System should handle all edge cases without crashing
     for listing in edge_cases:
         try:
@@ -654,7 +654,7 @@ def test_fraud_detection_low_price():
         count=1,
         fraud_type="unrealistic_price"
     )[0]
-    
+
     result = detect_fraud(listing)
     assert result.is_fraud is True
 ```
@@ -952,5 +952,5 @@ When adding new factory methods:
 
 ---
 
-**Last Updated:** November 30, 2025  
+**Last Updated:** November 30, 2025
 **Maintainers:** RealEstatesAntiFraud Team
