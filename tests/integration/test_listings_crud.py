@@ -8,6 +8,8 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from tests.factories.listing_factory import ListingFactory
+
 pytestmark = pytest.mark.integration
 
 
@@ -21,45 +23,21 @@ def test_full_crud_lifecycle(client: TestClient):
     - Deleting the listing
     - Confirming deletion (404 on subsequent read)
     """
-    # Step 1: Create a new listing
-    listing_data = {
-        "listing": {
-            "listing_id": "test_crud_001",
-            "source": {
-                "plugin_id": "cian_plugin",
-                "platform": "cian.ru",
-                "original_id": "12345",
-                "url": "https://cian.ru/sale/flat/12345/",
-            },
-            "type": "sale",
-            "property_type": "apartment",
-            "location": {
-                "country": "Russia",
-                "city": "Moscow",
-                "address": "Tverskaya str. 1",
-                "coordinates": {"lat": 55.7558, "lng": 37.6173},
-            },
-            "price": {
-                "amount": 10000000.0,
-                "currency": "RUB",
-                "price_per_sqm": 150000.0,
-            },
-            "description": "Beautiful apartment in city center",
-            "media": {
-                "images": [
-                    {"url": "https://example.com/img1.jpg", "caption": "Living room"}
-                ]
-            },
-            "fraud_score": 0.15,
-        }
-    }
+    # Step 1: Create a new listing using factory
+    factory = ListingFactory()
+    listing = factory.create_listing(
+        listing_id="test_crud_001",
+        description="Beautiful apartment in city center",
+        fraud_score=0.15,
+    )
+    listing_data = {"listing": listing.model_dump()}
 
     create_response = client.post("/api/v1/listings/", json=listing_data)
     assert create_response.status_code == status.HTTP_201_CREATED
     created_listing = create_response.json()["data"]
     assert created_listing["listing_id"] == "test_crud_001"
-    assert created_listing["location"]["city"] == "Moscow"
-    assert created_listing["price"]["amount"] == 10000000.0
+    assert created_listing["description"] == "Beautiful apartment in city center"
+    assert created_listing["fraud_score"] == 0.15
 
     # Step 2: Read the created listing
     get_response = client.get("/api/v1/listings/test_crud_001")
@@ -96,19 +74,9 @@ def test_create_duplicate_listing(client: TestClient):
     - Creating a listing succeeds
     - Attempting to create the same listing again fails with 400
     """
-    listing_data = {
-        "listing": {
-            "listing_id": "test_duplicate_001",
-            "source": {
-                "plugin_id": "cian_plugin",
-                "platform": "cian.ru",
-            },
-            "type": "rent",
-            "property_type": "house",
-            "location": {"city": "Saint Petersburg"},
-            "price": {"amount": 50000.0, "currency": "RUB"},
-        }
-    }
+    factory = ListingFactory()
+    listing = factory.create_listing(listing_id="test_duplicate_001", listing_type="rent")
+    listing_data = {"listing": listing.model_dump()}
 
     # First creation should succeed
     first_response = client.post("/api/v1/listings/", json=listing_data)
@@ -145,23 +113,16 @@ def test_create_multiple_listings(client: TestClient):
     - Each has unique ID
     - All appear in listings list
     """
+    factory = ListingFactory()
     listing_ids = []
 
     for i in range(5):
-        listing_data = {
-            "listing": {
-                "listing_id": f"test_multi_{i:03d}",
-                "source": {
-                    "plugin_id": "test_plugin",
-                    "platform": "test.com",
-                },
-                "type": "sale" if i % 2 == 0 else "rent",
-                "property_type": "apartment",
-                "location": {"city": f"City_{i}"},
-                "price": {"amount": 1000000.0 + i * 100000, "currency": "RUB"},
-                "fraud_score": i * 0.1,
-            }
-        }
+        listing = factory.create_listing(
+            listing_id=f"test_multi_{i:03d}",
+            listing_type="sale" if i % 2 == 0 else "rent",
+            fraud_score=i * 0.1,
+        )
+        listing_data = {"listing": listing.model_dump()}
 
         response = client.post("/api/v1/listings/", json=listing_data)
         assert response.status_code == status.HTTP_201_CREATED
