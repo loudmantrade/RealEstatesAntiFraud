@@ -497,13 +497,13 @@ class ListingFactory:
         listings = []
         for _ in range(count):
             area = random.uniform(40, 120)
-            
+
             # Regional price adjustments (lower than Lisboa/Kyiv)
             if country == "Portugal":
                 price_per_sqm = random.uniform(2_000, 4_000)
             else:  # Ukraine
                 price_per_sqm = random.uniform(1_000, 2_000)
-            
+
             total_price = area * price_per_sqm
 
             location = {
@@ -541,7 +541,7 @@ class ListingFactory:
         Args:
             count: Number of fraud listings to create
             fraud_type: Specific fraud type or random if None
-                       Options: 'unrealistic_price', 'duplicate_photos', 
+                       Options: 'unrealistic_price', 'duplicate_photos',
                                'fake_location', 'missing_contact', 'too_good_to_be_true'
 
         Returns:
@@ -572,7 +572,7 @@ class ListingFactory:
                 scenario = fraud_scenarios[fraud_type]
             else:
                 scenario = random.choice(list(fraud_scenarios.values()))
-            
+
             listing = scenario()
             listings.append(listing)
 
@@ -581,7 +581,7 @@ class ListingFactory:
     def create_suspicious_listings(self, count: int = 1) -> List[Listing]:
         """
         Create listings with fraud indicators for testing fraud detection.
-        
+
         Deprecated: Use create_fraud_candidates() instead for better control.
 
         Args:
@@ -732,7 +732,7 @@ class ListingFactory:
 
         s1 = self.faker.sentence()
         s2 = self.faker.sentence()
-        
+
         if country == "Portugal":
             templates = [
                 f"Vende-se {property_type} em {city}. {s1} {s2}",

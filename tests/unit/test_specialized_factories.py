@@ -55,7 +55,7 @@ class TestLisboaApartments:
         for district in districts:
             listings = factory.create_lisboa_apartments(1, district=district)
             listing = listings[0]
-            
+
             assert listing.location.city == "Lisboa"
             assert district in listing.location.address
             assert listing.price.currency == "EUR"
@@ -119,7 +119,7 @@ class TestPortoApartments:
         for district in districts:
             listings = factory.create_porto_apartments(1, district=district)
             listing = listings[0]
-            
+
             assert listing.location.city == "Porto"
             assert district in listing.location.address
             assert listing.price.currency == "EUR"
@@ -171,7 +171,7 @@ class TestKyivApartments:
         for district in districts:
             listings = factory.create_kyiv_apartments(1, district=district)
             listing = listings[0]
-            
+
             assert listing.location.city == "Київ"
             assert district in listing.location.address
 
@@ -236,7 +236,7 @@ class TestRegionalListings:
         for city in cities:
             listings = factory.create_regional_listings(city, count=3)
             assert len(listings) == 3
-            
+
             for listing in listings:
                 assert listing.location.city == city
                 assert listing.location.country == "Portugal"
@@ -251,7 +251,7 @@ class TestRegionalListings:
         for city in cities:
             listings = factory.create_regional_listings(city, count=2)
             assert len(listings) == 2
-            
+
             for listing in listings:
                 assert listing.location.city == city
                 assert listing.location.country == "Ukraine"
@@ -261,10 +261,10 @@ class TestRegionalListings:
     def test_create_regional_listings_invalid_city(self):
         """Test error handling for invalid city."""
         factory = ListingFactory(seed=42)
-        
+
         with pytest.raises(ValueError) as exc_info:
             factory.create_regional_listings("InvalidCity", count=1)
-        
+
         assert "not supported" in str(exc_info.value)
 
     def test_regional_listings_coordinates_near_city(self):
@@ -341,10 +341,10 @@ class TestFraudCandidates:
     def test_create_fraud_candidates_invalid_type(self):
         """Test error handling for invalid fraud type."""
         factory = ListingFactory(seed=42)
-        
+
         with pytest.raises(ValueError) as exc_info:
             factory.create_fraud_candidates(1, fraud_type="invalid_type")
-        
+
         assert "Invalid fraud_type" in str(exc_info.value)
 
     def test_create_fraud_candidates_all_types(self):
@@ -471,7 +471,7 @@ class TestBackwardCompatibility:
         countries = [listing.location.country for listing in listings]
         # Should only contain Portugal or Ukraine
         assert all(c in ["Portugal", "Ukraine"] for c in countries)
-        
+
         # Should have both countries represented (with Portugal more common)
         assert "Portugal" in countries
         assert "Ukraine" in countries
@@ -479,7 +479,7 @@ class TestBackwardCompatibility:
     def test_all_listings_use_eur_currency(self):
         """Test that all generated listings use EUR currency."""
         factory = ListingFactory(seed=42)
-        
+
         # Test various generation methods
         test_listings = []
         test_listings.extend(factory.create_batch(5))
@@ -487,7 +487,7 @@ class TestBackwardCompatibility:
         test_listings.extend(factory.create_kyiv_apartments(2))
         test_listings.extend(factory.create_regional_listings("Porto", 2))
         test_listings.extend(factory.create_fraud_candidates(2))
-        
+
         for listing in test_listings:
             assert listing.price.currency == "EUR"
 
