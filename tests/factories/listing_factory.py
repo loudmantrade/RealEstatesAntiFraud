@@ -35,38 +35,110 @@ class ListingFactory:
     # Lisboa districts with realistic price ranges (EUR per sqm)
     LISBOA_DISTRICTS = {
         "Baixa": {"min_price": 6_000, "max_price": 8_000, "coords": (38.7115, -9.1366)},
-        "Chiado": {"min_price": 6_500, "max_price": 8_000, "coords": (38.7107, -9.1423)},
-        "Alfama": {"min_price": 5_000, "max_price": 7_000, "coords": (38.7138, -9.1297)},
+        "Chiado": {
+            "min_price": 6_500,
+            "max_price": 8_000,
+            "coords": (38.7107, -9.1423),
+        },
+        "Alfama": {
+            "min_price": 5_000,
+            "max_price": 7_000,
+            "coords": (38.7138, -9.1297),
+        },
         "Belém": {"min_price": 4_500, "max_price": 6_500, "coords": (38.6976, -9.2068)},
-        "Parque das Nações": {"min_price": 4_000, "max_price": 5_500, "coords": (38.7681, -9.0947)},
-        "Alvalade": {"min_price": 3_500, "max_price": 5_000, "coords": (38.7573, -9.1476)},
-        "Campo de Ourique": {"min_price": 4_500, "max_price": 6_000, "coords": (38.7197, -9.1678)},
-        "Estrela": {"min_price": 5_000, "max_price": 7_000, "coords": (38.7144, -9.1615)},
+        "Parque das Nações": {
+            "min_price": 4_000,
+            "max_price": 5_500,
+            "coords": (38.7681, -9.0947),
+        },
+        "Alvalade": {
+            "min_price": 3_500,
+            "max_price": 5_000,
+            "coords": (38.7573, -9.1476),
+        },
+        "Campo de Ourique": {
+            "min_price": 4_500,
+            "max_price": 6_000,
+            "coords": (38.7197, -9.1678),
+        },
+        "Estrela": {
+            "min_price": 5_000,
+            "max_price": 7_000,
+            "coords": (38.7144, -9.1615),
+        },
     }
 
     # Porto districts with realistic price ranges (EUR per sqm)
     PORTO_DISTRICTS = {
-        "Ribeira": {"min_price": 4_000, "max_price": 5_000, "coords": (41.1406, -8.6143)},
-        "Boavista": {"min_price": 3_000, "max_price": 4_000, "coords": (41.1585, -8.6454)},
-        "Foz do Douro": {"min_price": 3_500, "max_price": 4_500, "coords": (41.1522, -8.6754)},
-        "Cedofeita": {"min_price": 2_800, "max_price": 3_800, "coords": (41.1533, -8.6227)},
-        "Massarelos": {"min_price": 3_200, "max_price": 4_200, "coords": (41.1494, -8.6494)},
+        "Ribeira": {
+            "min_price": 4_000,
+            "max_price": 5_000,
+            "coords": (41.1406, -8.6143),
+        },
+        "Boavista": {
+            "min_price": 3_000,
+            "max_price": 4_000,
+            "coords": (41.1585, -8.6454),
+        },
+        "Foz do Douro": {
+            "min_price": 3_500,
+            "max_price": 4_500,
+            "coords": (41.1522, -8.6754),
+        },
+        "Cedofeita": {
+            "min_price": 2_800,
+            "max_price": 3_800,
+            "coords": (41.1533, -8.6227),
+        },
+        "Massarelos": {
+            "min_price": 3_200,
+            "max_price": 4_200,
+            "coords": (41.1494, -8.6494),
+        },
     }
 
     # Kyiv districts with realistic price ranges (EUR per sqm)
     KYIV_DISTRICTS = {
-        "Печерськ": {"min_price": 2_500, "max_price": 3_500, "coords": (50.4268, 30.5383)},
-        "Шевченківський": {"min_price": 2_000, "max_price": 3_000, "coords": (50.4547, 30.4870)},
-        "Подільський": {"min_price": 1_500, "max_price": 2_500, "coords": (50.4699, 30.5153)},
-        "Оболонський": {"min_price": 1_200, "max_price": 2_000, "coords": (50.5173, 30.4984)},
-        "Дарницький": {"min_price": 1_000, "max_price": 1_800, "coords": (50.4119, 30.6361)},
+        "Печерськ": {
+            "min_price": 2_500,
+            "max_price": 3_500,
+            "coords": (50.4268, 30.5383),
+        },
+        "Шевченківський": {
+            "min_price": 2_000,
+            "max_price": 3_000,
+            "coords": (50.4547, 30.4870),
+        },
+        "Подільський": {
+            "min_price": 1_500,
+            "max_price": 2_500,
+            "coords": (50.4699, 30.5153),
+        },
+        "Оболонський": {
+            "min_price": 1_200,
+            "max_price": 2_000,
+            "coords": (50.5173, 30.4984),
+        },
+        "Дарницький": {
+            "min_price": 1_000,
+            "max_price": 1_800,
+            "coords": (50.4119, 30.6361),
+        },
     }
 
     # Lviv districts with realistic price ranges (EUR per sqm)
     LVIV_DISTRICTS = {
         "Центр": {"min_price": 1_500, "max_price": 2_000, "coords": (49.8397, 24.0297)},
-        "Франківський": {"min_price": 1_200, "max_price": 1_800, "coords": (49.8175, 24.0078)},
-        "Личаківський": {"min_price": 1_000, "max_price": 1_500, "coords": (49.8258, 24.0536)},
+        "Франківський": {
+            "min_price": 1_200,
+            "max_price": 1_800,
+            "coords": (49.8175, 24.0078),
+        },
+        "Личаківський": {
+            "min_price": 1_000,
+            "max_price": 1_500,
+            "coords": (49.8258, 24.0536),
+        },
     }
 
     # Portuguese cities with coordinates
@@ -463,9 +535,7 @@ class ListingFactory:
 
         return listings
 
-    def create_regional_listings(
-        self, city: str, count: int = 5
-    ) -> List[Listing]:
+    def create_regional_listings(self, city: str, count: int = 5) -> List[Listing]:
         """
         Generate listings for specific Portuguese or Ukrainian cities.
 
@@ -799,8 +869,7 @@ class ListingFactory:
         """Create listing with 'too good to be true' description."""
         too_good_desc = "URGENT! Very cheap! Perfect condition! Must sell today!"
         listing = self.create_listing(
-            property_type="apartment",
-            description=too_good_desc
+            property_type="apartment", description=too_good_desc
         )
         # Make price suspiciously low
         listing.price.amount = listing.price.amount * 0.3
@@ -819,7 +888,9 @@ class ListingFactory:
             property_type=random.choice(self.PROPERTY_TYPES),
             location=Location(**self._generate_location()),
             price=Price(
-                **self._generate_price("apartment", "sale", {"city": "Lisboa", "country": "Portugal"})
+                **self._generate_price(
+                    "apartment", "sale", {"city": "Lisboa", "country": "Portugal"}
+                )
             ),
             description=None,
             media=None,

@@ -48,8 +48,14 @@ class TestLisboaApartments:
         """Test all Lisboa districts generate valid data."""
         factory = ListingFactory(seed=42)
         districts = [
-            "Baixa", "Chiado", "Alfama", "Belém",
-            "Parque das Nações", "Alvalade", "Campo de Ourique", "Estrela"
+            "Baixa",
+            "Chiado",
+            "Alfama",
+            "Belém",
+            "Parque das Nações",
+            "Alvalade",
+            "Campo de Ourique",
+            "Estrela",
         ]
 
         for district in districts:
@@ -166,7 +172,13 @@ class TestKyivApartments:
     def test_create_kyiv_apartments_all_districts(self):
         """Test all Kyiv districts generate valid data."""
         factory = ListingFactory(seed=42)
-        districts = ["Печерськ", "Шевченківський", "Подільський", "Оболонський", "Дарницький"]
+        districts = [
+            "Печерськ",
+            "Шевченківський",
+            "Подільський",
+            "Оболонський",
+            "Дарницький",
+        ]
 
         for district in districts:
             listings = factory.create_kyiv_apartments(1, district=district)
@@ -334,7 +346,10 @@ class TestFraudCandidates:
         assert len(listings) == 2
         for listing in listings:
             assert listing.fraud_score >= 75
-            assert "URGENT" in listing.description or "cheap" in listing.description.lower()
+            assert (
+                "URGENT" in listing.description
+                or "cheap" in listing.description.lower()
+            )
             # Price should be suspiciously low (30% of normal)
             assert listing.price.amount < 200_000
 
@@ -355,7 +370,7 @@ class TestFraudCandidates:
             "duplicate_photos",
             "fake_location",
             "missing_contact",
-            "too_good_to_be_true"
+            "too_good_to_be_true",
         ]
 
         for fraud_type in fraud_types:
@@ -504,12 +519,12 @@ class TestSeededGeneration:
         listing1 = factory1.create_listing(
             property_type="apartment",
             listing_type="sale",
-            location={"city": "Lisboa", "country": "Portugal"}
+            location={"city": "Lisboa", "country": "Portugal"},
         )
         listing2 = factory2.create_listing(
             property_type="apartment",
             listing_type="sale",
-            location={"city": "Lisboa", "country": "Portugal"}
+            location={"city": "Lisboa", "country": "Portugal"},
         )
 
         # Basic fields should match with same seed
